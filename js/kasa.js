@@ -136,7 +136,7 @@ async function gelirKaydet(){
   // Validasyon
   var hatalar=[];
   if(!tarih)hatalar.push('Tarih');
-  if(!firma)hatalar.push('Firma / Müşteri');
+  // Firma zorunlu değil, varsayılan 'Müşteri'
   // kisi_sayisi opsiyonel
   if(odemeSatirlari.length===0)hatalar.push('En az bir ödeme yöntemi');
   var gecersizOdeme=odemeSatirlari.filter(function(o){return !o.tip||!(parseFloat(o.tutar)>0);});
