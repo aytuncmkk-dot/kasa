@@ -42,8 +42,11 @@ function switchTab(t){
   if(t==='maliyet')renderMaliyet();
   if(t==='finans')renderFinansAnaliz();
   if(t==='denetim')renderDenetim();
+  if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
   if(t==='denetim')renderDenetim();
+  if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
   if(t==='denetim')renderDenetim();
+  if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
   if(t==='ozelrapor'){ozelRaporKatListesi();renderOzelRapor();}
 }
 
