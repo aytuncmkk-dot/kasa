@@ -57,6 +57,7 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
     <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
+<button class="tab" onclick="switchTab('cariler')">Cariler</button>
     <button class="tab" onclick="switchTab('yedekfon')">Yedek Fon</button>
     <button class="tab" onclick="switchTab('rapor')">Rapor</button>
     <button class="tab" onclick="switchTab('kardagilim')">Kar Dağılım</button>
@@ -560,6 +561,7 @@
 <script src="js/auth.js"></script>
 <script src="js/kasa.js"></script>
 <script src="js/fatura.js"></script>
+<script src="js/cariler.js"></script>
 <script src="js/yedekfon.js"></script>
 <script src="js/rapor.js"></script>
 <script src="js/ozelrapor.js"></script>
@@ -569,5 +571,92 @@
 <script src="js/uyumsoft.js"></script>
 <script src="js/app.js"></script>
 <script src="js/init.js"></script>
+<!-- =============== CARILER TAB =============== -->
+<div id="pg-cariler" class="page">
+  <h2>Cari Hesap Yönetimi</h2>
+
+  <div style="background:#f5f5f5;padding:15px;border-radius:8px;margin-bottom:20px">
+    <h3 style="margin-top:0">Cari Ekle / Düzenle</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <label>Cari Adı *</label>
+        <input type="text" id="cari-ad" placeholder="Örn: Metin Kuş Manav" style="width:100%">
+      </div>
+      <div>
+        <label>Telefon</label>
+        <input type="text" id="cari-telefon" placeholder="0555..." style="width:100%">
+      </div>
+      <div>
+        <label>Vergi No</label>
+        <input type="text" id="cari-vergi" style="width:100%">
+      </div>
+      <div>
+        <label>Notlar</label>
+        <input type="text" id="cari-notlar" style="width:100%">
+      </div>
+    </div>
+    <button id="cari-kaydet-btn" class="btn btn-p" onclick="cariKaydet()" style="margin-top:10px">Cari Kaydet</button>
+  </div>
+
+  <div style="margin-bottom:30px">
+    <h3>
+      Eşleşmemiş Tedarikçiler
+      <span id="eslesmemis-sayi" style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:10px;font-size:12px">0</span>
+      <button class="btn" onclick="topluOtoEslestir()" style="float:right;background:#27ae60;color:#fff">
+        ⚡ Yüksek Eşleşmeleri Otomatik Onayla (≥%90)
+      </button>
+    </h3>
+    <p style="color:#666;font-size:13px">
+      Faturalardaki firma isimleri — henüz bir cariye bağlanmamış olanlar.
+      Sistem benzerlere göre öneri sunar, siz onaylarsınız.
+    </p>
+    <table class="table" style="width:100%">
+      <thead>
+        <tr>
+          <th>Faturadaki İsim</th>
+          <th>Fatura Sayısı</th>
+          <th>Öneriler (Tıkla → Onayla)</th>
+          <th>Manuel Ata</th>
+          <th>Yeni Cari</th>
+        </tr>
+      </thead>
+      <tbody id="eslesmemis-tablo"></tbody>
+    </table>
+    <div id="eslesmemis-empty" class="empty" style="display:none">
+      🎉 Tüm tedarikçiler bir cariye bağlı!
+    </div>
+  </div>
+
+  <div>
+    <h3>Tanımlı Cariler</h3>
+    <table class="table" style="width:100%">
+      <thead>
+        <tr>
+          <th>Cari</th>
+          <th>Takma Ad Sayısı</th>
+          <th>Takma Adlar</th>
+          <th style="text-align:right">Fatura Adedi</th>
+          <th style="text-align:right">Toplam Tutar</th>
+          <th>İşlem</th>
+        </tr>
+      </thead>
+      <tbody id="cari-tablo"></tbody>
+    </table>
+    <div id="cari-empty" class="empty" style="display:none">
+      Henüz cari yok. Yukarıdan ekleyebilir veya eşleşmemiş tedarikçilerden "+ Yeni Cari" ile oluşturabilirsin.
+    </div>
+  </div>
+
+  <style>
+    .alias-tag{display:inline-block;background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:12px;margin:2px;font-size:12px}
+    .alias-tag a{color:#c62828;text-decoration:none;margin-left:4px;font-weight:bold}
+    .oneri-btn{background:#fff;border:2px solid #888;padding:4px 10px;border-radius:6px;margin:2px;cursor:pointer;font-size:12px}
+    .oneri-btn:hover{background:#f0f0f0}
+    .ata-select{padding:4px;max-width:200px}
+    .btn-sm{padding:3px 8px;font-size:12px;cursor:pointer}
+    .btn-primary{background:#3498db;color:#fff;border:none;border-radius:4px}
+  </style>
+</div>
+<!-- =============== /CARILER TAB =============== -->
 </body>
 </html>
