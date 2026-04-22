@@ -13,9 +13,9 @@ var _cariDuzId = null;     // Düzenleme modu için
 async function carilerYukle(){
   try{
     var c = await dbGet('cariler','aktif=eq.true&order=ad.asc');
-    cariler = c.ok ? (c.data || []) : [];
+    cariler = Array.isArray(c) ? c : [];
     var a = await dbGet('cari_aliases','order=alias.asc');
-    cariAliases = a.ok ? (a.data || []) : [];
+    cariAliases = Array.isArray(a) ? a : [];
   }catch(e){ console.error('Cariler yüklenemedi:', e); cariler=[]; cariAliases=[]; }
 }
 
@@ -166,12 +166,12 @@ async function cariKaydet(){
   try{
     if(_cariDuzId){
       var r = await dbPatch('cariler','id',_cariDuzId,{ad:ad, telefon:telefon, vergi_no:vergi, notlar:notlar});
-      if(!r.ok){ alert('Güncelleme hatası.'); return; }
+      if(r===false || r===null || (r && r.ok===false)){ alert('Güncelleme hatası.'); return; }
       try{ await auditLog('GUNCELLE','cariler',_cariDuzId,null,{ad:ad},'Cari güncellendi'); }catch(e){}
     }else{
       var yeni = {ad:ad, telefon:telefon, vergi_no:vergi, notlar:notlar, aktif:true};
       var r2 = await dbPost('cariler',[yeni]);
-      if(!r2.ok){ alert('Kayıt hatası.'); return; }
+      if(r2===false || r2===null || (r2 && r2.ok===false)){ alert('Kayıt hatası.'); return; }
       try{ await auditLog('EKLE','cariler',null,null,yeni,'Yeni cari'); }catch(e){}
     }
     document.getElementById('cari-ad').value='';
@@ -202,7 +202,7 @@ async function cariSil(id){
   if(!confirm('Bu cari pasif edilecek. Emin misiniz?\n\nTakma adları ve hareketler korunacak.')) return;
   try{
     var r = await dbPatch('cariler','id',id,{aktif:false});
-    if(!r.ok){ alert('Silme hatası.'); return; }
+    if(r===false || r===null || (r && r.ok===false)){ alert('Silme hatası.'); return; }
     try{ await auditLog('SIL','cariler',id,null,null,'Cari pasif edildi'); }catch(e){}
     await carilerYukle();
     renderCariler();
@@ -216,7 +216,7 @@ async function aliasAta(hamIsim, cariId, kaynak){
   try{
     var yeni = { cari_id: cariId, alias: hamIsim, onaylandi: true, kaynak: kaynak };
     var r = await dbPost('cari_aliases',[yeni]);
-    if(!r.ok){
+    if(r===false || r===null || (r && r.ok===false)){
       // UNIQUE constraint ihlali olursa (zaten atanmış)
       alert('"'+hamIsim+'" zaten bir cariye atanmış.');
       return false;
@@ -233,7 +233,7 @@ async function aliasKaldir(aliasId){
   if(!confirm('Bu takma ad eşleşmesi kaldırılacak. Emin misiniz?')) return;
   try{
     var r = await dbDelete('cari_aliases','id',aliasId);
-    if(!r.ok){ alert('Kaldırma hatası.'); return; }
+    if(r===false || r===null || (r && r.ok===false)){ alert('Kaldırma hatası.'); return; }
     try{ await auditLog('SIL','cari_aliases',aliasId,null,null,'Takma ad kaldırıldı'); }catch(e){}
     await carilerYukle();
     renderEslesmemisFirmalar();
@@ -249,11 +249,11 @@ async function cariOlusturVeAta(hamIsim){
   try{
     var yeniCari = {ad:ad, aktif:true};
     var r = await dbPost('cariler',[yeniCari]);
-    if(!r.ok){ alert('Cari oluşturulamadı.'); return; }
+    if(r===false || r===null || (r && r.ok===false)){ alert('Cari oluşturulamadı.'); return; }
     // Yeni kaydı geri al
     var c = await dbGet('cariler','ad=eq.'+encodeURIComponent(ad)+'&order=id.desc&limit=1');
-    if(!c.ok || !c.data.length){ alert('Cari bulunamadı.'); return; }
-    var yeniId = c.data[0].id;
+    if(!Array.isArray(c) || !c.length){ alert('Cari bulunamadı.'); return; }
+    var yeniId = c[0].id;
     try{ await auditLog('EKLE','cariler',yeniId,null,yeniCari,'Yeni cari (ham isimden)'); }catch(e){}
     await aliasAta(hamIsim, yeniId, 'manuel');
   }catch(e){ alert('Hata: '+e.message); }
