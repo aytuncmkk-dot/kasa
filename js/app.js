@@ -83,7 +83,57 @@ function aramaTemizle(){
 }
 
 function tarihSecildi(){
-  // Tarih seçimi sonrası yapılacaklar (şimdilik boş)
+  var kaynak = document.activeElement && document.activeElement.id;
+  if(kaynak==='g-tarih' || kaynak==='gi-tarih'){
+    var deger = document.getElementById(kaynak).value;
+    if(deger){
+      var at = document.getElementById('aktif-tarih');
+      if(at) at.value = deger;
+      try{ localStorage.setItem('kasa_aktif_tarih', deger); }catch(e){}
+    }
+  }
+}
+
+function aktifTarihDegisti(){
+  var t = document.getElementById('aktif-tarih').value;
+  if(!t) return;
+  ['g-tarih','gi-tarih','fat-tarih','fon-tarih'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = t;
+  });
+  try{ localStorage.setItem('kasa_aktif_tarih', t); }catch(e){}
+}
+
+function aktifTarihDegistir(gun){
+  var at = document.getElementById('aktif-tarih');
+  if(!at) return;
+  var mevcut = at.value || new Date().toISOString().split('T')[0];
+  var d = new Date(mevcut);
+  d.setDate(d.getDate() + gun);
+  at.value = d.toISOString().split('T')[0];
+  aktifTarihDegisti();
+}
+
+function aktifTarihBugun(){
+  var at = document.getElementById('aktif-tarih');
+  if(!at) return;
+  at.value = new Date().toISOString().split('T')[0];
+  aktifTarihDegisti();
+}
+
+function aktifTarihYukle(){
+  var at = document.getElementById('aktif-tarih');
+  if(!at) return;
+  var kayitli = null;
+  try{ kayitli = localStorage.getItem('kasa_aktif_tarih'); }catch(e){}
+  at.value = kayitli || new Date().toISOString().split('T')[0];
+  aktifTarihDegisti();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', aktifTarihYukle);
+}else{
+  setTimeout(aktifTarihYukle, 100);
 }
 
 function kdTipDegisti(){

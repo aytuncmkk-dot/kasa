@@ -54,7 +54,17 @@
 
 <!-- SEKMELER -->
 <div class="tabs-wrap">
-  <div class="tabs">
+  
+<div class="aktif-tarih-kutu" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;margin-bottom:10px;flex-wrap:wrap">
+  <span style="font-weight:600">Aktif Tarih:</span>
+  <input type="date" id="aktif-tarih" onchange="aktifTarihDegisti()" style="padding:4px 8px;font-size:14px">
+  <button onclick="aktifTarihDegistir(-1)" style="padding:4px 10px" title="1 gun geri">&#9664;</button>
+  <button onclick="aktifTarihDegistir(1)" style="padding:4px 10px" title="1 gun ileri">&#9654;</button>
+  <button onclick="aktifTarihBugun()" style="padding:4px 10px">Bugun</button>
+  <span style="color:#666;font-size:12px;margin-left:auto">Gelir, Gider formlarindaki tarih buna baglidir</span>
+</div>
+
+<div class="tabs">
     <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
     <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
 <button class="tab" onclick="switchTab('cariler')">Cariler</button>
