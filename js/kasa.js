@@ -45,7 +45,7 @@ function renderOzet(){
     var key=k.tarih+'|'+(k.firma||'');
     if(!gruplar[key])gruplar[key]={kisi:0,tutar:0};
     gruplar[key].tutar+=Number(k.tutar);
-    if(Number(k.kisi_sayisi)>0)gruplar[key].kisi=Number(k.kisi_sayisi);
+    if(Number(k.kisi_sayisi)>0)gruplar[key].kisi+=Number(k.kisi_sayisi);
   });
   var topKisi=0,kisiBazliGelir=0;
   Object.keys(gruplar).forEach(function(key){
