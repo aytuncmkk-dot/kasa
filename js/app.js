@@ -33,7 +33,7 @@ function hepsiniYenile(){
 }
 
 function switchTab(t){
-  var tabs=['kasa','fatura','cariler','yedekfon','rapor','kardagilim','stok','maliyet','ozelrapor'];
+  var tabs=['kasa','fatura','yedekfon','rapor','kardagilim','stok','maliyet','ozelrapor'];
   document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',tabs[i]===t);});
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('pg-'+t).classList.add('active');

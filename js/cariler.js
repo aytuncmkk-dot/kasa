@@ -12,9 +12,9 @@ var _cariDuzId = null;     // Düzenleme modu için
 // ---------- YÜKLEME ----------
 async function carilerYukle(){
   try{
-    var c = await dbGet('cariler','?aktif=eq.true&order=ad.asc');
+    var c = await dbGet('cariler','aktif=eq.true&order=ad.asc');
     cariler = c.ok ? (c.data || []) : [];
-    var a = await dbGet('cari_aliases','?order=alias.asc');
+    var a = await dbGet('cari_aliases','order=alias.asc');
     cariAliases = a.ok ? (a.data || []) : [];
   }catch(e){ console.error('Cariler yüklenemedi:', e); cariler=[]; cariAliases=[]; }
 }
@@ -251,7 +251,7 @@ async function cariOlusturVeAta(hamIsim){
     var r = await dbPost('cariler',[yeniCari]);
     if(!r.ok){ alert('Cari oluşturulamadı.'); return; }
     // Yeni kaydı geri al
-    var c = await dbGet('cariler','?ad=eq.'+encodeURIComponent(ad)+'&order=id.desc&limit=1');
+    var c = await dbGet('cariler','ad=eq.'+encodeURIComponent(ad)+'&order=id.desc&limit=1');
     if(!c.ok || !c.data.length){ alert('Cari bulunamadı.'); return; }
     var yeniId = c.data[0].id;
     try{ await auditLog('EKLE','cariler',yeniId,null,yeniCari,'Yeni cari (ham isimden)'); }catch(e){}
