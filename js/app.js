@@ -169,3 +169,48 @@ function karDagilimPDF(){
 function stokEkle(){ alert('Stok modülü henüz aktif değil.'); }
 function stokHareket(){ alert('Stok hareket modülü henüz aktif değil.'); }
 function katEkle(tur){ alert('Kategori ekleme ayarlar sayfası henüz aktif değil.'); }
+
+// =========================================
+// AKTİF TARİH mekaniği (Nisan 2026 eklendi)
+// =========================================
+function aktifTarihDegisti(){
+  var t = document.getElementById('aktif-tarih');
+  if(!t || !t.value) return;
+  ['g-tarih','gi-tarih','fat-tarih','fon-tarih'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = t.value;
+  });
+  try{ localStorage.setItem('kasa_aktif_tarih', t.value); }catch(e){}
+}
+
+function aktifTarihDegistir(gun){
+  var at = document.getElementById('aktif-tarih');
+  if(!at) return;
+  var mevcut = at.value || new Date().toISOString().split('T')[0];
+  var d = new Date(mevcut);
+  d.setDate(d.getDate() + gun);
+  at.value = d.toISOString().split('T')[0];
+  aktifTarihDegisti();
+}
+
+function aktifTarihBugun(){
+  var at = document.getElementById('aktif-tarih');
+  if(!at) return;
+  at.value = new Date().toISOString().split('T')[0];
+  aktifTarihDegisti();
+}
+
+function aktifTarihYukle(){
+  var at = document.getElementById('aktif-tarih');
+  if(!at) return;
+  var kayitli = null;
+  try{ kayitli = localStorage.getItem('kasa_aktif_tarih'); }catch(e){}
+  at.value = kayitli || new Date().toISOString().split('T')[0];
+  aktifTarihDegisti();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', aktifTarihYukle);
+}else{
+  setTimeout(aktifTarihYukle, 200);
+}
