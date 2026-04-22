@@ -1,0 +1,119 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0f0ed;min-height:100vh}
+.topbar{background:#1a1a1a;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:16px;font-weight:500;color:#fff}
+.conn{font-size:11px;display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:#666}
+.dot.ok{background:#4ade80}.dot.err{background:#f87171}
+.app{max-width:1200px;margin:0 auto;padding:12px}
+/* Özet panel */
+.ozet-panel{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #e0e0db}
+.ozet-filtre{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ozet-filtre label{font-size:12px;color:#888}
+.ozet-filtre input{border:1px solid #e0e0db;border-radius:8px;padding:5px 8px;font-size:12px;outline:none}
+.ozet-kartlar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ok{background:#f5f5f3;border-radius:8px;padding:10px 12px}
+.ok-label{font-size:11px;color:#888;margin-bottom:3px}
+.ok-val{font-size:18px;font-weight:500}
+.gc{color:#1D9E75}.rc{color:#D85A30}.bc{color:#185FA5}
+/* Sekmeler */
+.tabs-wrap{background:#fff;border-radius:12px;margin-bottom:12px;border:1px solid #e0e0db;overflow:hidden}
+.tabs{display:flex;overflow-x:auto;border-bottom:1px solid #e0e0db}
+.tab{padding:10px 14px;cursor:pointer;font-size:12px;color:#666;border:none;border-bottom:2px solid transparent;background:none;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.tab.active{color:#1a1a1a;font-weight:500;border-bottom-color:#1a1a1a}
+.page{display:none;padding:14px}.page.active{display:block}
+/* Form */
+.fb{background:#f9f9f8;border:1px solid #e8e8e4;border-radius:10px;padding:12px;margin-bottom:12px}
+.fb-title{font-size:12px;font-weight:500;color:#555;margin-bottom:10px}
+.grid{display:grid;gap:8px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.g5{grid-template-columns:repeat(5,1fr)}
+.g6{grid-template-columns:repeat(6,1fr)}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:#666;font-weight:500}
+.field label .req{color:#D85A30}
+.field input,.field select,.field textarea{width:100%;border:1px solid #e0e0db;border-radius:8px;padding:7px 9px;font-size:13px;background:#fff;color:#1a1a1a;outline:none;font-family:inherit;text-transform:uppercase}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#888}
+.field input.error,.field select.error{border-color:#D85A30}
+/* Ödeme bölümü */
+.odeme-blok{background:#fff;border:1px solid #e0e0db;border-radius:8px;padding:10px;margin-top:8px}
+.odeme-blok-title{font-size:11px;color:#888;font-weight:500;margin-bottom:8px}
+.odeme-satir{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end;margin-bottom:6px}
+.btn-add-odeme{padding:5px 10px;border:1px dashed #e0e0db;border-radius:6px;background:#fff;font-size:12px;cursor:pointer;color:#888;width:100%;margin-top:4px}
+.btn-add-odeme:hover{border-color:#999;color:#333}
+/* Butonlar */
+.btn{padding:7px 14px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#f5f5f3}
+.btn-p{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-p:hover{background:#333}
+.btn-g{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.btn-g:hover{background:#18876a}
+.btn-r{background:#fff;color:#D85A30;border-color:#D85A30}
+.btn-r:hover{background:#FAECE7}
+.btn-sm{padding:3px 8px;font-size:11px;border:1px solid #e0e0db;border-radius:5px;background:#fff;cursor:pointer;color:#555}
+.btn-sm:hover{background:#f5f5f3}
+.btn-sm-r{color:#D85A30;border-color:#f5c4b3}
+.btn-sm-r:hover{background:#FAECE7}
+.btn-sm-b{color:#185FA5;border-color:#b5d4f4}
+.btn-sm-b:hover{background:#E6F1FB}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+/* Tablo */
+.tw{border:1px solid #e0e0db;border-radius:10px;overflow:hidden;overflow-x:auto;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:500px}
+thead th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:#888;border-bottom:1px solid #e0e0db;background:#f9f9f8;white-space:nowrap}
+tbody td{padding:7px 10px;border-bottom:1px solid #f0f0ec;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafaf8}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;border-radius:4px;line-height:1}
+.del-btn:hover{background:#fde8e8;color:#A32D2D}
+.edit-btn{background:none;border:none;cursor:pointer;color:#b5d4f4;font-size:14px;padding:2px 4px;border-radius:4px;line-height:1}
+.edit-btn:hover{background:#E6F1FB;color:#185FA5}
+.empty{text-align:center;padding:2rem;color:#aaa;font-size:13px}
+/* Filtre */
+.frow{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.frow label{font-size:11px;color:#888}
+.frow select,.frow input[type=month],.frow input[type=date]{border:1px solid #e0e0db;border-radius:7px;padding:5px 8px;font-size:12px;background:#fff;outline:none}
+/* Stok kartları */
+.stok-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.sk{background:#fff;border:1px solid #e0e0db;border-radius:10px;padding:10px}
+.sk-adi{font-size:13px;font-weight:500;margin-bottom:2px}
+.sk-meta{font-size:11px;color:#888;margin-bottom:6px}
+.sk-adet{font-size:20px;font-weight:500}
+.sk-ok{color:#1D9E75}.sk-warn{color:#BA7517}.sk-err{color:#D85A30}
+/* Fatura kartları */
+.fatura-kart{background:#fff;border:1px solid #e0e0db;border-radius:10px;padding:12px;margin-bottom:8px}
+.fatura-kart.odenmemis{border-left:3px solid #D85A30}
+.fatura-kart.odendi{border-left:3px solid #1D9E75}
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:16px;width:100%;max-width:640px;margin:auto}
+.modal-title{font-size:16px;font-weight:500;margin-bottom:12px}
+/* Bölüm başlığı */
+.sec-title{font-size:13px;font-weight:500;color:#555;margin-bottom:8px;margin-top:14px;padding-bottom:5px;border-bottom:1px solid #f0f0ec}
+/* Kat listesi */
+.kat-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid #f5f5f3}
+.kat-row:last-child{border-bottom:none}
+/* Uyarı */
+.uyari{background:#FAEEDA;border:1px solid #BA7517;border-radius:8px;padding:8px 12px;font-size:12px;color:#633806;margin-bottom:10px}
+.bilgi{background:#E6F1FB;border:1px solid #185FA5;border-radius:8px;padding:8px 12px;font-size:12px;color:#0C447C;margin-bottom:10px}
+/* Odeme badge */
+.odm-n{background:#EAF3DE;color:#27500A}
+.odm-k{background:#E6F1FB;color:#0C447C}
+.odm-h{background:#FAEEDA;color:#633806}
+/* Grafik çubuk */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-lbl{font-size:12px;width:160px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-tr{flex:1;height:7px;background:#f0f0ec;border-radius:4px;overflow:hidden}
+.bar-fi{height:100%;border-radius:4px;background:#D85A30}
+.bar-amt{font-size:12px;font-weight:500;width:100px;text-align:right;flex-shrink:0}
+.bar-pct{font-size:11px;color:#888;width:32px;text-align:right;flex-shrink:0}
+@media(max-width:640px){
+  .ozet-kartlar{grid-template-columns:1fr 1fr}
+  .g2,.g3,.g4,.g5,.g6{grid-template-columns:1fr 1fr}
+  .stok-grid{grid-template-columns:1fr 1fr}
+  .odeme-satir{grid-template-columns:1fr 1fr}
+}
