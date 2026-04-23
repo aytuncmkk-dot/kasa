@@ -11,13 +11,16 @@ async function incelemeSekmeAc(){
   _incelemeKategoriler = kats || [];
   incelemeKategoriDoldur();
 
+  var geriBtn = document.getElementById('inc-geri-btn');
   if(window._incAcGun){
     var t = window._incAcGun;
     window._incAcGun = null;
     document.getElementById('inc-bas').value = t;
     document.getElementById('inc-bit').value = t;
     document.querySelectorAll('.inc-chip').forEach(function(c){ c.classList.remove('active'); });
+    if(geriBtn) geriBtn.style.display = '';
   } else {
+    if(geriBtn) geriBtn.style.display = 'none';
     var bitis = new Date();
     var baslangic = new Date();
     baslangic.setDate(baslangic.getDate() - 30);
