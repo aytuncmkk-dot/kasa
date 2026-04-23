@@ -5,7 +5,7 @@
 async function yukle(){
   try{
     setBag(false);
-    kayitlar     = await dbGet('kayitlar','select=*&order=tarih.desc,id.desc');
+    kayitlar     = await dbGet('kayitlar','select=*&order=tarih.desc,id.desc&limit=10000');
     faturalar    = await dbGet('faturalar','select=*&order=tarih.desc');
     fonHareketler= await dbGet('yedek_fon','select=*&order=tarih.desc');
     stoklar      = await dbGet('stoklar','select=*&order=adi.asc');
