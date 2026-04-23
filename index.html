@@ -67,6 +67,7 @@
 <div class="tabs">
     <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
     <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
+<button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
 <button class="tab" onclick="switchTab('cariler')">Cariler</button>
     <button class="tab" onclick="switchTab('yedekfon')">Yedek Fon</button>
     <button class="tab" onclick="switchTab('rapor')">Rapor</button>
@@ -572,6 +573,7 @@
 <script src="js/kasa.js"></script>
 <script src="js/fatura.js"></script>
 <script src="js/cariler.js"></script>
+<script src="js/inceleme.js"></script>
 <script src="js/yedekfon.js"></script>
 <script src="js/rapor.js"></script>
 <script src="js/ozelrapor.js"></script>
@@ -668,5 +670,110 @@
   </style>
 </div>
 <!-- =============== /CARILER TAB =============== -->
+<div id="pg-inceleme" class="page">
+  <div class="card">
+    <h2 style="margin-top:0">🔍 Kayıt İnceleme</h2>
+    <p style="color:#666;margin:0 0 15px 0;font-size:14px">Tüm kasa kayıtlarını tarih aralığı ve filtrelerle görüntüle, düzenle veya sil.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label>Başlangıç Tarihi</label>
+        <input type="date" id="inc-bas">
+      </div>
+      <div>
+        <label>Bitiş Tarihi</label>
+        <input type="date" id="inc-bit">
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="secondary" onclick="incelemeHizliTarih('bugun')" style="padding:6px 12px;font-size:12px">Bugün</button>
+      <button class="secondary" onclick="incelemeHizliTarih('7gun')" style="padding:6px 12px;font-size:12px">Son 7 Gün</button>
+      <button class="secondary" onclick="incelemeHizliTarih('30gun')" style="padding:6px 12px;font-size:12px">Son 30 Gün</button>
+      <button class="secondary" onclick="incelemeHizliTarih('buay')" style="padding:6px 12px;font-size:12px">Bu Ay</button>
+      <button class="secondary" onclick="incelemeHizliTarih('gecenay')" style="padding:6px 12px;font-size:12px">Geçen Ay</button>
+      <button class="secondary" onclick="incelemeHizliTarih('buyil')" style="padding:6px 12px;font-size:12px">Bu Yıl</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label>Tür</label>
+        <select id="inc-tur" onchange="incelemeFiltreleVeGoster()">
+          <option value="">— Tümü —</option>
+          <option value="gelir">Gelir</option>
+          <option value="gider">Gider</option>
+        </select>
+      </div>
+      <div>
+        <label>Kategori</label>
+        <select id="inc-kat" onchange="incelemeFiltreleVeGoster()"></select>
+      </div>
+      <div>
+        <label>Ödeme</label>
+        <select id="inc-odeme" onchange="incelemeFiltreleVeGoster()">
+          <option value="">— Tümü —</option>
+          <option value="Nakit">Nakit</option>
+          <option value="Kredi Kartı">Kredi Kartı</option>
+          <option value="Havale">Havale</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label>Firma/Müşteri</label>
+        <input type="text" id="inc-firma" placeholder="Firma adı ara..." oninput="incelemeFiltreleVeGoster()">
+      </div>
+      <div>
+        <label>Metin Arama (açıklama/firma/kategori)</label>
+        <input type="text" id="inc-arama" placeholder="Herhangi bir alanda ara..." oninput="incelemeFiltreleVeGoster()">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="incelemeAra()">🔍 Tarih Aralığını Yeniden Yükle</button>
+      <button class="secondary" onclick="incelemeTemizle()">Filtreleri Temizle</button>
+      <span id="inc-durum" style="margin-left:auto;color:#666;font-size:13px"></span>
+    </div>
+  </div>
+
+  <div class="card" style="background:linear-gradient(135deg,#f8f9fa,#fff)">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
+      <div>
+        <div style="color:#666;font-size:12px;text-transform:uppercase">Toplam Gelir</div>
+        <div id="inc-ozet-gelir" style="font-size:20px;font-weight:700;color:#1D9E75">TL 0,00</div>
+      </div>
+      <div>
+        <div style="color:#666;font-size:12px;text-transform:uppercase">Toplam Gider</div>
+        <div id="inc-ozet-gider" style="font-size:20px;font-weight:700;color:#D85A30">TL 0,00</div>
+      </div>
+      <div>
+        <div style="color:#666;font-size:12px;text-transform:uppercase">Net</div>
+        <div id="inc-ozet-net" style="font-size:20px;font-weight:700">TL 0,00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f5f5f5;text-align:left">
+            <th style="padding:8px;border-bottom:2px solid #ddd">Tarih</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd">Tür</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd">Kategori</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd">Firma/Müşteri</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd">Ödeme</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd">Açıklama</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd;text-align:right">Tutar</th>
+            <th style="padding:8px;border-bottom:2px solid #ddd">İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="inc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

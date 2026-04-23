@@ -43,10 +43,13 @@ function switchTab(t){
   if(t==='finans')renderFinansAnaliz();
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
+    if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
+    if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
+    if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='ozelrapor'){ozelRaporKatListesi();renderOzelRapor();}
 }
 
