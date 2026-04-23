@@ -10,7 +10,7 @@ function renderKarDagilim(){
     if(tip==='aralik'){var b=document.getElementById('kd-bas').value,s=document.getElementById('kd-bit').value;if(b&&s)return list.filter(function(k){return k.tarih>=b&&k.tarih<=s;});}
     return list;
   }
-  var donemKayitlar=filtrele(kayitlar);
+  var donemKayitlar=filtrele(kayitlar);kdBakiyeGuncelle(donemKayitlar);
   var donemGelir=donemKayitlar.filter(function(k){return k.tur==='gelir';});
   var donemGider=donemKayitlar.filter(function(k){return k.tur==='gider';});
   var totGelir=donemGelir.reduce(function(s,k){return s+Number(k.tutar);},0);
@@ -73,3 +73,25 @@ function renderKarDagilim(){
   document.getElementById('kd-icerik').innerHTML=html;
 }
 
+
+async function kdBakiyeGuncelle(donemKayitlar){
+  var donemGelir=0, donemGider=0;
+  (donemKayitlar||[]).forEach(function(k){
+    if(k.tur==='gelir') donemGelir+=Number(k.tutar)||0;
+    else donemGider+=Number(k.tutar)||0;
+  });
+  var dnm=donemGelir-donemGider;
+  var el1=document.getElementById('kd-donem-bakiye');
+  if(el1){ el1.textContent=para(dnm); el1.style.color=dnm>=0?'#059669':'#dc2626'; }
+  try{
+    var tumu=await dbGet('kayitlar','select=tur,tutar');
+    var tg=0,tgd=0;
+    (tumu||[]).forEach(function(k){
+      if(k.tur==='gelir') tg+=Number(k.tutar)||0;
+      else tgd+=Number(k.tutar)||0;
+    });
+    var tplm=tg-tgd;
+    var el2=document.getElementById('kd-toplam-bakiye');
+    if(el2){ el2.textContent=para(tplm); el2.style.color=tplm>=0?'#1e40af':'#dc2626'; }
+  }catch(e){ console.error('Toplam bakiye hatasi',e); }
+}
