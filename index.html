@@ -707,7 +707,7 @@
 #pg-inceleme .inc-subtitle{color:#666;font-size:13px;margin:0}
 
 /* KPI Kartları */
-#pg-inceleme .inc-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+#pg-inceleme .inc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 #pg-inceleme .inc-kpi{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
 #pg-inceleme .inc-kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#e5e7eb}
 #pg-inceleme .inc-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:600;margin-bottom:6px}
@@ -720,6 +720,8 @@
 #pg-inceleme .inc-kpi-pos .inc-kpi-value{color:#059669}
 #pg-inceleme .inc-kpi-neg::before{background:#ef4444}
 #pg-inceleme .inc-kpi-neg .inc-kpi-value{color:#dc2626}
+#pg-inceleme .inc-kpi-ortak::before{background:#f59e0b}
+#pg-inceleme .inc-kpi-ortak .inc-kpi-value{color:#b45309}
 
 /* Filtre paneli */
 #pg-inceleme .inc-panel{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px}
@@ -836,6 +838,10 @@
       <div class="inc-kpi inc-kpi-pos" id="inc-k-net-kart">
         <div class="inc-kpi-label">Net</div>
         <div class="inc-kpi-value" id="inc-k-net">TL 0,00</div>
+      </div>
+      <div class="inc-kpi inc-kpi-ortak">
+        <div class="inc-kpi-label">Ortaklara Ödenen</div>
+        <div class="inc-kpi-value" id="inc-k-ortak">TL 0,00</div>
       </div>
     </div>
 

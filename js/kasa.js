@@ -262,8 +262,10 @@ async function duzKaydet(){
   if(!r.ok){alert('Güncelleme hatası!');return;}
   var idx=kayitlar.findIndex(function(x){return x.id==_duzId;});
   if(idx>=0)Object.assign(kayitlar[idx],gunc);
+  var _guncelId=_duzId;
   duzKapat();
   renderKasa();renderOzet();
+  if(typeof incelemeKayitGuncelle==='function') incelemeKayitGuncelle(_guncelId,gunc);
 }
 
 function renderKasa(){

@@ -133,19 +133,30 @@ function odemeKlas(o){
 }
 
 function incelemeOzet(liste){
-  var gelir = 0, gider = 0;
+  var gelir = 0, gider = 0, ortakOdenen = 0;
   liste.forEach(function(k){
     if(k.tur === 'gelir') gelir += Number(k.tutar)||0;
-    else if(k.kat !== 'Ortaklara Ödenen') gider += Number(k.tutar)||0;
+    else if(k.kat === 'Ortaklara Ödenen') ortakOdenen += Number(k.tutar)||0;
+    else gider += Number(k.tutar)||0;
   });
   var net = gelir - gider;
   document.getElementById('inc-k-gelir').textContent = para(gelir);
   document.getElementById('inc-k-gider').textContent = para(gider);
   document.getElementById('inc-k-net').textContent = para(net);
+  var elOrtak = document.getElementById('inc-k-ortak');
+  if(elOrtak) elOrtak.textContent = para(ortakOdenen);
   var netKart = document.getElementById('inc-k-net-kart');
   if(netKart){
     netKart.classList.remove('inc-kpi-pos','inc-kpi-neg');
     netKart.classList.add(net>=0?'inc-kpi-pos':'inc-kpi-neg');
+  }
+}
+
+function incelemeKayitGuncelle(id, gunc){
+  var idx = _incelemeKayitlar.findIndex(function(k){ return k.id === id; });
+  if(idx >= 0){
+    Object.assign(_incelemeKayitlar[idx], gunc);
+    incelemeFiltreleVeGoster();
   }
 }
 
