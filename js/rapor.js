@@ -45,7 +45,7 @@ function accordionSatir(uid, baslik, toplam, oran, renk, detaylar){
     '</div>';
   });
   return '<div style="border-bottom:1px solid #f0f0ec">'+
-    '<div id="btn_'+uid+'" onclick="accordionToggle("'+uid+'")" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer">'+
+    '<div id="btn_'+uid+'" onclick="accordionToggle(\''+uid+'\')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
         '<span id="'+uid+'_icon" style="color:#888;font-size:12px">&#9658;</span>'+
         '<span style="font-size:13px;color:#444">'+baslik+'</span>'+
@@ -119,6 +119,7 @@ function renderRapor(){
 
   // Gider detayı
   var giderIcerik=baslik('GİDER KATEGORİLERİ');
+  var bilinenGiderKatlar=giderKatlar.map(function(k){return k.ad;});
   giderKatlar.filter(function(k){return k.ad!=='Ortaklara Ödenen';}).forEach(function(kat){
     var kayitlar_kat=gid.filter(function(k){return k.kat===kat.ad;});
     var toplam=kayitlar_kat.reduce(function(s,k){return s+Number(k.tutar);},0);
@@ -135,6 +136,16 @@ function renderRapor(){
     });
     giderIcerik+=accordionSatir(uid,kat.ad,toplam,oran,'#D85A30',detaylar);
   });
+  // Kategori listesinde olmayan (silinmiş/bilinmeyen) gider kayıtları
+  var digerleri=gid.filter(function(k){return k.kat!=='Ortaklara Ödenen'&&bilinenGiderKatlar.indexOf(k.kat)===-1;});
+  var digerleriTop=digerleri.reduce(function(s,k){return s+Number(k.tutar);},0);
+  if(digerleriTop>0){
+    var dOran=totGelir>0?((digerleriTop/totGelir)*100).toFixed(1):0;
+    var dGruplar={};
+    digerleri.forEach(function(k){var key=k.kat||'Kategorisiz';dGruplar[key]=(dGruplar[key]||0)+Number(k.tutar);});
+    var dDetaylar=Object.keys(dGruplar).sort(function(a,b){return dGruplar[b]-dGruplar[a];}).map(function(key){return {key:key,val:dGruplar[key],pct:digerleriTop>0?((dGruplar[key]/digerleriTop)*100).toFixed(0):0};});
+    giderIcerik+=accordionSatir('d_diger','⚠️ Diğer / Kategorisiz',digerleriTop,dOran,'#9333ea',dDetaylar);
+  }
   html+=bolum(giderIcerik);
 
   document.getElementById('r-karzarar').innerHTML=html;

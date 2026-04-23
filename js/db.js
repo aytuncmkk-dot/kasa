@@ -15,6 +15,7 @@ async function dbGetAll(tablo,params){
   while(true){
     var H=Object.assign({},getSBH(),{'Range-Unit':'items','Range':from+'-'+(from+pageSize-1)});
     var r=await fetch(SB_URL+'/rest/v1/'+tablo+'?'+params,{headers:H});
+    if(r.status===416)break;
     if(!r.ok)throw new Error(tablo+' okuma hatası: '+r.status);
     var rows=await r.json();
     all=all.concat(rows);
