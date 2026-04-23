@@ -48,7 +48,7 @@ function switchTab(t){
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
   if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
   if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
-  if(t==='ozelrapor'){if(typeof ozelRaporKatListesi==='function')ozelRaporKatListesi();if(typeof renderOzelRapor==='function')renderOzelRapor();}
+  if(t==='ozelrapor'){if(typeof ozelRaporKatGuncelle==='function')ozelRaporKatGuncelle();if(typeof renderOzelRapor==='function')renderOzelRapor();}
 }
 
 function doldurKatListeleri(){
@@ -116,8 +116,37 @@ function maliyetTipDegisti(){
 }
 
 function exportCSV(){
-  // CSV indirme (ileride eklenecek)
-  alert('CSV indirme özelliği henüz aktif değil.');
+  if(!kayitlar||!kayitlar.length){alert('Henüz yüklenmiş kayıt yok.');return;}
+  var satirlar=[['Tarih','Tür','Kategori','Firma','Açıklama','Ödeme Tipi','Tutar','Kişi Sayısı']];
+  kayitlar.slice().sort(function(a,b){
+    return a.tarih<b.tarih?-1:a.tarih>b.tarih?1:(a.id||0)-(b.id||0);
+  }).forEach(function(k){
+    satirlar.push([
+      k.tarih||'',
+      k.tur||'',
+      k.kat||'',
+      k.firma||'',
+      k.aciklama||'',
+      k.odeme||'',
+      (Number(k.tutar)||0).toFixed(2).replace('.',','),
+      k.kisi_sayisi||0
+    ]);
+  });
+  var csv='﻿'+satirlar.map(function(r){
+    return r.map(function(h){
+      var s=String(h).replace(/"/g,'""');
+      return (s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)?'"'+s+'"':s;
+    }).join(',');
+  }).join('\r\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='kasa_kayitlar_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function karDagilimPDF(){

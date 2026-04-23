@@ -41,7 +41,7 @@ function renderOzelRapor(){
 function ozelRaporKatGuncelle(){
   var div=document.getElementById('ozel-kat-list');
   if(!div)return;
-  var tumKatlar=giderKatlar.map(function(k){return k.ad;}).filter(function(k){return k!=='Ortaklara Odenen';});
+  var tumKatlar=giderKatlar.map(function(k){return k.ad;}).filter(function(k){return k!=='Ortaklara Ödenen';});
   div.innerHTML=tumKatlar.map(function(k){
     return '<label style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer;font-size:13px"><input type="checkbox" class="ozel-kat-cb" value="'+k+'"> '+k+'</label>';
   }).join('');
