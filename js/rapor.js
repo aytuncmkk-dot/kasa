@@ -65,7 +65,9 @@ function renderRapor(){
   var gid=list.filter(function(k){return k.tur==='gider';});
   var totGelir=gel.reduce(function(s,k){return s+Number(k.tutar);},0);
   var isletmeGider=gid.filter(function(k){return k.kat!=='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var ortakOdenen=gid.filter(function(k){return k.kat==='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
   var netKar=totGelir-isletmeGider;
+  var kasadaKalan=netKar-ortakOdenen;
   var karMarji=totGelir>0?((netKar/totGelir)*100):0;
 
   function bolum(icerik){return '<div style="background:#fff;border:1px solid #e0e0db;border-radius:10px;overflow:hidden;margin-bottom:10px">'+icerik+'</div>';}
@@ -80,13 +82,18 @@ function renderRapor(){
 
   var html='';
 
-  // Özet
+  // Özet — Gelir − İşletme Gideri = Net Kar − Ortaklara Ödenen = Kasada Kalan
   var ozet=satir('TOPLAM GELİR',totGelir,'#1D9E75',true);
-  ozet+=satir('TOPLAM GİDER',isletmeGider,'#D85A30',true);
+  ozet+=satir('İŞLETME GİDERİ',isletmeGider,'#D85A30',true);
   ozet+=satir('NET KAR',netKar,netKar>=0?'#1D9E75':'#D85A30',true);
-  ozet+='<div style="display:flex;justify-content:space-between;padding:10px 14px;background:'+(netKar>=0?'#E1F5EE':'#FAECE7')+'">'+
-    '<span style="font-size:13px;font-weight:600;color:'+(netKar>=0?'#0F6E56':'#993C1D')+'">KAR MARJI</span>'+
-    '<span style="font-size:16px;font-weight:700;color:'+(netKar>=0?'#1D9E75':'#D85A30')+'">'+karMarji.toFixed(1)+'%</span>'+
+  ozet+=satir('ORTAKLARA ÖDENEN',ortakOdenen,'#b45309',true);
+  ozet+='<div style="display:flex;justify-content:space-between;padding:10px 14px;background:'+(kasadaKalan>=0?'#eff6ff':'#FAECE7')+'">'+
+    '<span style="font-size:13px;font-weight:700;color:'+(kasadaKalan>=0?'#1e40af':'#993C1D')+'">KASADA KALAN</span>'+
+    '<span style="font-size:16px;font-weight:700;color:'+(kasadaKalan>=0?'#1e40af':'#D85A30')+'">'+para(kasadaKalan)+'</span>'+
+  '</div>';
+  ozet+='<div style="display:flex;justify-content:space-between;padding:8px 14px;background:#f9f9f8;border-top:1px solid #e8e8e4">'+
+    '<span style="font-size:12px;color:#888">Karlılık Oranı</span>'+
+    '<span style="font-size:13px;font-weight:600;color:'+(netKar>=0?'#1D9E75':'#D85A30')+'">'+karMarji.toFixed(1)+'%</span>'+
   '</div>';
   html+=bolum(ozet);
 

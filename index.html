@@ -40,12 +40,22 @@
     <input type="date" id="oz-bit" onchange="renderOzet();renderKasa()">
     <button class="btn" style="font-size:11px;padding:4px 8px" onclick="ozTemizle()">Bugün</button>
   </div>
-  <div class="ozet-kartlar" id="ozet-kartlar" style="grid-template-columns:repeat(4,1fr);gap:8px">
+  <!-- Kar akış satırı: Gelir − İşletme Gideri = Net Kar − Ortaklara Ödenen = Kasada Kalan -->
+  <div style="display:flex;align-items:stretch;gap:4px;margin-bottom:8px;flex-wrap:wrap">
+    <div class="ok" style="flex:1;min-width:120px"><div class="ok-label">Toplam Gelir</div><div class="ok-val gc" id="oz-gelir">—</div></div>
+    <div style="display:flex;align-items:center;color:#ccc;font-size:22px;padding:0 2px">−</div>
+    <div class="ok" style="flex:1;min-width:120px"><div class="ok-label">İşletme Gideri</div><div class="ok-val rc" id="oz-gider">—</div></div>
+    <div style="display:flex;align-items:center;color:#ccc;font-size:22px;padding:0 2px">=</div>
+    <div class="ok" style="flex:1;min-width:120px"><div class="ok-label">Net Kar</div><div class="ok-val gc" id="oz-kar">—</div></div>
+    <div style="display:flex;align-items:center;color:#ccc;font-size:22px;padding:0 2px">−</div>
+    <div class="ok" style="flex:1;min-width:120px"><div class="ok-label">Ortaklara Ödenen</div><div class="ok-val" style="color:#b45309" id="oz-ortak">—</div></div>
+    <div style="display:flex;align-items:center;color:#ccc;font-size:22px;padding:0 2px">=</div>
+    <div class="ok" style="flex:1;min-width:120px;border:2px solid #3b82f6;background:#eff6ff"><div class="ok-label" style="color:#1e40af">Kasada Kalan</div><div class="ok-val bc" id="oz-kalan">—</div></div>
+  </div>
+  <!-- İkincil bilgiler -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
     <div class="ok"><div class="ok-label">Nakit Gelir</div><div class="ok-val gc" id="oz-nakit">—</div></div>
     <div class="ok"><div class="ok-label">Kredi Kartı Gelir</div><div class="ok-val gc" id="oz-kk">—</div></div>
-    <div class="ok"><div class="ok-label">Toplam Gelir</div><div class="ok-val gc" id="oz-gelir">—</div></div>
-    <div class="ok"><div class="ok-label">Toplam Gider</div><div class="ok-val rc" id="oz-gider">—</div></div>
-    <div class="ok"><div class="ok-label">Net Kar</div><div class="ok-val gc" id="oz-kar">—</div></div>
     <div class="ok"><div class="ok-label">Karlılık Oranı</div><div class="ok-val gc" id="oz-karlilik">—</div></div>
     <div class="ok"><div class="ok-label">Kişi Sayısı</div><div class="ok-val" id="oz-kisi">—</div></div>
     <div class="ok"><div class="ok-label">Kişi Başı Ort.</div><div class="ok-val bc" id="oz-kisi-basi">—</div></div>
@@ -707,7 +717,7 @@
 #pg-inceleme .inc-subtitle{color:#666;font-size:13px;margin:0}
 
 /* KPI Kartları */
-#pg-inceleme .inc-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+#pg-inceleme .inc-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
 #pg-inceleme .inc-kpi{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
 #pg-inceleme .inc-kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#e5e7eb}
 #pg-inceleme .inc-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:600;margin-bottom:6px}
@@ -842,6 +852,10 @@
       <div class="inc-kpi inc-kpi-ortak">
         <div class="inc-kpi-label">Ortaklara Ödenen</div>
         <div class="inc-kpi-value" id="inc-k-ortak">TL 0,00</div>
+      </div>
+      <div class="inc-kpi" id="inc-k-kalan-kart" style="border-left:3px solid #3b82f6;background:#eff6ff">
+        <div class="inc-kpi-label" style="color:#1e40af">Kasada Kalan</div>
+        <div class="inc-kpi-value" id="inc-k-kalan" style="color:#1e40af">TL 0,00</div>
       </div>
     </div>
 

@@ -33,9 +33,11 @@ function renderOzet(){
     return true;
   });
   var topGelir=liste.filter(function(k){return k.tur==='gelir';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var topGider=liste.filter(function(k){return k.tur==='gider';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var topKar=topGelir-topGider;
-  var topKarlilik=topGelir>0?((topKar/topGelir)*100):0;
+  var isletmeGider=liste.filter(function(k){return k.tur==='gider'&&k.kat!=='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var ortakOdenen=liste.filter(function(k){return k.tur==='gider'&&k.kat==='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var netKar=topGelir-isletmeGider;
+  var kasadaKalan=netKar-ortakOdenen;
+  var topKarlilik=topGelir>0?((netKar/topGelir)*100):0;
   // Kişi sayısını grupla: aynı tarih+firma grubu için tek kişi sayısı al
   var gelirler=liste.filter(function(k){return k.tur==='gelir';});
   var gruplar={};
@@ -57,9 +59,12 @@ function renderOzet(){
   document.getElementById('oz-nakit').textContent=para(nakitGelir);
   document.getElementById('oz-kk').textContent=para(kkGelir);
   document.getElementById('oz-gelir').textContent=para(topGelir);
-  document.getElementById('oz-gider').textContent=para(topGider);
-  document.getElementById('oz-kar').textContent=para(topKar);
-  document.getElementById('oz-kar').style.color=topKar>=0?'#1D9E75':'#D85A30';
+  document.getElementById('oz-gider').textContent=para(isletmeGider);
+  document.getElementById('oz-kar').textContent=para(netKar);
+  document.getElementById('oz-kar').style.color=netKar>=0?'#1D9E75':'#D85A30';
+  document.getElementById('oz-ortak').textContent=para(ortakOdenen);
+  var elKalan=document.getElementById('oz-kalan');
+  if(elKalan){elKalan.textContent=para(kasadaKalan);elKalan.style.color=kasadaKalan>=0?'#1e40af':'#dc2626';}
   document.getElementById('oz-karlilik').textContent=topKarlilik.toFixed(1)+'%';
   document.getElementById('oz-karlilik').style.color=topKarlilik>=0?'#1D9E75':'#D85A30';
   document.getElementById('oz-kisi').textContent=topKisi>0?topKisi:'—';

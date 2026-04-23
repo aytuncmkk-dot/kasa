@@ -140,11 +140,14 @@ function incelemeOzet(liste){
     else gider += Number(k.tutar)||0;
   });
   var net = gelir - gider;
+  var kasadaKalan = net - ortakOdenen;
   document.getElementById('inc-k-gelir').textContent = para(gelir);
   document.getElementById('inc-k-gider').textContent = para(gider);
   document.getElementById('inc-k-net').textContent = para(net);
   var elOrtak = document.getElementById('inc-k-ortak');
   if(elOrtak) elOrtak.textContent = para(ortakOdenen);
+  var elKalan = document.getElementById('inc-k-kalan');
+  if(elKalan){ elKalan.textContent = para(kasadaKalan); elKalan.style.color = kasadaKalan>=0?'#1e40af':'#dc2626'; }
   var netKart = document.getElementById('inc-k-net-kart');
   if(netKart){
     netKart.classList.remove('inc-kpi-pos','inc-kpi-neg');
