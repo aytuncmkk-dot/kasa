@@ -11,13 +11,21 @@ async function incelemeSekmeAc(){
   _incelemeKategoriler = kats || [];
   incelemeKategoriDoldur();
 
-  var bitis = new Date();
-  var baslangic = new Date();
-  baslangic.setDate(baslangic.getDate() - 30);
-  document.getElementById('inc-bas').value = baslangic.toISOString().slice(0,10);
-  document.getElementById('inc-bit').value = bitis.toISOString().slice(0,10);
-  var btn30 = document.querySelector('.inc-chip[data-tip="30gun"]');
-  if(btn30) btn30.classList.add('active');
+  if(window._incAcGun){
+    var t = window._incAcGun;
+    window._incAcGun = null;
+    document.getElementById('inc-bas').value = t;
+    document.getElementById('inc-bit').value = t;
+    document.querySelectorAll('.inc-chip').forEach(function(c){ c.classList.remove('active'); });
+  } else {
+    var bitis = new Date();
+    var baslangic = new Date();
+    baslangic.setDate(baslangic.getDate() - 30);
+    document.getElementById('inc-bas').value = baslangic.toISOString().slice(0,10);
+    document.getElementById('inc-bit').value = bitis.toISOString().slice(0,10);
+    var btn30 = document.querySelector('.inc-chip[data-tip="30gun"]');
+    if(btn30) btn30.classList.add('active');
+  }
 
   incelemeAra();
 }

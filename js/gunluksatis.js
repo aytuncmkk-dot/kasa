@@ -102,7 +102,7 @@ function gunlukSatisRender(){
     tN += s.nakit; tK += s.kart; tGelir += s.gelir; tGider += s.gider; tKisi += s.kisi;
     var tarihStr = s.tarih.split('-').reverse().join('.');
     var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(s.tarih).getDay()];
-    html += '<tr style="border-bottom:1px solid #f3f4f6">'+
+    html += '<tr style="border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="gsGunuAc(\''+s.tarih+'\')">'+
       '<td style="padding:10px 12px"><div style="font-weight:600">'+tarihStr+'</div><div style="font-size:11px;color:#6b7280">'+gun+'</div></td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#166534">'+para(s.nakit)+'</td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#1e40af">'+para(s.kart)+'</td>'+
@@ -119,6 +119,11 @@ function gunlukSatisRender(){
   document.getElementById('gs-toplam-gider').textContent  = para(tGider);
   document.getElementById('gs-toplam-kisi').textContent   = tKisi;
   document.getElementById('gs-gun-sayisi').textContent    = liste.length;
+}
+
+function gsGunuAc(tarih){
+  window._incAcGun = tarih;
+  switchTab('inceleme');
 }
 
 function gsSirala(kol){
