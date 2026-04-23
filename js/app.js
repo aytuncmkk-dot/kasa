@@ -115,38 +115,37 @@ function maliyetTipDegisti(){
   if(typeof renderMaliyet === 'function') renderMaliyet();
 }
 
-function exportCSV(){
+function exportXLSX(){
   if(!kayitlar||!kayitlar.length){alert('Henüz yüklenmiş kayıt yok.');return;}
-  var satirlar=[['Tarih','Tür','Kategori','Firma','Açıklama','Ödeme Tipi','Tutar','Kişi Sayısı']];
-  kayitlar.slice().sort(function(a,b){
+  if(typeof XLSX==='undefined'){alert('Excel kütüphanesi yüklenemedi. İnternet bağlantısını kontrol edin.');return;}
+  var sirali=kayitlar.slice().sort(function(a,b){
     return a.tarih<b.tarih?-1:a.tarih>b.tarih?1:(a.id||0)-(b.id||0);
-  }).forEach(function(k){
-    satirlar.push([
+  });
+  var veriler=[['Tarih','Tür','Kategori','Firma','Açıklama','Ödeme Tipi','Tutar','Kişi Sayısı']];
+  sirali.forEach(function(k){
+    veriler.push([
       k.tarih||'',
       k.tur||'',
       k.kat||'',
       k.firma||'',
       k.aciklama||'',
       k.odeme||'',
-      (Number(k.tutar)||0).toFixed(2).replace('.',','),
-      k.kisi_sayisi||0
+      Number(k.tutar)||0,
+      Number(k.kisi_sayisi)||0
     ]);
   });
-  var csv='﻿'+satirlar.map(function(r){
-    return r.map(function(h){
-      var s=String(h).replace(/"/g,'""');
-      return (s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)?'"'+s+'"':s;
-    }).join(',');
-  }).join('\r\n');
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;
-  a.download='kasa_kayitlar_'+new Date().toISOString().slice(0,10)+'.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  var ws=XLSX.utils.aoa_to_sheet(veriler);
+  // Sütun genişlikleri
+  ws['!cols']=[{wch:12},{wch:8},{wch:22},{wch:22},{wch:28},{wch:14},{wch:14},{wch:10}];
+  // Tutar sütununu (G) sayı formatına al
+  var aralik=XLSX.utils.decode_range(ws['!ref']);
+  for(var r=1;r<=aralik.e.r;r++){
+    var tutarH=XLSX.utils.encode_cell({r:r,c:6});
+    if(ws[tutarH])ws[tutarH].z='#,##0.00';
+  }
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Kayıtlar');
+  XLSX.writeFile(wb,'kasa_kayitlar_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 
 function karDagilimPDF(){

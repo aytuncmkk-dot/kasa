@@ -208,7 +208,7 @@
       <span style="color:#888;font-size:12px">—</span>
       <input type="date" id="f-bit" onchange="renderKasa()">
       <button class="btn" style="font-size:11px;padding:4px 8px" onclick="filtreTemizle()">Temizle</button>
-      <button class="btn" style="font-size:11px;padding:4px 8px" onclick="exportCSV()">CSV İndir</button>
+      <button class="btn" style="font-size:11px;padding:4px 8px" onclick="exportXLSX()">Excel İndir</button>
     </div>
     <div class="tw">
       <table>
@@ -603,6 +603,7 @@
 
 <div id="kasa-tt"></div>
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/db.js"></script>
