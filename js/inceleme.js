@@ -7,7 +7,7 @@ var _incelemeKategoriler = [];
 var _incelemeSonuc = [];
 
 async function incelemeSekmeAc(){
-  var kats = await dbGet('kategoriler','aktif=eq.true&order=ad.asc');
+  var kats = await dbGet('kategoriler','select=*&order=tur.asc,ad.asc');
   _incelemeKategoriler = kats || [];
   incelemeKategoriDoldur();
 
