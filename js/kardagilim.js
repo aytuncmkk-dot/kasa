@@ -78,17 +78,17 @@ async function kdBakiyeGuncelle(donemKayitlar){
   var donemGelir=0, donemGider=0;
   (donemKayitlar||[]).forEach(function(k){
     if(k.tur==='gelir') donemGelir+=Number(k.tutar)||0;
-    else donemGider+=Number(k.tutar)||0;
+    else if(k.tur==='gider'&&k.kat!=='Ortaklara Ödenen') donemGider+=Number(k.tutar)||0;
   });
   var dnm=donemGelir-donemGider;
   var el1=document.getElementById('kd-donem-bakiye');
   if(el1){ el1.textContent=para(dnm); el1.style.color=dnm>=0?'#059669':'#dc2626'; }
   try{
-    var tumu=await dbGet('kayitlar','select=tur,tutar');
+    var tumu=await dbGet('kayitlar','select=tur,tutar,kat');
     var tg=0,tgd=0;
     (tumu||[]).forEach(function(k){
       if(k.tur==='gelir') tg+=Number(k.tutar)||0;
-      else tgd+=Number(k.tutar)||0;
+      else if(k.tur==='gider'&&k.kat!=='Ortaklara Ödenen') tgd+=Number(k.tutar)||0;
     });
     var tplm=tg-tgd;
     var el2=document.getElementById('kd-toplam-bakiye');
