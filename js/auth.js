@@ -48,6 +48,7 @@ async function oturumKontrol(){
       return false;
     }
     document.getElementById('conn-txt').textContent=(isAdmin?'Admin: ':'Kullanici: ')+user.email;
+    SB_H['Authorization']='Bearer '+accessToken;
     if(isAdmin){var td=document.getElementById('tab-denetim');if(td)td.style.display='inline-block';}
     if(!isAdmin){
       // Sadece rapor ve kar dagilim goster
@@ -59,7 +60,6 @@ async function oturumKontrol(){
       // Formları gizle
       document.querySelectorAll('.fb').forEach(function(el){el.style.display='none';});
       switchTab('rapor');
-    SB_H['Authorization']='Bearer '+accessToken;
     }
     // Çıkış butonu
     var cb=document.createElement('button');

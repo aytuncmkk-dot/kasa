@@ -6,17 +6,21 @@ var _gsGelir = [];
 var _gsGider = [];
 var _gsSortKol = 'tarih';
 var _gsSortAsc = false;
-var _gsIlkAcilis = true;
+var _gsGeriDon = false;
 
 async function gunlukSatisAc(){
-  if(!_gsIlkAcilis){ return; }
-  _gsIlkAcilis = false;
+  if(_gsGeriDon){ _gsGeriDon = false; return; }
   var bitis = new Date();
   var baslangic = new Date();
   baslangic.setDate(baslangic.getDate() - 30);
   document.getElementById('gs-bas').value = baslangic.toISOString().slice(0,10);
   document.getElementById('gs-bit').value = bitis.toISOString().slice(0,10);
   gunlukSatisYukle();
+}
+
+function gsGeriDon(){
+  _gsGeriDon = true;
+  switchTab('gunluksatis');
 }
 
 async function gunlukSatisYukle(){
