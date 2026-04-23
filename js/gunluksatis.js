@@ -4,6 +4,8 @@
 
 var _gsGelir = [];
 var _gsGider = [];
+var _gsSortKol = 'tarih';
+var _gsSortAsc = false;
 
 async function gunlukSatisAc(){
   var bitis = new Date();
@@ -60,10 +62,31 @@ function gunlukSatisRender(){
   var tumTarihler = {};
   Object.keys(gelirGrup).forEach(function(t){ tumTarihler[t]=1; });
   Object.keys(giderGrup).forEach(function(t){ tumTarihler[t]=1; });
-  var liste = Object.keys(tumTarihler).sort().reverse();
+
+  var satirlar = Object.keys(tumTarihler).map(function(tarih){
+    var g = gelirGrup[tarih] || { nakit:0, kart:0, havale:0, diger:0, kisi:0 };
+    var gid = giderGrup[tarih] || 0;
+    var gelir = g.nakit + g.kart + g.havale + g.diger;
+    return { tarih:tarih, nakit:g.nakit, kart:g.kart, gelir:gelir, gider:gid, kisi:g.kisi };
+  });
+
+  satirlar.sort(function(a,b){
+    var v = _gsSortKol === 'tarih' ? a.tarih.localeCompare(b.tarih)
+          : (a[_gsSortKol]||0) - (b[_gsSortKol]||0);
+    return _gsSortAsc ? v : -v;
+  });
+
+  // Header ok göstergeleri güncelle
+  ['tarih','nakit','kart','gelir','gider','kisi'].forEach(function(kol){
+    var el = document.getElementById('gs-th-'+kol);
+    if(!el) return;
+    var ok = kol === _gsSortKol ? (_gsSortAsc ? ' ▲' : ' ▼') : '';
+    el.dataset.label = el.dataset.label || el.textContent.replace(/ [▲▼]$/,'');
+    el.textContent = el.dataset.label + ok;
+  });
 
   var tbody = document.getElementById('gs-tbody');
-  if(liste.length === 0){
+  if(satirlar.length === 0){
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#9ca3af">Bu aralıkta kayıt yok</td></tr>';
     ['gs-toplam-nakit','gs-toplam-kart','gs-toplam-gelir','gs-toplam-gider'].forEach(function(id){
       document.getElementById(id).textContent = para(0);
@@ -75,20 +98,17 @@ function gunlukSatisRender(){
 
   var tN=0, tK=0, tGelir=0, tGider=0, tKisi=0;
   var html = '';
-  liste.forEach(function(tarih){
-    var g = gelirGrup[tarih] || { nakit:0, kart:0, havale:0, diger:0, kisi:0 };
-    var gid = giderGrup[tarih] || 0;
-    var gelir = g.nakit + g.kart + g.havale + g.diger;
-    tN += g.nakit; tK += g.kart; tGelir += gelir; tGider += gid; tKisi += g.kisi;
-    var tarihStr = tarih.split('-').reverse().join('.');
-    var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(tarih).getDay()];
+  satirlar.forEach(function(s){
+    tN += s.nakit; tK += s.kart; tGelir += s.gelir; tGider += s.gider; tKisi += s.kisi;
+    var tarihStr = s.tarih.split('-').reverse().join('.');
+    var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(s.tarih).getDay()];
     html += '<tr style="border-bottom:1px solid #f3f4f6">'+
       '<td style="padding:10px 12px"><div style="font-weight:600">'+tarihStr+'</div><div style="font-size:11px;color:#6b7280">'+gun+'</div></td>'+
-      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#166534">'+para(g.nakit)+'</td>'+
-      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#1e40af">'+para(g.kart)+'</td>'+
-      '<td style="padding:10px 12px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">'+para(gelir)+'</td>'+
-      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#dc2626">'+para(gid)+'</td>'+
-      '<td style="padding:10px 12px;text-align:center;color:#6b7280">'+(g.kisi||'-')+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#166534">'+para(s.nakit)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#1e40af">'+para(s.kart)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">'+para(s.gelir)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#dc2626">'+para(s.gider)+'</td>'+
+      '<td style="padding:10px 12px;text-align:center;color:#6b7280">'+(s.kisi||'-')+'</td>'+
     '</tr>';
   });
   tbody.innerHTML = html;
@@ -99,6 +119,12 @@ function gunlukSatisRender(){
   document.getElementById('gs-toplam-gider').textContent  = para(tGider);
   document.getElementById('gs-toplam-kisi').textContent   = tKisi;
   document.getElementById('gs-gun-sayisi').textContent    = liste.length;
+}
+
+function gsSirala(kol){
+  if(_gsSortKol === kol){ _gsSortAsc = !_gsSortAsc; }
+  else { _gsSortKol = kol; _gsSortAsc = kol !== 'tarih'; }
+  gunlukSatisRender();
 }
 
 function gsHizliTarih(tip){

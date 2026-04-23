@@ -962,12 +962,12 @@
     <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead>
         <tr style="background:#f9fafb">
-          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Tarih</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Nakit</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kredi Kartı</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Gelir</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#dc2626;font-weight:600;border-bottom:1px solid #e5e7eb">Gider</th>
-          <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kişi</th>
+          <th id="gs-th-tarih" onclick="gsSirala('tarih')" style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Tarih">Tarih ▼</th>
+          <th id="gs-th-nakit" onclick="gsSirala('nakit')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Nakit">Nakit</th>
+          <th id="gs-th-kart" onclick="gsSirala('kart')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Kredi Kartı">Kredi Kartı</th>
+          <th id="gs-th-gelir" onclick="gsSirala('gelir')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Gelir">Gelir</th>
+          <th id="gs-th-gider" onclick="gsSirala('gider')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#dc2626;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Gider">Gider</th>
+          <th id="gs-th-kisi" onclick="gsSirala('kisi')" style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Kişi">Kişi</th>
         </tr>
       </thead>
       <tbody id="gs-tbody"></tbody>
@@ -1048,12 +1048,12 @@
     <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead>
         <tr style="background:#f9fafb">
-          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Tarih</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Nakit</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kredi Kartı</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Gelir</th>
-          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#dc2626;font-weight:600;border-bottom:1px solid #e5e7eb">Gider</th>
-          <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kişi</th>
+          <th id="gs-th-tarih" onclick="gsSirala('tarih')" style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Tarih">Tarih ▼</th>
+          <th id="gs-th-nakit" onclick="gsSirala('nakit')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Nakit">Nakit</th>
+          <th id="gs-th-kart" onclick="gsSirala('kart')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Kredi Kartı">Kredi Kartı</th>
+          <th id="gs-th-gelir" onclick="gsSirala('gelir')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Gelir">Gelir</th>
+          <th id="gs-th-gider" onclick="gsSirala('gider')" style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#dc2626;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Gider">Gider</th>
+          <th id="gs-th-kisi" onclick="gsSirala('kisi')" style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb;cursor:pointer;user-select:none" data-label="Kişi">Kişi</th>
         </tr>
       </thead>
       <tbody id="gs-tbody"></tbody>
