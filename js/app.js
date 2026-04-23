@@ -222,14 +222,17 @@ if(document.readyState==='loading'){
 }
 
 function tabGrupTogge(event, grupId){
-  event.stopPropagation();
+  if(event){ event.stopPropagation(); event.preventDefault(); }
   var hedef = document.getElementById(grupId);
+  if(!hedef) return;
   var acikMi = hedef.classList.contains('acik');
   document.querySelectorAll('.tab-grup-menu').forEach(function(m){ m.classList.remove('acik'); });
-  if(!acikMi) hedef.classList.add('acik');
+  if(!acikMi){ hedef.classList.add('acik'); }
 }
 document.addEventListener('click', function(e){
-  if(!e.target.closest('.tab-grup')){
+  var btn = e.target.closest('.tab-grup-btn');
+  var menu = e.target.closest('.tab-grup-menu');
+  if(!btn && !menu){
     document.querySelectorAll('.tab-grup-menu').forEach(function(m){ m.classList.remove('acik'); });
   }
 });
