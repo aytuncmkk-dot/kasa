@@ -65,28 +65,28 @@
 </div>
 
 <div class="tabs" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-  <div class="tab-grup">
-    <button class="tab-grup-btn" onclick="tabGrupTogge(event,'grup-kasa')">📒 Kasa Defteri ▾</button>
-    <div class="tab-grup-menu" id="grup-kasa">
+  <details class="tab-grup">
+    <summary class="tab-grup-btn">📒 Kasa Defteri ▾</summary>
+    <div class="tab-grup-menu">
       <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
       <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
       <button class="tab" onclick="switchTab('stok')">Stok</button>
       <button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
       <button class="tab" onclick="switchTab('gunluksatis')">Günlük Satış Raporu</button>
     </div>
-  </div>
-  <div class="tab-grup">
-    <button class="tab-grup-btn" onclick="tabGrupTogge(event,'grup-rapor')">📊 Raporlar ▾</button>
-    <div class="tab-grup-menu" id="grup-rapor">
+  </details>
+  <details class="tab-grup">
+    <summary class="tab-grup-btn">📊 Raporlar ▾</summary>
+    <div class="tab-grup-menu">
       <button class="tab" onclick="switchTab('cariler')">Cariler</button>
       <button class="tab" onclick="switchTab('rapor')">Rapor</button>
       <button class="tab" onclick="switchTab('maliyet')">Operasyon Maliyet</button>
       <button class="tab" onclick="switchTab('ozelrapor')">Özel Rapor</button>
     </div>
-  </div>
-  <div class="tab-grup">
-    <button class="tab-grup-btn" onclick="tabGrupTogge(event,'grup-yonetim')">⚙️ Yönetim ▾</button>
-    <div class="tab-grup-menu" id="grup-yonetim">
+  </details>
+  <details class="tab-grup">
+    <summary class="tab-grup-btn">⚙️ Yönetim ▾</summary>
+    <div class="tab-grup-menu">
       <button class="tab" onclick="switchTab('yedekfon')">Yedek Fon</button>
       <button class="tab" onclick="switchTab('kardagilim')">Kar Dağılım</button>
       <button class="tab" onclick="switchTab('finans')">Finansal Analiz</button>

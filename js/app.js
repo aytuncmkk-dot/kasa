@@ -33,8 +33,11 @@ function hepsiniYenile(){
 }
 
 function switchTab(t){
-  var tabs=['kasa','fatura','yedekfon','rapor','kardagilim','stok','maliyet','ozelrapor'];
-  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',tabs[i]===t);});
+  document.querySelectorAll('.tab').forEach(function(el){
+    var oc = el.getAttribute('onclick') || '';
+    el.classList.toggle('active', oc.indexOf("'"+t+"'") !== -1);
+  });
+  document.querySelectorAll('details.tab-grup').forEach(function(d){ d.open = false; });
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('pg-'+t).classList.add('active');
   if(t==='rapor')renderRapor();
@@ -43,16 +46,8 @@ function switchTab(t){
   if(t==='finans')renderFinansAnaliz();
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
-    if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
-    if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
-  if(t==='denetim')renderDenetim();
-  if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
-    if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
-    if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
-  if(t==='denetim')renderDenetim();
-  if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
-    if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
-    if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
+  if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
+  if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='ozelrapor'){if(typeof ozelRaporKatListesi==='function')ozelRaporKatListesi();if(typeof renderOzelRapor==='function')renderOzelRapor();}
 }
 
@@ -98,48 +93,6 @@ function tarihSecildi(){
       try{ localStorage.setItem('kasa_aktif_tarih', deger); }catch(e){}
     }
   }
-}
-
-function aktifTarihDegisti(){
-  var t = document.getElementById('aktif-tarih').value;
-  if(!t) return;
-  ['g-tarih','gi-tarih','fat-tarih','fon-tarih'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.value = t;
-  });
-  try{ localStorage.setItem('kasa_aktif_tarih', t); }catch(e){}
-}
-
-function aktifTarihDegistir(gun){
-  var at = document.getElementById('aktif-tarih');
-  if(!at) return;
-  var mevcut = at.value || new Date().toISOString().split('T')[0];
-  var d = new Date(mevcut);
-  d.setDate(d.getDate() + gun);
-  at.value = d.toISOString().split('T')[0];
-  aktifTarihDegisti();
-}
-
-function aktifTarihBugun(){
-  var at = document.getElementById('aktif-tarih');
-  if(!at) return;
-  at.value = new Date().toISOString().split('T')[0];
-  aktifTarihDegisti();
-}
-
-function aktifTarihYukle(){
-  var at = document.getElementById('aktif-tarih');
-  if(!at) return;
-  var kayitli = null;
-  try{ kayitli = localStorage.getItem('kasa_aktif_tarih'); }catch(e){}
-  at.value = kayitli || new Date().toISOString().split('T')[0];
-  aktifTarihDegisti();
-}
-
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', aktifTarihYukle);
-}else{
-  setTimeout(aktifTarihYukle, 100);
 }
 
 function kdTipDegisti(){
@@ -221,18 +174,14 @@ if(document.readyState==='loading'){
   setTimeout(aktifTarihYukle, 200);
 }
 
-function tabGrupTogge(event, grupId){
-  if(event){ event.stopPropagation(); event.preventDefault(); }
-  var hedef = document.getElementById(grupId);
-  if(!hedef) return;
-  var acikMi = hedef.classList.contains('acik');
-  document.querySelectorAll('.tab-grup-menu').forEach(function(m){ m.classList.remove('acik'); });
-  if(!acikMi){ hedef.classList.add('acik'); }
-}
-document.addEventListener('click', function(e){
-  var btn = e.target.closest('.tab-grup-btn');
-  var menu = e.target.closest('.tab-grup-menu');
-  if(!btn && !menu){
-    document.querySelectorAll('.tab-grup-menu').forEach(function(m){ m.classList.remove('acik'); });
-  }
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('details.tab-grup').forEach(function(det){
+    det.addEventListener('toggle', function(){
+      if(this.open){
+        document.querySelectorAll('details.tab-grup').forEach(function(d){
+          if(d !== det) d.open = false;
+        });
+      }
+    });
+  });
 });
