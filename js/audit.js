@@ -2,6 +2,18 @@
 // AUDIT — Denetim log (audit_log)
 // ============================================================
 
+async function denetimKayitAc(kayitId){
+  if(!kayitId) return;
+  if(typeof kayitlar === 'undefined') window.kayitlar = [];
+  var found = kayitlar.find(function(k){ return k.id == kayitId; });
+  if(!found){
+    var list = await dbGet('kayitlar', 'id=eq.'+kayitId);
+    if(!list || !list.length){ alert('Bu kayıt artık mevcut değil (silinmiş olabilir).'); return; }
+    kayitlar.push(list[0]);
+  }
+  kasaDuzenle(kayitId);
+}
+
 async function auditYukle(){
   try{
     auditLoglar = await dbGet('audit_log', '?order=islem_zamani.desc&limit=1000');
@@ -57,6 +69,7 @@ async function renderDenetim(){
     html += '<th style="width:90px">Islem</th>';
     html += '<th style="width:100px">Tablo</th>';
     html += '<th>Detay</th>';
+    html += '<th style="width:50px"></th>';
     html += '</tr></thead><tbody>';
     logs.forEach(function(l){
       var t = new Date(l.islem_zamani);
@@ -64,12 +77,21 @@ async function renderDenetim(){
       var islemRenk = {'EKLE':'#1D9E75','GUNCELLE':'#185FA5','SIL':'#D85A30'}[l.islem_tipi] || '#888';
       var detay = l.aciklama || '';
       if(l.yeni_deger && l.yeni_deger.tutar) detay += ' ('+para(l.yeni_deger.tutar)+')';
+      var islemBtn = '';
+      if(l.kayit_id && l.tablo_adi === 'kayitlar'){
+        if(l.islem_tipi === 'SIL'){
+          islemBtn = '<button style="background:none;border:1px solid #e5e7eb;color:#9ca3af;padding:2px 7px;border-radius:5px;font-size:11px;cursor:default" title="Kayıt silindi" disabled>✕</button>';
+        } else {
+          islemBtn = '<button onclick="denetimKayitAc('+l.kayit_id+')" style="background:none;border:1px solid #3b82f6;color:#3b82f6;padding:2px 7px;border-radius:5px;font-size:11px;cursor:pointer" title="Kaydı düzenle">✎</button>';
+        }
+      }
       html += '<tr>';
       html += '<td style="font-size:11px;color:#666">'+tStr+'</td>';
       html += '<td style="font-size:11px">'+l.kullanici_email+'</td>';
       html += '<td><span style="background:'+islemRenk+';color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600">'+l.islem_tipi+'</span></td>';
       html += '<td style="font-size:11px;color:#666">'+l.tablo_adi+'</td>';
       html += '<td style="font-size:12px">'+detay+'</td>';
+      html += '<td style="text-align:center">'+islemBtn+'</td>';
       html += '</tr>';
     });
     html += '</tbody></table></div>';
