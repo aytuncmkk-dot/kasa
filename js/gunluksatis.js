@@ -2,7 +2,8 @@
 // GÜNLÜK SATIŞ RAPORU
 // ==========================================================
 
-var _gsKayitlar = [];
+var _gsGelir = [];
+var _gsGider = [];
 
 async function gunlukSatisAc(){
   var bitis = new Date();
@@ -19,78 +20,102 @@ async function gunlukSatisYukle(){
   if(!bas || !bit){ alert('Tarih aralığı seçin'); return; }
   if(bas > bit){ alert('Başlangıç > bitiş olamaz'); return; }
 
-  document.getElementById('gs-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:#6b7280">Yükleniyor...</td></tr>';
+  document.getElementById('gs-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#6b7280">Yükleniyor...</td></tr>';
 
-  var kayitlar = await dbGet('kayitlar','tarih=gte.'+bas+'&tarih=lte.'+bit+'&tur=eq.gelir&order=tarih.desc');
-  _gsKayitlar = kayitlar || [];
+  var q = 'tarih=gte.'+bas+'&tarih=lte.'+bit+'&order=tarih.desc';
+  var sonuclar = await Promise.all([
+    dbGet('kayitlar', q+'&tur=eq.gelir'),
+    dbGet('kayitlar', q+'&tur=eq.gider')
+  ]);
+  _gsGelir = sonuclar[0] || [];
+  _gsGider = sonuclar[1] || [];
   gunlukSatisRender();
 }
 
 function gunlukSatisRender(){
-  var gruplar = {};
-  _gsKayitlar.forEach(function(k){
+  var gelirGrup = {};
+  _gsGelir.forEach(function(k){
     var t = k.tarih;
-    if(!gruplar[t]) gruplar[t] = { tarih:t, nakit:0, kart:0, havale:0, diger:0, kisi:0, kayit_sayisi:0, kisi_kayitlari:{} };
-    var g = gruplar[t];
+    if(!gelirGrup[t]) gelirGrup[t] = { nakit:0, kart:0, havale:0, diger:0, kisi:0, _ids:{} };
+    var g = gelirGrup[t];
     var tutar = Number(k.tutar)||0;
     var odeme = (k.odeme||'').toLowerCase();
-    if(odeme.indexOf('nakit')>=0) g.nakit += tutar;
-    else if(odeme.indexOf('kart')>=0) g.kart += tutar;
+    if(odeme.indexOf('nakit')>=0)       g.nakit  += tutar;
+    else if(odeme.indexOf('kart')>=0)   g.kart   += tutar;
     else if(odeme.indexOf('havale')>=0) g.havale += tutar;
-    else g.diger += tutar;
-    g.kayit_sayisi++;
-    // Kişi sayısı: aynı kaydın ID'si bir kez sayılsın
-    var key = (k.firma||'')+'|'+tutar;
-    if(Number(k.kisi_sayisi)>0 && !g.kisi_kayitlari[k.id]){
+    else                                g.diger  += tutar;
+    if(Number(k.kisi_sayisi)>0 && !g._ids[k.id]){
       g.kisi += Number(k.kisi_sayisi);
-      g.kisi_kayitlari[k.id] = true;
+      g._ids[k.id] = true;
     }
   });
 
-  var liste = Object.keys(gruplar).sort().reverse().map(function(t){ return gruplar[t]; });
+  var giderGrup = {};
+  _gsGider.forEach(function(k){
+    var t = k.tarih;
+    if(!giderGrup[t]) giderGrup[t] = 0;
+    giderGrup[t] += Number(k.tutar)||0;
+  });
+
+  var tumTarihler = {};
+  Object.keys(gelirGrup).forEach(function(t){ tumTarihler[t]=1; });
+  Object.keys(giderGrup).forEach(function(t){ tumTarihler[t]=1; });
+  var liste = Object.keys(tumTarihler).sort().reverse();
 
   var tbody = document.getElementById('gs-tbody');
   if(liste.length === 0){
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#9ca3af">Bu aralıkta gelir kaydı yok</td></tr>';
-    document.getElementById('gs-toplam-nakit').textContent = para(0);
-    document.getElementById('gs-toplam-kart').textContent = para(0);
-    document.getElementById('gs-toplam-toplam').textContent = para(0);
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af">Bu aralıkta kayıt yok</td></tr>';
+    ['gs-toplam-nakit','gs-toplam-kart','gs-toplam-gelir','gs-toplam-gider','gs-toplam-net'].forEach(function(id){
+      document.getElementById(id).textContent = para(0);
+    });
     document.getElementById('gs-toplam-kisi').textContent = '0';
+    document.getElementById('gs-gun-sayisi').textContent = '0';
     return;
   }
 
-  var tN=0, tK=0, tT=0, tKisi=0;
+  var tN=0, tK=0, tGelir=0, tGider=0, tKisi=0;
   var html = '';
-  liste.forEach(function(g){
-    var toplam = g.nakit + g.kart + g.havale + g.diger;
-    tN += g.nakit; tK += g.kart; tT += toplam; tKisi += g.kisi;
-    var tarihStr = g.tarih.split('-').reverse().join('.');
-    var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(g.tarih).getDay()];
+  liste.forEach(function(tarih){
+    var g = gelirGrup[tarih] || { nakit:0, kart:0, havale:0, diger:0, kisi:0 };
+    var gid = giderGrup[tarih] || 0;
+    var gelir = g.nakit + g.kart + g.havale + g.diger;
+    var net = gelir - gid;
+    tN += g.nakit; tK += g.kart; tGelir += gelir; tGider += gid; tKisi += g.kisi;
+    var tarihStr = tarih.split('-').reverse().join('.');
+    var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(tarih).getDay()];
+    var netRenk = net >= 0 ? '#166534' : '#dc2626';
     html += '<tr style="border-bottom:1px solid #f3f4f6">'+
       '<td style="padding:10px 12px"><div style="font-weight:600">'+tarihStr+'</div><div style="font-size:11px;color:#6b7280">'+gun+'</div></td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#166534">'+para(g.nakit)+'</td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#1e40af">'+para(g.kart)+'</td>'+
-      '<td style="padding:10px 12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums">'+para(toplam)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">'+para(gelir)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#dc2626">'+para(gid)+'</td>'+
+      '<td style="padding:10px 12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+netRenk+'">'+para(net)+'</td>'+
       '<td style="padding:10px 12px;text-align:center;color:#6b7280">'+(g.kisi||'-')+'</td>'+
     '</tr>';
   });
   tbody.innerHTML = html;
-  document.getElementById('gs-toplam-nakit').textContent = para(tN);
-  document.getElementById('gs-toplam-kart').textContent = para(tK);
-  document.getElementById('gs-toplam-toplam').textContent = para(tT);
-  document.getElementById('gs-toplam-kisi').textContent = tKisi;
-  document.getElementById('gs-gun-sayisi').textContent = liste.length;
+
+  var tNet = tGelir - tGider;
+  document.getElementById('gs-toplam-nakit').textContent  = para(tN);
+  document.getElementById('gs-toplam-kart').textContent   = para(tK);
+  document.getElementById('gs-toplam-gelir').textContent  = para(tGelir);
+  document.getElementById('gs-toplam-gider').textContent  = para(tGider);
+  document.getElementById('gs-toplam-net').textContent    = para(tNet);
+  document.getElementById('gs-toplam-net').style.color    = tNet >= 0 ? '#059669' : '#dc2626';
+  document.getElementById('gs-toplam-kisi').textContent   = tKisi;
+  document.getElementById('gs-gun-sayisi').textContent    = liste.length;
 }
 
 function gsHizliTarih(tip){
   var bitis = new Date();
   var baslangic = new Date();
-  if(tip==='7gun') baslangic.setDate(baslangic.getDate()-7);
+  if(tip==='7gun')       baslangic.setDate(baslangic.getDate()-7);
   else if(tip==='30gun') baslangic.setDate(baslangic.getDate()-30);
-  else if(tip==='buay') baslangic = new Date(bitis.getFullYear(), bitis.getMonth(), 1);
+  else if(tip==='buay')  baslangic = new Date(bitis.getFullYear(), bitis.getMonth(), 1);
   else if(tip==='gecenay'){
     baslangic = new Date(bitis.getFullYear(), bitis.getMonth()-1, 1);
-    bitis = new Date(bitis.getFullYear(), bitis.getMonth(), 0);
+    bitis     = new Date(bitis.getFullYear(), bitis.getMonth(), 0);
   }
   else if(tip==='buyil') baslangic = new Date(bitis.getFullYear(), 0, 1);
   document.getElementById('gs-bas').value = baslangic.toISOString().slice(0,10);
