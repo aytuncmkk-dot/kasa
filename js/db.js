@@ -10,6 +10,20 @@ async function dbGet(tablo,params){
   return await r.json();
 }
 
+async function dbGetAll(tablo,params){
+  var all=[],from=0,pageSize=1000;
+  while(true){
+    var H=Object.assign({},getSBH(),{'Range-Unit':'items','Range':from+'-'+(from+pageSize-1)});
+    var r=await fetch(SB_URL+'/rest/v1/'+tablo+'?'+params,{headers:H});
+    if(!r.ok)throw new Error(tablo+' okuma hatası: '+r.status);
+    var rows=await r.json();
+    all=all.concat(rows);
+    if(rows.length<pageSize)break;
+    from+=pageSize;
+  }
+  return all;
+}
+
 async function dbPost(tablo,data){
   var H=Object.assign({},getSBH(),{'Prefer':'return=minimal'});
   // Tek obje gonder - array degil
