@@ -99,7 +99,7 @@ function incelemeRender(liste){
       '<td class="inc-odeme-col"><span class="inc-pill inc-pill-'+odemeKlas(k.odeme)+'">'+(k.odeme||'-')+'</span></td>'+
       '<td class="inc-tutar-col '+(isGelir?'inc-pos':'inc-neg')+'">'+(isGelir?'+':'−')+' '+para(k.tutar)+'</td>'+
       '<td class="inc-islem-col">'+
-        '<button class="inc-btn inc-btn-edit" onclick="kasaDuzenle('+k.id+')" title="Düzenle">✎</button>'+
+        '<button class="inc-btn inc-btn-edit" onclick="incelemeDuzenle('+k.id+')" title="Düzenle">✎</button>'+
         '<button class="inc-btn inc-btn-del" onclick="incelemeSil('+k.id+')" title="Sil">✕</button>'+
       '</td>'+
     '</tr>';
@@ -178,4 +178,14 @@ function incelemeHizliTarih(tip){
   if(btn) btn.classList.add('active');
 
   incelemeAra();
+}
+
+async function incelemeDuzenle(id){
+  if(typeof kayitlar === 'undefined'){ window.kayitlar = []; }
+  var found = kayitlar.find(function(k){ return k.id===id; });
+  if(!found){
+    var kayit = _incelemeKayitlar.find(function(k){ return k.id===id; });
+    if(kayit) kayitlar.push(kayit);
+  }
+  kasaDuzenle(id);
 }
