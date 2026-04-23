@@ -11,6 +11,7 @@ async function denetimKayitAc(kayitId){
     if(!list || !list.length){ alert('Bu kayıt artık mevcut değil (silinmiş olabilir).'); return; }
     kayitlar.push(list[0]);
   }
+  window._duzKaynak = 'denetim';
   kasaDuzenle(kayitId);
 }
 
@@ -75,6 +76,9 @@ async function renderDenetim(){
       var t = new Date(l.islem_zamani);
       var tStr = t.toLocaleDateString('tr-TR')+' '+t.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
       var islemRenk = {'EKLE':'#1D9E75','GUNCELLE':'#185FA5','SIL':'#D85A30'}[l.islem_tipi] || '#888';
+      var kayitTarih = '';
+      if(l.yeni_deger && l.yeni_deger.tarih) kayitTarih = fmtT(l.yeni_deger.tarih);
+      else if(l.eski_deger && l.eski_deger.tarih) kayitTarih = fmtT(l.eski_deger.tarih);
       var detay = l.aciklama || '';
       if(l.yeni_deger && l.yeni_deger.tutar) detay += ' ('+para(l.yeni_deger.tutar)+')';
       var islemBtn = '';
@@ -86,7 +90,7 @@ async function renderDenetim(){
         }
       }
       html += '<tr>';
-      html += '<td style="font-size:11px;color:#666">'+tStr+'</td>';
+      html += '<td style="font-size:11px;color:#666">'+tStr+(kayitTarih?'<div style="font-size:10px;color:#3b82f6;margin-top:1px">Kayıt: '+kayitTarih+'</div>':'')+'</td>';
       html += '<td style="font-size:11px">'+l.kullanici_email+'</td>';
       html += '<td><span style="background:'+islemRenk+';color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600">'+l.islem_tipi+'</span></td>';
       html += '<td style="font-size:11px;color:#666">'+l.tablo_adi+'</td>';

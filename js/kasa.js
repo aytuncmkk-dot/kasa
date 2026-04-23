@@ -261,7 +261,9 @@ async function duzKaydet(){
   };
   var __eskiKayit = kayitlar.find(function(k){return k.id===_duzId;});
   var r=await dbPatch('kayitlar','id',_duzId,gunc);
-  try{ await auditYaz('GUNCELLE','kayitlar',_duzId,__eskiKayit,gunc,'Kayıt güncellendi'); }catch(e){}
+  var _aciklama = window._duzKaynak === 'denetim' ? 'Kayıt güncellendi (denetim ekranından)' : 'Kayıt güncellendi';
+  try{ await auditYaz('GUNCELLE','kayitlar',_duzId,__eskiKayit,gunc,_aciklama); }catch(e){}
+  window._duzKaynak = null;
   if(!r.ok){alert('Güncelleme hatası!');return;}
   var idx=kayitlar.findIndex(function(x){return x.id==_duzId;});
   if(idx>=0)Object.assign(kayitlar[idx],gunc);
