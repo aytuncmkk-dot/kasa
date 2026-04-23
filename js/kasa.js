@@ -69,6 +69,13 @@ function renderOzet(){
   document.getElementById('oz-karlilik').style.color=topKarlilik>=0?'#1D9E75':'#D85A30';
   document.getElementById('oz-kisi').textContent=topKisi>0?topKisi:'—';
   document.getElementById('oz-kisi-basi').textContent=topKisi>0?para(kisiBasiOrt):'—';
+  if(typeof setTT==='function'){
+    setTT('oz-gelir','Nakit: '+para(nakitGelir)+'\nKart: '+para(kkGelir),'.ok');
+    setTT('oz-gider','Ortaklara Ödenen hariç\ntüm işletme giderleri','.ok');
+    setTT('oz-kar',para(topGelir)+' Gelir\n− '+para(isletmeGider)+' İşletme Gideri','.ok');
+    setTT('oz-ortak','Ortaklara Ödenen\nkategorisindeki toplam ödemeler','.ok');
+    setTT('oz-kalan',para(netKar)+' Net Kar\n− '+para(ortakOdenen)+' Ortaklara Ödenen','.ok');
+  }
 }
 
 function odemeEkle(){

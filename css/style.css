@@ -1,4 +1,5 @@
 *{box-sizing:border-box;margin:0;padding:0}
+#kasa-tt{position:fixed;background:rgba(15,15,15,.92);color:#fff;padding:8px 12px;border-radius:8px;font-size:12px;white-space:pre-line;z-index:99999;pointer-events:none;display:none;line-height:1.8;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
 body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0f0ed;min-height:100vh}
 .topbar{background:#1a1a1a;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:50}
 .topbar h1{font-size:16px;font-weight:500;color:#fff}

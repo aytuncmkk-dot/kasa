@@ -153,6 +153,13 @@ function incelemeOzet(liste){
     netKart.classList.remove('inc-kpi-pos','inc-kpi-neg');
     netKart.classList.add(net>=0?'inc-kpi-pos':'inc-kpi-neg');
   }
+  if(typeof setTT==='function'){
+    setTT('inc-k-gelir','Dönemdeki tüm gelir kayıtları','.inc-kpi');
+    setTT('inc-k-gider','Ortaklara Ödenen hariç\ntüm gider kayıtları','.inc-kpi');
+    setTT('inc-k-net',para(gelir)+' Gelir\n− '+para(gider)+' İşletme Gideri','.inc-kpi');
+    setTT('inc-k-ortak','Ortaklara Ödenen\nkategorisindeki ödemeler','.inc-kpi');
+    setTT('inc-k-kalan',para(net)+' Net Kar\n− '+para(ortakOdenen)+' Ortaklara Ödenen','.inc-kpi');
+  }
 }
 
 function incelemeKayitGuncelle(id, gunc){

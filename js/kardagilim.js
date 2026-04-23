@@ -86,7 +86,10 @@ async function kdBakiyeGuncelle(donemKayitlar){
   });
   var donemKalan=donemGelir-donemIsletme-donemOrtak;
   var el1=document.getElementById('kd-donem-bakiye');
-  if(el1){ el1.textContent=para(donemKalan); el1.style.color=donemKalan>=0?'#059669':'#dc2626'; }
+  if(el1){
+    el1.textContent=para(donemKalan); el1.style.color=donemKalan>=0?'#059669':'#dc2626';
+    if(typeof setTT==='function') setTT('kd-donem-bakiye',para(donemGelir)+' Dönem Geliri\n− '+para(donemIsletme)+' İşletme Gideri\n− '+para(donemOrtak)+' Ortaklara Ödenen');
+  }
   // Tüm zamanlar: in-memory kayitlar kullan (dbGetAll ile yüklendi)
   try{
     var tumu=typeof kayitlar!=='undefined'?kayitlar:(await dbGetAll('kayitlar','select=tur,tutar,kat'));
@@ -100,6 +103,9 @@ async function kdBakiyeGuncelle(donemKayitlar){
     });
     var tplm=tg-tIsletme-tOrtak;
     var el2=document.getElementById('kd-toplam-bakiye');
-    if(el2){ el2.textContent=para(tplm); el2.style.color=tplm>=0?'#1e40af':'#dc2626'; }
+    if(el2){
+      el2.textContent=para(tplm); el2.style.color=tplm>=0?'#1e40af':'#dc2626';
+      if(typeof setTT==='function') setTT('kd-toplam-bakiye',para(tg)+' Toplam Gelir\n− '+para(tIsletme)+' İşletme Gideri\n− '+para(tOrtak)+' Ortaklara Ödenen');
+    }
   }catch(e){ console.error('Toplam bakiye hatasi',e); }
 }
