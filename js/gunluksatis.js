@@ -34,7 +34,7 @@ async function gunlukSatisYukle(){
   var q = 'tarih=gte.'+bas+'&tarih=lte.'+bit+'&order=tarih.desc';
   var sonuclar = await Promise.all([
     dbGet('kayitlar', q+'&tur=eq.gelir'),
-    dbGet('kayitlar', q+'&tur=eq.gider')
+    dbGet('kayitlar', q+'&tur=eq.gider&kat=neq.Ortaklara Ödenen')
   ]);
   _gsGelir = sonuclar[0] || [];
   _gsGider = sonuclar[1] || [];
