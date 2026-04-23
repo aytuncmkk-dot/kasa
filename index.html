@@ -670,88 +670,223 @@
   </style>
 </div>
 <!-- =============== /CARILER TAB =============== -->
-<div id="pg-inceleme" class="page">
-  <div class="card">
-    <h2 style="margin-top:0">🔍 Kayıt İnceleme</h2>
-    <p style="color:#666;margin:0 0 15px 0;font-size:14px">Tüm kasa kayıtlarını tarih aralığı ve filtrelerle görüntüle, düzenle veya sil.</p>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div>
-        <label>Başlangıç Tarihi</label>
-        <input type="date" id="inc-bas">
+<!-- saved from url=(0056)file:///Users/aytuncmekik/Desktop/files/pg-inceleme.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>
+#pg-inceleme{padding:0}
+#pg-inceleme .inc-wrap{max-width:100%}
+#pg-inceleme .inc-header{margin-bottom:16px}
+#pg-inceleme .inc-title{font-size:20px;font-weight:700;margin:0 0 4px 0;color:#1a1a1a}
+#pg-inceleme .inc-subtitle{color:#666;font-size:13px;margin:0}
+
+/* KPI Kartları */
+#pg-inceleme .inc-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+#pg-inceleme .inc-kpi{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+#pg-inceleme .inc-kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#e5e7eb}
+#pg-inceleme .inc-kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:600;margin-bottom:6px}
+#pg-inceleme .inc-kpi-value{font-size:20px;font-weight:700;color:#111;line-height:1.2}
+#pg-inceleme .inc-kpi-gelir::before{background:#10b981}
+#pg-inceleme .inc-kpi-gelir .inc-kpi-value{color:#059669}
+#pg-inceleme .inc-kpi-gider::before{background:#ef4444}
+#pg-inceleme .inc-kpi-gider .inc-kpi-value{color:#dc2626}
+#pg-inceleme .inc-kpi-pos::before{background:#10b981}
+#pg-inceleme .inc-kpi-pos .inc-kpi-value{color:#059669}
+#pg-inceleme .inc-kpi-neg::before{background:#ef4444}
+#pg-inceleme .inc-kpi-neg .inc-kpi-value{color:#dc2626}
+
+/* Filtre paneli */
+#pg-inceleme .inc-panel{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px}
+#pg-inceleme .inc-row1{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px}
+#pg-inceleme .inc-field{display:flex;flex-direction:column;gap:4px}
+#pg-inceleme .inc-field label{font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:#6b7280;font-weight:600}
+#pg-inceleme .inc-field input, #pg-inceleme .inc-field select{padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;background:#fff;color:#111}
+#pg-inceleme .inc-field input:focus, #pg-inceleme .inc-field select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+
+/* Chip filtreler */
+#pg-inceleme .inc-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#pg-inceleme .inc-chip{background:#f3f4f6;border:1px solid transparent;color:#374151;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+#pg-inceleme .inc-chip:hover{background:#e5e7eb}
+#pg-inceleme .inc-chip.active{background:#3b82f6;color:#fff;border-color:#2563eb}
+
+/* Alt filtreler */
+#pg-inceleme .inc-row2{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+
+/* Tablo başlık bar */
+#pg-inceleme .inc-tablehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px}
+#pg-inceleme .inc-count{font-size:13px;color:#6b7280}
+#pg-inceleme .inc-count strong{color:#111;font-weight:700}
+#pg-inceleme .inc-clear{background:none;border:none;color:#3b82f6;font-size:12px;cursor:pointer;padding:4px 8px}
+#pg-inceleme .inc-clear:hover{text-decoration:underline}
+
+/* Tablo */
+#pg-inceleme .inc-tablewrap{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+#pg-inceleme table.inc-table{width:100%;border-collapse:collapse;font-size:13px}
+#pg-inceleme .inc-table thead th{background:#f9fafb;padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:1}
+#pg-inceleme .inc-table tbody tr{border-bottom:1px solid #f3f4f6;transition:background .1s}
+#pg-inceleme .inc-table tbody tr:last-child{border-bottom:none}
+#pg-inceleme .inc-table tbody tr:hover{background:#f9fafb}
+#pg-inceleme .inc-table td{padding:10px 12px;vertical-align:middle}
+
+/* Tarih kolonu */
+#pg-inceleme .inc-tarih-col{width:54px;text-align:center;padding:8px 6px !important}
+#pg-inceleme .inc-gun{font-size:16px;font-weight:700;color:#111;line-height:1}
+#pg-inceleme .inc-ay{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* Açıklama kolonu */
+#pg-inceleme .inc-aciklama-col{min-width:0}
+#pg-inceleme .inc-firma-line{font-weight:600;color:#111;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+#pg-inceleme .inc-alt-line{font-size:11px;color:#6b7280;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#pg-inceleme .inc-sep{color:#d1d5db}
+#pg-inceleme .inc-kat{color:#4b5563}
+#pg-inceleme .inc-desc{color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+#pg-inceleme .inc-muted{color:#9ca3af;font-weight:400}
+
+/* Tür etiketi */
+#pg-inceleme .inc-tag{font-size:10px;padding:1px 7px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+#pg-inceleme .inc-tag-in{background:#d1fae5;color:#065f46}
+#pg-inceleme .inc-tag-out{background:#fee2e2;color:#991b1b}
+
+/* Ödeme pill */
+#pg-inceleme .inc-odeme-col{width:110px}
+#pg-inceleme .inc-pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500}
+#pg-inceleme .inc-pill-nakit{background:#dcfce7;color:#166534}
+#pg-inceleme .inc-pill-kart{background:#dbeafe;color:#1e40af}
+#pg-inceleme .inc-pill-havale{background:#fef3c7;color:#92400e}
+#pg-inceleme .inc-pill-diger{background:#f3f4f6;color:#4b5563}
+
+/* Tutar */
+#pg-inceleme .inc-tutar-col{text-align:right;font-weight:700;font-size:14px;white-space:nowrap;width:130px;font-variant-numeric:tabular-nums}
+#pg-inceleme .inc-pos{color:#059669}
+#pg-inceleme .inc-neg{color:#dc2626}
+
+/* İşlem butonları */
+#pg-inceleme .inc-islem-col{width:72px;white-space:nowrap;text-align:right}
+#pg-inceleme .inc-btn{background:none;border:1px solid #e5e7eb;color:#6b7280;width:28px;height:28px;border-radius:6px;cursor:pointer;margin-left:3px;font-size:12px;transition:all .1s;padding:0}
+#pg-inceleme .inc-btn:hover{background:#f3f4f6}
+#pg-inceleme .inc-btn-edit:hover{color:#3b82f6;border-color:#3b82f6}
+#pg-inceleme .inc-btn-del:hover{color:#dc2626;border-color:#dc2626;background:#fef2f2}
+
+/* Durum mesajları */
+#pg-inceleme .inc-loading{padding:40px !important;text-align:center;color:#6b7280;font-size:13px}
+#pg-inceleme .inc-empty{padding:50px 20px !important;text-align:center}
+#pg-inceleme .inc-empty-icon{font-size:32px;margin-bottom:8px}
+#pg-inceleme .inc-empty-title{font-weight:600;color:#374151;margin-bottom:4px}
+#pg-inceleme .inc-empty-sub{font-size:12px;color:#9ca3af}
+
+/* Mobil */
+@media(max-width:720px){
+  #pg-inceleme .inc-kpis{grid-template-columns:1fr 1fr}
+  #pg-inceleme .inc-kpi-net-kart{grid-column:span 2}
+  #pg-inceleme .inc-row1{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
+  #pg-inceleme .inc-row1>button{grid-column:span 2}
+  #pg-inceleme .inc-row2{grid-template-columns:1fr 1fr}
+  #pg-inceleme .inc-odeme-col{display:none}
+  #pg-inceleme .inc-firma-line{max-width:180px}
+  #pg-inceleme .inc-desc{max-width:120px}
+}
+</style>
+
+</head><body><div id="pg-inceleme" class="page">
+  <div class="inc-wrap">
+
+    <div class="inc-header">
+      <h2 class="inc-title">Kayıt İnceleme</h2>
+      <p class="inc-subtitle">Tüm kasa hareketlerini tarih aralığı ve filtrelerle görüntüle, düzenle veya sil.</p>
+    </div>
+
+    <div class="inc-kpis">
+      <div class="inc-kpi inc-kpi-gelir">
+        <div class="inc-kpi-label">Gelir</div>
+        <div class="inc-kpi-value" id="inc-k-gelir">TL 0,00</div>
       </div>
-      <div>
-        <label>Bitiş Tarihi</label>
-        <input type="date" id="inc-bit">
+      <div class="inc-kpi inc-kpi-gider">
+        <div class="inc-kpi-label">Gider</div>
+        <div class="inc-kpi-value" id="inc-k-gider">TL 0,00</div>
+      </div>
+      <div class="inc-kpi inc-kpi-pos" id="inc-k-net-kart">
+        <div class="inc-kpi-label">Net</div>
+        <div class="inc-kpi-value" id="inc-k-net">TL 0,00</div>
       </div>
     </div>
 
-    <div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap">
-      <button class="secondary" onclick="incelemeHizliTarih('bugun')" style="padding:6px 12px;font-size:12px">Bugün</button>
-      <button class="secondary" onclick="incelemeHizliTarih('7gun')" style="padding:6px 12px;font-size:12px">Son 7 Gün</button>
-      <button class="secondary" onclick="incelemeHizliTarih('30gun')" style="padding:6px 12px;font-size:12px">Son 30 Gün</button>
-      <button class="secondary" onclick="incelemeHizliTarih('buay')" style="padding:6px 12px;font-size:12px">Bu Ay</button>
-      <button class="secondary" onclick="incelemeHizliTarih('gecenay')" style="padding:6px 12px;font-size:12px">Geçen Ay</button>
-      <button class="secondary" onclick="incelemeHizliTarih('buyil')" style="padding:6px 12px;font-size:12px">Bu Yıl</button>
+    <div class="inc-panel">
+      <div class="inc-row1">
+        <div class="inc-field">
+          <label>Başlangıç</label>
+          <input type="date" id="inc-bas">
+        </div>
+        <div class="inc-field">
+          <label>Bitiş</label>
+          <input type="date" id="inc-bit">
+        </div>
+        <button onclick="incelemeAra()" style="padding:8px 14px;background:#111;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer">Yükle</button>
+      </div>
+
+      <div class="inc-chips">
+        <button class="inc-chip" data-tip="bugun" onclick="incelemeHizliTarih(&#39;bugun&#39;)">Bugün</button>
+        <button class="inc-chip" data-tip="7gun" onclick="incelemeHizliTarih(&#39;7gun&#39;)">Son 7 Gün</button>
+        <button class="inc-chip" data-tip="30gun" onclick="incelemeHizliTarih(&#39;30gun&#39;)">Son 30 Gün</button>
+        <button class="inc-chip" data-tip="buay" onclick="incelemeHizliTarih(&#39;buay&#39;)">Bu Ay</button>
+        <button class="inc-chip" data-tip="gecenay" onclick="incelemeHizliTarih(&#39;gecenay&#39;)">Geçen Ay</button>
+        <button class="inc-chip" data-tip="buyil" onclick="incelemeHizliTarih(&#39;buyil&#39;)">Bu Yıl</button>
+      </div>
+
+      <div class="inc-row2">
+        <div class="inc-field">
+          <label>Tür</label>
+          <select id="inc-tur" onchange="incelemeFiltreleVeGoster()">
+            <option value="">Tümü</option>
+            <option value="gelir">Gelir</option>
+            <option value="gider">Gider</option>
+          </select>
+        </div>
+        <div class="inc-field">
+          <label>Kategori</label>
+          <select id="inc-kat" onchange="incelemeFiltreleVeGoster()"></select>
+        </div>
+        <div class="inc-field">
+          <label>Ödeme</label>
+          <select id="inc-odeme" onchange="incelemeFiltreleVeGoster()">
+            <option value="">Tümü</option>
+            <option value="Nakit">Nakit</option>
+            <option value="Kredi Kartı">Kredi Kartı</option>
+            <option value="Havale">Havale</option>
+          </select>
+        </div>
+        <div class="inc-field">
+          <label>Firma</label>
+          <input type="text" id="inc-firma" placeholder="Firma ara..." oninput="incelemeFiltreleVeGoster()">
+        </div>
+        <div class="inc-field">
+          <label>Metin Arama</label>
+          <input type="text" id="inc-arama" placeholder="Açıklama, kategori..." oninput="incelemeFiltreleVeGoster()">
+        </div>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-      <div>
-        <label>Tür</label>
-        <select id="inc-tur" onchange="incelemeFiltreleVeGoster()">
-          <option value="">— Tümü —</option>
-          <option value="gelir">Gelir</option>
-          <option value="gider">Gider</option>
-        </select>
-      </div>
-      <div>
-        <label>Kategori</label>
-        <select id="inc-kat" onchange="incelemeFiltreleVeGoster()"></select>
-      </div>
-      <div>
-        <label>Ödeme</label>
-        <select id="inc-odeme" onchange="incelemeFiltreleVeGoster()">
-          <option value="">— Tümü —</option>
-          <option value="Nakit">Nakit</option>
-          <option value="Kredi Kartı">Kredi Kartı</option>
-          <option value="Havale">Havale</option>
-        </select>
-      </div>
+    <div class="inc-tablehead">
+      <div class="inc-count"><strong id="inc-sayac">0</strong> kayıt</div>
+      <button class="inc-clear" onclick="incelemeTemizle()">Filtreleri temizle</button>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div>
-        <label>Firma/Müşteri</label>
-        <input type="text" id="inc-firma" placeholder="Firma adı ara..." oninput="incelemeFiltreleVeGoster()">
-      </div>
-      <div>
-        <label>Metin Arama (açıklama/firma/kategori)</label>
-        <input type="text" id="inc-arama" placeholder="Herhangi bir alanda ara..." oninput="incelemeFiltreleVeGoster()">
-      </div>
+    <div class="inc-tablewrap">
+      <table class="inc-table">
+        <thead>
+          <tr>
+            <th style="width:54px;text-align:center">Tarih</th>
+            <th>Açıklama</th>
+            <th style="width:110px">Ödeme</th>
+            <th style="text-align:right;width:130px">Tutar</th>
+            <th style="width:72px"></th>
+          </tr>
+        </thead>
+        <tbody id="inc-tbody"></tbody>
+      </table>
     </div>
 
-    <div style="display:flex;gap:8px;align-items:center">
-      <button onclick="incelemeAra()">🔍 Tarih Aralığını Yeniden Yükle</button>
-      <button class="secondary" onclick="incelemeTemizle()">Filtreleri Temizle</button>
-      <span id="inc-durum" style="margin-left:auto;color:#666;font-size:13px"></span>
-    </div>
   </div>
-
-  <div class="card" style="background:linear-gradient(135deg,#f8f9fa,#fff)">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
-      <div>
-        <div style="color:#666;font-size:12px;text-transform:uppercase">Toplam Gelir</div>
-        <div id="inc-ozet-gelir" style="font-size:20px;font-weight:700;color:#1D9E75">TL 0,00</div>
-      </div>
-      <div>
-        <div style="color:#666;font-size:12px;text-transform:uppercase">Toplam Gider</div>
-        <div id="inc-ozet-gider" style="font-size:20px;font-weight:700;color:#D85A30">TL 0,00</div>
-      </div>
-      <div>
-        <div style="color:#666;font-size:12px;text-transform:uppercase">Net</div>
-        <div id="inc-ozet-net" style="font-size:20px;font-weight:700">TL 0,00</div>
-      </div>
-    </div>
+</div>
+</body></html>
   </div>
 
   <div class="card">
