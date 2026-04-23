@@ -125,7 +125,7 @@ function gunlukSatisRender(){
   document.getElementById('gs-toplam-gelir').textContent  = para(tGelir);
   document.getElementById('gs-toplam-gider').textContent  = para(tGider);
   document.getElementById('gs-toplam-kisi').textContent   = tKisi;
-  document.getElementById('gs-gun-sayisi').textContent    = liste.length;
+  document.getElementById('gs-gun-sayisi').textContent    = satirlar.length;
 }
 
 function gsGunuAc(tarih){

@@ -187,24 +187,31 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 // Tooltip sistemi
-function setTT(id, txt, sel){
+var _ttTimeout=null;
+function setTT(id,txt,sel){
   var el=document.getElementById(id);
   if(!el)return;
   var card=sel?el.closest(sel):el.parentElement;
-  if(card)card.dataset.tooltip=txt;
-}
-document.addEventListener('mousemove',function(e){
-  var tt=document.getElementById('kasa-tt');
-  if(!tt)return;
-  var el=e.target&&e.target.closest?e.target.closest('[data-tooltip]'):null;
-  if(el&&el.dataset.tooltip){
-    tt.textContent=el.dataset.tooltip;
+  if(!card)return;
+  card.dataset.tooltip=txt;
+  card.addEventListener('mouseenter',function(e){
+    var tt=document.getElementById('kasa-tt');
+    if(!tt)return;
+    tt.textContent=txt;
     tt.style.display='block';
-    var tx=e.clientX+16;
-    if(tx+270>window.innerWidth)tx=e.clientX-270;
-    tt.style.left=tx+'px';
-    tt.style.top=(e.clientY+14)+'px';
-  }else{
-    tt.style.display='none';
-  }
-});
+    _ttKonumla(e);
+  });
+  card.addEventListener('mousemove',_ttKonumla);
+  card.addEventListener('mouseleave',function(){
+    var tt=document.getElementById('kasa-tt');
+    if(tt)tt.style.display='none';
+  });
+}
+function _ttKonumla(e){
+  var tt=document.getElementById('kasa-tt');
+  if(!tt||tt.style.display==='none')return;
+  var tx=e.clientX+16;
+  if(tx+270>window.innerWidth)tx=e.clientX-276;
+  tt.style.left=tx+'px';
+  tt.style.top=(e.clientY+14)+'px';
+}
