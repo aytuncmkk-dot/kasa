@@ -50,7 +50,7 @@ function switchTab(t){
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
     if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
-  if(t==='ozelrapor'){if(typeof ozelRaporKatListesi==='function')ozelRaporKatListesi();if(typeof renderOzelRapor==='function')renderOzelRapor();}
+  if(t==='ozelrapor'){ozelRaporKatListesi();renderOzelRapor();}
 }
 
 function doldurKatListeleri(){
