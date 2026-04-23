@@ -64,22 +64,38 @@
   <span style="color:#666;font-size:12px;margin-left:auto">Gelir, Gider formlarindaki tarih buna baglidir</span>
 </div>
 
-<div class="tabs">
-    <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
-    <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
-<button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
-<button class="tab" onclick="switchTab('cariler')">Cariler</button>
-    <button class="tab" onclick="switchTab('yedekfon')">Yedek Fon</button>
-    <button class="tab" onclick="switchTab('rapor')">Rapor</button>
-    <button class="tab" onclick="switchTab('kardagilim')">Kar Dağılım</button>
-    <button class="tab" onclick="switchTab('stok')">İçki Stok</button>
-    <button class="tab" onclick="switchTab('maliyet')">Op. Maliyet</button>
-    <button class="tab" onclick="switchTab('finans')">Finans Analiz</button>
-    <button class="tab" id="tab-denetim" onclick="switchTab('denetim')" style="display:none">Denetim</button>
-    <button class="tab" onclick="switchTab('ozelrapor')">Özel Rapor</button>
+<div class="tabs" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+  <div class="tab-grup">
+    <button class="tab-grup-btn" onclick="tabGrupTogge(event,'grup-kasa')">📒 Kasa Defteri ▾</button>
+    <div class="tab-grup-menu" id="grup-kasa">
+      <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
+      <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
+      <button class="tab" onclick="switchTab('stok')">Stok</button>
+      <button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
+      <button class="tab" onclick="switchTab('gunluksatis')">Günlük Satış Raporu</button>
+    </div>
   </div>
+  <div class="tab-grup">
+    <button class="tab-grup-btn" onclick="tabGrupTogge(event,'grup-rapor')">📊 Raporlar ▾</button>
+    <div class="tab-grup-menu" id="grup-rapor">
+      <button class="tab" onclick="switchTab('cariler')">Cariler</button>
+      <button class="tab" onclick="switchTab('rapor')">Rapor</button>
+      <button class="tab" onclick="switchTab('maliyet')">Operasyon Maliyet</button>
+      <button class="tab" onclick="switchTab('ozelrapor')">Özel Rapor</button>
+    </div>
+  </div>
+  <div class="tab-grup">
+    <button class="tab-grup-btn" onclick="tabGrupTogge(event,'grup-yonetim')">⚙️ Yönetim ▾</button>
+    <div class="tab-grup-menu" id="grup-yonetim">
+      <button class="tab" onclick="switchTab('yedekfon')">Yedek Fon</button>
+      <button class="tab" onclick="switchTab('kardagilim')">Kar Dağılım</button>
+      <button class="tab" onclick="switchTab('finans')">Finansal Analiz</button>
+      <button class="tab" id="tab-denetim" onclick="switchTab('denetim')" style="display:none">Denetim</button>
+    </div>
+  </div>
+</div>
 
-  <!-- KASA -->
+<!-- KASA -->
   <div id="pg-kasa" class="page active">
     <!-- GELİR FORMU -->
     <div class="fb">
@@ -584,6 +600,7 @@
 <script src="js/fatura.js"></script>
 <script src="js/cariler.js"></script>
 <script src="js/inceleme.js"></script>
+<script src="js/gunluksatis.js"></script>
 <script src="js/yedekfon.js"></script>
 <script src="js/rapor.js"></script>
 <script src="js/ozelrapor.js"></script>
@@ -896,6 +913,63 @@
 
   </div>
 </div>
+<div id="pg-gunluksatis" class="page">
+
+  <div style="margin-bottom:16px">
+    <h2 style="margin:0 0 4px 0;font-size:20px;font-weight:700">Günlük Satış Raporu</h2>
+    <p style="margin:0;color:#666;font-size:13px">Tarih bazında nakit ve kart geliri.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #10b981">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Toplam Nakit</div>
+      <div id="gs-toplam-nakit" style="font-size:18px;font-weight:700;color:#059669">TL 0,00</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #3b82f6">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Toplam Kart</div>
+      <div id="gs-toplam-kart" style="font-size:18px;font-weight:700;color:#1e40af">TL 0,00</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #111">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Genel Toplam</div>
+      <div id="gs-toplam-toplam" style="font-size:18px;font-weight:700;color:#111">TL 0,00</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #8b5cf6">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Toplam Kişi</div>
+      <div style="font-size:18px;font-weight:700;color:#6d28d9"><span id="gs-toplam-kisi">0</span> <span style="font-size:11px;color:#9ca3af">/ <span id="gs-gun-sayisi">0</span> gün</span></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px">
+      <div><label style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600">Başlangıç</label><input type="date" id="gs-bas" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px"></div>
+      <div><label style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600">Bitiş</label><input type="date" id="gs-bit" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px"></div>
+      <button onclick="gunlukSatisYukle()" style="padding:8px 14px;background:#111;color:#fff;border:none;border-radius:7px;font-size:13px;cursor:pointer">Yükle</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="gsHizliTarih('7gun')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Son 7 Gün</button>
+      <button onclick="gsHizliTarih('30gun')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Son 30 Gün</button>
+      <button onclick="gsHizliTarih('buay')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Bu Ay</button>
+      <button onclick="gsHizliTarih('gecenay')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Geçen Ay</button>
+      <button onclick="gsHizliTarih('buyil')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Bu Yıl</button>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#f9fafb">
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Tarih</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Nakit</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kredi Kartı</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Toplam</th>
+          <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kişi</th>
+        </tr>
+      </thead>
+      <tbody id="gs-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 </body></html>
   </div>
 
@@ -917,6 +991,63 @@
         <tbody id="inc-tbody"></tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<div id="pg-gunluksatis" class="page">
+
+  <div style="margin-bottom:16px">
+    <h2 style="margin:0 0 4px 0;font-size:20px;font-weight:700">Günlük Satış Raporu</h2>
+    <p style="margin:0;color:#666;font-size:13px">Tarih bazında nakit ve kart geliri.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #10b981">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Toplam Nakit</div>
+      <div id="gs-toplam-nakit" style="font-size:18px;font-weight:700;color:#059669">TL 0,00</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #3b82f6">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Toplam Kart</div>
+      <div id="gs-toplam-kart" style="font-size:18px;font-weight:700;color:#1e40af">TL 0,00</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #111">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Genel Toplam</div>
+      <div id="gs-toplam-toplam" style="font-size:18px;font-weight:700;color:#111">TL 0,00</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;border-left:3px solid #8b5cf6">
+      <div style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;margin-bottom:4px">Toplam Kişi</div>
+      <div style="font-size:18px;font-weight:700;color:#6d28d9"><span id="gs-toplam-kisi">0</span> <span style="font-size:11px;color:#9ca3af">/ <span id="gs-gun-sayisi">0</span> gün</span></div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px">
+      <div><label style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600">Başlangıç</label><input type="date" id="gs-bas" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px"></div>
+      <div><label style="font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600">Bitiş</label><input type="date" id="gs-bit" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:7px;font-size:13px"></div>
+      <button onclick="gunlukSatisYukle()" style="padding:8px 14px;background:#111;color:#fff;border:none;border-radius:7px;font-size:13px;cursor:pointer">Yükle</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="gsHizliTarih('7gun')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Son 7 Gün</button>
+      <button onclick="gsHizliTarih('30gun')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Son 30 Gün</button>
+      <button onclick="gsHizliTarih('buay')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Bu Ay</button>
+      <button onclick="gsHizliTarih('gecenay')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Geçen Ay</button>
+      <button onclick="gsHizliTarih('buyil')" style="background:#f3f4f6;border:1px solid transparent;padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer">Bu Yıl</button>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#f9fafb">
+          <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Tarih</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Nakit</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kredi Kartı</th>
+          <th style="padding:10px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Toplam</th>
+          <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#6b7280;font-weight:600;border-bottom:1px solid #e5e7eb">Kişi</th>
+        </tr>
+      </thead>
+      <tbody id="gs-tbody"></tbody>
+    </table>
   </div>
 </div>
 

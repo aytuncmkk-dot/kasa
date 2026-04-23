@@ -117,3 +117,13 @@ tbody tr:hover{background:#fafaf8}
   .stok-grid{grid-template-columns:1fr 1fr}
   .odeme-satir{grid-template-columns:1fr 1fr}
 }
+
+.tab-grup{position:relative;display:inline-block}
+.tab-grup-btn{background:#f3f4f6;border:1px solid #e5e7eb;color:#1f2937;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.tab-grup-btn:hover{background:#e5e7eb}
+.tab-grup-btn.active-grup{background:#1f2937;color:#fff;border-color:#1f2937}
+.tab-grup-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;min-width:200px;z-index:100;margin-top:4px}
+.tab-grup-menu.acik{display:flex;flex-direction:column;gap:2px}
+.tab-grup-menu .tab{background:none;border:none;text-align:left;padding:8px 12px;border-radius:6px;font-size:13px;color:#374151;cursor:pointer;width:100%;display:block}
+.tab-grup-menu .tab:hover{background:#f3f4f6}
+.tab-grup-menu .tab.active{background:#eff6ff;color:#1d4ed8;font-weight:500}

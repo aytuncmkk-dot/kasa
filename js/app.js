@@ -43,12 +43,15 @@ function switchTab(t){
   if(t==='finans')renderFinansAnaliz();
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
+    if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
     if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
+    if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
     if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='denetim')renderDenetim();
   if(t==='cariler'){ if(typeof cariSekmeAc==='function') cariSekmeAc(); }
+    if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
     if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='ozelrapor'){if(typeof ozelRaporKatListesi==='function')ozelRaporKatListesi();if(typeof renderOzelRapor==='function')renderOzelRapor();}
 }
@@ -217,3 +220,16 @@ if(document.readyState==='loading'){
 }else{
   setTimeout(aktifTarihYukle, 200);
 }
+
+function tabGrupTogge(event, grupId){
+  event.stopPropagation();
+  var hedef = document.getElementById(grupId);
+  var acikMi = hedef.classList.contains('acik');
+  document.querySelectorAll('.tab-grup-menu').forEach(function(m){ m.classList.remove('acik'); });
+  if(!acikMi) hedef.classList.add('acik');
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.tab-grup')){
+    document.querySelectorAll('.tab-grup-menu').forEach(function(m){ m.classList.remove('acik'); });
+  }
+});
