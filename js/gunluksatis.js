@@ -20,7 +20,7 @@ async function gunlukSatisYukle(){
   if(!bas || !bit){ alert('Tarih aralığı seçin'); return; }
   if(bas > bit){ alert('Başlangıç > bitiş olamaz'); return; }
 
-  document.getElementById('gs-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:#6b7280">Yükleniyor...</td></tr>';
+  document.getElementById('gs-tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#6b7280">Yükleniyor...</td></tr>';
 
   var q = 'tarih=gte.'+bas+'&tarih=lte.'+bit+'&order=tarih.desc';
   var sonuclar = await Promise.all([
@@ -64,8 +64,8 @@ function gunlukSatisRender(){
 
   var tbody = document.getElementById('gs-tbody');
   if(liste.length === 0){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af">Bu aralıkta kayıt yok</td></tr>';
-    ['gs-toplam-nakit','gs-toplam-kart','gs-toplam-gelir','gs-toplam-gider','gs-toplam-net'].forEach(function(id){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#9ca3af">Bu aralıkta kayıt yok</td></tr>';
+    ['gs-toplam-nakit','gs-toplam-kart','gs-toplam-gelir','gs-toplam-gider'].forEach(function(id){
       document.getElementById(id).textContent = para(0);
     });
     document.getElementById('gs-toplam-kisi').textContent = '0';
@@ -79,30 +79,24 @@ function gunlukSatisRender(){
     var g = gelirGrup[tarih] || { nakit:0, kart:0, havale:0, diger:0, kisi:0 };
     var gid = giderGrup[tarih] || 0;
     var gelir = g.nakit + g.kart + g.havale + g.diger;
-    var net = gelir - gid;
     tN += g.nakit; tK += g.kart; tGelir += gelir; tGider += gid; tKisi += g.kisi;
     var tarihStr = tarih.split('-').reverse().join('.');
     var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(tarih).getDay()];
-    var netRenk = net >= 0 ? '#166534' : '#dc2626';
     html += '<tr style="border-bottom:1px solid #f3f4f6">'+
       '<td style="padding:10px 12px"><div style="font-weight:600">'+tarihStr+'</div><div style="font-size:11px;color:#6b7280">'+gun+'</div></td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#166534">'+para(g.nakit)+'</td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#1e40af">'+para(g.kart)+'</td>'+
       '<td style="padding:10px 12px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">'+para(gelir)+'</td>'+
       '<td style="padding:10px 12px;text-align:right;font-variant-numeric:tabular-nums;color:#dc2626">'+para(gid)+'</td>'+
-      '<td style="padding:10px 12px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:'+netRenk+'">'+para(net)+'</td>'+
       '<td style="padding:10px 12px;text-align:center;color:#6b7280">'+(g.kisi||'-')+'</td>'+
     '</tr>';
   });
   tbody.innerHTML = html;
 
-  var tNet = tGelir - tGider;
   document.getElementById('gs-toplam-nakit').textContent  = para(tN);
   document.getElementById('gs-toplam-kart').textContent   = para(tK);
   document.getElementById('gs-toplam-gelir').textContent  = para(tGelir);
   document.getElementById('gs-toplam-gider').textContent  = para(tGider);
-  document.getElementById('gs-toplam-net').textContent    = para(tNet);
-  document.getElementById('gs-toplam-net').style.color    = tNet >= 0 ? '#059669' : '#dc2626';
   document.getElementById('gs-toplam-kisi').textContent   = tKisi;
   document.getElementById('gs-gun-sayisi').textContent    = liste.length;
 }
