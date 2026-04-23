@@ -6,8 +6,11 @@ var _gsGelir = [];
 var _gsGider = [];
 var _gsSortKol = 'tarih';
 var _gsSortAsc = false;
+var _gsIlkAcilis = true;
 
 async function gunlukSatisAc(){
+  if(!_gsIlkAcilis){ return; }
+  _gsIlkAcilis = false;
   var bitis = new Date();
   var baslangic = new Date();
   baslangic.setDate(baslangic.getDate() - 30);
