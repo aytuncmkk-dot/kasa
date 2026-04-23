@@ -33,9 +33,7 @@ function renderOzet(){
     return true;
   });
   var topGelir=liste.filter(function(k){return k.tur==='gelir';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var topGiderTum=liste.filter(function(k){return k.tur==='gider';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var topOrtakOdenen=liste.filter(function(k){return k.tur==='gider'&&k.kat==='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var topGider=topGiderTum-topOrtakOdenen;
+  var topGider=liste.filter(function(k){return k.tur==='gider';}).reduce(function(s,k){return s+Number(k.tutar);},0);
   var topKar=topGelir-topGider;
   var topKarlilik=topGelir>0?((topKar/topGelir)*100):0;
   // Kişi sayısını grupla: aynı tarih+firma grubu için tek kişi sayısı al
