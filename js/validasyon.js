@@ -6,7 +6,7 @@
 
 function validTarih(tarih){
   if(!tarih) return {ok:false, msg:'Tarih zorunludur.'};
-  var bugun = new Date().toISOString().split('T')[0];
+  var bugun = ldStr(new Date());
   if(tarih > bugun) return {ok:false, msg:'İleri tarihli kayıt yapılamaz. Tarih bugünden sonra olamaz.'};
   if(tarih < '2020-01-01') return {ok:false, msg:'Tarih 2020-01-01 tarihinden önce olamaz.'};
   return {ok:true};

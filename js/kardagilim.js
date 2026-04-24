@@ -5,7 +5,7 @@
 function renderKarDagilim(){
   var tip=document.getElementById('kd-tip').value;
   function filtrele(list){
-    if(tip==='hafta'){var d=new Date();d.setDate(d.getDate()-7);var hw=d.toISOString().split('T')[0];return list.filter(function(k){return k.tarih>=hw;});}
+    if(tip==='hafta'){var d=new Date();d.setDate(d.getDate()-7);var hw=ldStr(d);return list.filter(function(k){return k.tarih>=hw;});}
     if(tip==='ay'){var ay=document.getElementById('kd-ay').value;return list.filter(function(k){return k.tarih.startsWith(ay);});}
     if(tip==='aralik'){var b=document.getElementById('kd-bas').value,s=document.getElementById('kd-bit').value;if(b&&s)return list.filter(function(k){return k.tarih>=b&&k.tarih<=s;});}
     return list;

@@ -24,8 +24,8 @@ async function incelemeSekmeAc(){
     var bitis = new Date();
     var baslangic = new Date();
     baslangic.setDate(baslangic.getDate() - 30);
-    document.getElementById('inc-bas').value = baslangic.toISOString().slice(0,10);
-    document.getElementById('inc-bit').value = bitis.toISOString().slice(0,10);
+    document.getElementById('inc-bas').value = ldStr(baslangic);
+    document.getElementById('inc-bit').value = ldStr(bitis);
     var btn30 = document.querySelector('.inc-chip[data-tip="30gun"]');
     if(btn30) btn30.classList.add('active');
   }

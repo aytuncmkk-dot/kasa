@@ -33,5 +33,5 @@ var odemeSatirlari = [];
 var _duzId = null;
 var _tumKayitlar = false;
 var _adisyonData = null;
-var today = new Date().toISOString().split('T')[0];
+var today = ldStr(new Date());
 var thisMonth = today.slice(0, 7);

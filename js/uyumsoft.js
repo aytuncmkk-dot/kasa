@@ -75,8 +75,8 @@ async function uyumKasaEslesenAra(fatura) {
     const bitis = new Date(fatura.tarih);
     bitis.setDate(bitis.getDate() + 7);
     
-    const bas = baslangic.toISOString().slice(0, 10);
-    const bit = bitis.toISOString().slice(0, 10);
+    const bas = ldStr(baslangic);
+    const bit = ldStr(bitis);
     
     const alanlar = 'id,tarih,firma,tutar,odeme,aciklama,fatura_id';
     const url = `${SB_URL}/rest/v1/kayitlar?select=${alanlar}&tur=eq.gider&tarih=gte.${bas}&tarih=lte.${bit}`;

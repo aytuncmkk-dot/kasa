@@ -208,7 +208,7 @@ function exportXLSX(){
   }
   var wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Kayıtlar');
-  XLSX.writeFile(wb,'kasa_kayitlar_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  XLSX.writeFile(wb,'kasa_kayitlar_'+ldStr(new Date())+'.xlsx');
 }
 
 function karDagilimPDF(){
@@ -228,7 +228,7 @@ function aktifTarihDegisti(){
   var atBit = document.getElementById('aktif-tarih-bit');
   if(!at) return;
   var bas = at.value || '';
-  var bit = (atBit && atBit.value) ? atBit.value : (bas ? new Date().toISOString().split('T')[0] : '');
+  var bit = (atBit && atBit.value) ? atBit.value : (bas ? ldStr(new Date()) : '');
 
   // Form tarihleri = başlangıç tarihi
   ['g-tarih','gi-tarih','fat-tarih','fon-tarih'].forEach(function(id){
@@ -279,14 +279,14 @@ function aktifTarihDegistir(gun){
   var at = document.getElementById('aktif-tarih');
   var atBit = document.getElementById('aktif-tarih-bit');
   if(!at) return;
-  var bas = at.value || new Date().toISOString().split('T')[0];
+  var bas = at.value || ldStr(new Date());
   var dBas = new Date(bas);
   dBas.setDate(dBas.getDate() + gun);
-  at.value = dBas.toISOString().split('T')[0];
+  at.value = ldStr(dBas);
   if(atBit && atBit.value){
     var dBit = new Date(atBit.value);
     dBit.setDate(dBit.getDate() + gun);
-    atBit.value = dBit.toISOString().split('T')[0];
+    atBit.value = ldStr(dBit);
   }
   aktifTarihDegisti();
 }
@@ -294,7 +294,7 @@ function aktifTarihDegistir(gun){
 function aktifTarihBugun(){
   var at = document.getElementById('aktif-tarih');
   var atBit = document.getElementById('aktif-tarih-bit');
-  var bugun = new Date().toISOString().split('T')[0];
+  var bugun = ldStr(new Date());
   if(at) at.value = bugun;
   if(atBit) atBit.value = bugun;
   aktifTarihDegisti();
@@ -305,7 +305,7 @@ function aktifTarihBuAy(){
   var atBit = document.getElementById('aktif-tarih-bit');
   var simdi = new Date();
   var bas = simdi.getFullYear()+'-'+String(simdi.getMonth()+1).padStart(2,'0')+'-01';
-  var bit = simdi.toISOString().split('T')[0];
+  var bit = ldStr(simdi);
   if(at) at.value = bas;
   if(atBit) atBit.value = bit;
   aktifTarihDegisti();
@@ -321,7 +321,7 @@ function aktifTarihYukle(){
   if(!kayitliBas){
     var simdi = new Date();
     kayitliBas = simdi.getFullYear()+'-'+String(simdi.getMonth()+1).padStart(2,'0')+'-01';
-    kayitliBit = simdi.toISOString().split('T')[0];
+    kayitliBit = ldStr(simdi);
   }
   at.value = kayitliBas;
   if(atBit) atBit.value = kayitliBit || '';

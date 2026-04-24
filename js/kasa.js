@@ -15,7 +15,7 @@ function getOzetAralik(){
     var simdi=new Date();
     bit=simdi.getFullYear()+'-'+String(simdi.getMonth()+1).padStart(2,'0')+'-'+String(new Date(simdi.getFullYear(),simdi.getMonth()+1,0).getDate()).padStart(2,'0');
   } else if(!bit){
-    bit=new Date().toISOString().split('T')[0];
+    bit=ldStr(new Date());
   }
   return {bas:bas,bit:bit};
 }
