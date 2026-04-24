@@ -113,9 +113,60 @@ tbody tr:hover{background:#fafaf8}
 .bar-amt{font-size:12px;font-weight:500;width:100px;text-align:right;flex-shrink:0}
 .bar-pct{font-size:11px;color:#888;width:32px;text-align:right;flex-shrink:0}
 @media(max-width:640px){
+  /* Layout */
+  .app{padding:8px}
+  .ozet-panel{padding:10px}
+
+  /* Özet kartlar */
   .ozet-kartlar{grid-template-columns:1fr 1fr}
-  .g2,.g3,.g4,.g5,.g6{grid-template-columns:1fr 1fr}
+  .ok-val{font-size:15px}
+
+  /* Grid formları — 5/6 sütun tek, diğerleri 2 sütun */
+  .g2,.g3,.g4{grid-template-columns:1fr 1fr}
+  .g5,.g6{grid-template-columns:1fr 1fr}
+
+  /* Stok / ödeme */
   .stok-grid{grid-template-columns:1fr 1fr}
+  .odeme-satir{grid-template-columns:1fr 1fr}
+
+  /* iOS: 16px altında input'lara otomatik zoom yapar */
+  .field input,.field select,.field textarea{font-size:16px}
+  .frow select,.frow input[type=month],.frow input[type=date]{font-size:16px}
+
+  /* Sekmeler — yatay kaydırma */
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:1px}
+  .tab-grup-btn{padding:8px 10px;font-size:12px}
+  .tab{padding:10px 10px;font-size:12px}
+  .tab-grup-menu{min-width:160px}
+
+  /* Butonlar */
+  .btn{font-size:12px;padding:7px 12px}
+  .btn-row{flex-wrap:wrap;gap:6px}
+
+  /* Bar grafik */
+  .bar-lbl{width:110px;font-size:11px}
+  .bar-amt{width:75px;font-size:11px}
+  .bar-pct{width:28px}
+
+  /* Tablo başlıklar daha kompakt */
+  thead th{padding:6px 8px;font-size:10px}
+  tbody td{padding:6px 8px;font-size:11px}
+
+  /* Topbar */
+  .topbar{padding:8px 12px}
+  .topbar h1{font-size:14px}
+
+  /* Form blok */
+  .fb{padding:10px}
+  .fb-title{font-size:11px}
+
+  /* Modal tam ekran mobilde */
+  .modal-bg{padding:0;align-items:flex-end}
+  .modal{border-radius:16px 16px 0 0;max-height:90vh;overflow-y:auto;padding:16px}
+}
+
+@media(max-width:400px){
+  .g2,.g3,.g4,.g5,.g6{grid-template-columns:1fr}
   .odeme-satir{grid-template-columns:1fr 1fr}
 }
 

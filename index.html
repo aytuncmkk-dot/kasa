@@ -2,7 +2,12 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kasa Defteri">
+<meta name="theme-color" content="#1a1a1a">
 <title>Kasa Defteri</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -830,6 +835,27 @@
   #pg-inceleme .inc-odeme-col{display:none}
   #pg-inceleme .inc-firma-line{max-width:180px}
   #pg-inceleme .inc-desc{max-width:120px}
+}
+@media(max-width:640px){
+  /* Özet panel — kar akış satırı yatay kaydırma */
+  .ozet-panel>div:nth-child(1){overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  /* İkincil özet grid 2 sütun */
+  .ozet-panel>div:nth-child(2){grid-template-columns:1fr 1fr !important}
+  /* Kar dağılım kartları */
+  #kd-icerik>div[style*="grid-template-columns"]{grid-template-columns:1fr !important}
+  /* Aktif tarih kutusu — tarih inputları tam genişlik */
+  .aktif-tarih-kutu{flex-wrap:wrap;gap:6px}
+  .aktif-tarih-kutu input[type=date]{flex:1;min-width:130px}
+  /* Rapor ve filtre satırları */
+  .frow{flex-wrap:wrap;gap:6px}
+  /* Stok formu */
+  #pg-stok .g4{grid-template-columns:1fr 1fr}
+  /* İnceleme KPI */
+  #pg-inceleme .inc-kpis{grid-template-columns:1fr 1fr}
+  #pg-inceleme .inc-row2{grid-template-columns:1fr 1fr}
+  /* Dönem özeti butonları */
+  .btn-row{justify-content:stretch}
+  .btn-row .btn{flex:1;text-align:center}
 }
 </style>
 
