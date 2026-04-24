@@ -15,11 +15,27 @@ async function yukle(){
     gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
     giderKatlar   = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
     dagitimKatlar = katList.filter(function(x){return x.tur==='dagitim';}).map(function(x){return {id:x.id,ad:x.ad};});
+    await otomatikDagitimMigrasyonu();
     setBag(true);
     hepsiniYenile();
   }catch(e){
     setBag(false);
     console.error(e);
+  }
+}
+
+async function otomatikDagitimMigrasyonu(){
+  var eskiler=kayitlar.filter(function(k){return k.tur==='gider'&&k.kat==='Ortaklara Ödenen';});
+  if(!eskiler.length)return;
+  var H=Object.assign({},getSBH(),{'Prefer':'return=minimal'});
+  await fetch(SB_URL+'/rest/v1/kayitlar?kat=eq.'+encodeURIComponent('Ortaklara Ödenen')+'&tur=eq.gider',{method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})});
+  await fetch(SB_URL+'/rest/v1/kategoriler?ad=eq.'+encodeURIComponent('Ortaklara Ödenen'),{method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})});
+  eskiler.forEach(function(k){k.tur='dagitim';});
+  // Kategori listelerini de güncelle
+  var katiOrtaklar=dagitimKatlar.find(function(k){return k.ad==='Ortaklara Ödenen';});
+  if(!katiOrtaklar){
+    var idx=giderKatlar.findIndex(function(k){return k.ad==='Ortaklara Ödenen';});
+    if(idx!==-1){dagitimKatlar.push(giderKatlar[idx]);giderKatlar.splice(idx,1);}
   }
 }
 

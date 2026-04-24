@@ -51,7 +51,6 @@ async function oturumKontrol(){
     SB_H['Authorization']='Bearer '+accessToken;
     if(isAdmin){
       var td=document.getElementById('tab-denetim');if(td)td.style.display='inline-block';
-      var mp=document.getElementById('migrasyon-panel');if(mp)mp.style.display='block';
     }
     if(!isAdmin){
       // Sadece rapor ve kar dagilim goster
