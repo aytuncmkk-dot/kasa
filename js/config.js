@@ -14,7 +14,8 @@ var IZINLI_EMAILS = [
   'aytunc.mkk@gmail.com',
   'akkas.ergun@gmail.com',
   'ozlemmekik@gmail.com',
-  'engin_akkas@hotmail.com'
+  'engin_akkas@hotmail.com',
+  'rizaakkas60@hotmail.com'
 ];
 
 // Global durum
