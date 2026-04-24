@@ -39,6 +39,13 @@ function switchTab(t){
     el.classList.toggle('active', oc.indexOf("'"+t+"'") !== -1);
   });
   document.querySelectorAll('details.tab-grup').forEach(function(d){ d.open = false; });
+  // Aktif sekmenin bulunduğu dropdown başlığını vurgula
+  document.querySelectorAll('.tab-grup-btn').forEach(function(s){ s.classList.remove('aktif-grup'); });
+  var aktifBtn = document.querySelector('.tab.active');
+  if(aktifBtn){
+    var det = aktifBtn.closest('details.tab-grup');
+    if(det){ var s = det.querySelector('.tab-grup-btn'); if(s) s.classList.add('aktif-grup'); }
+  }
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('pg-'+t).classList.add('active');
   if(t==='rapor')renderRapor();

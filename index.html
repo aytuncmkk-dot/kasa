@@ -75,34 +75,39 @@
 </div>
 
 <div class="tabs" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+
   <details class="tab-grup">
-    <summary class="tab-grup-btn">📒 Kasa Defteri ▾</summary>
+    <summary class="tab-grup-btn">KASA ▾</summary>
     <div class="tab-grup-menu">
-      <button class="tab active" onclick="switchTab('kasa')">Kasa</button>
+      <button class="tab active" onclick="switchTab('kasa')">Veri Girişi</button>
       <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
-      <button class="tab" onclick="switchTab('stok')">Stok</button>
-      <button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
+      <button class="tab" onclick="switchTab('cariler')">Cariler</button>
       <button class="tab" onclick="switchTab('gunluksatis')">Günlük Satış Raporu</button>
+      <button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
     </div>
   </details>
+
+  <button class="tab" onclick="switchTab('stok')">STOK</button>
+
   <details class="tab-grup">
-    <summary class="tab-grup-btn">📊 Raporlar ▾</summary>
+    <summary class="tab-grup-btn">RAPORLAR ▾</summary>
     <div class="tab-grup-menu">
-      <button class="tab" onclick="switchTab('cariler')">Cariler</button>
       <button class="tab" onclick="switchTab('rapor')">Rapor</button>
       <button class="tab" onclick="switchTab('maliyet')">Operasyon Maliyet</button>
       <button class="tab" onclick="switchTab('ozelrapor')">Özel Rapor</button>
     </div>
   </details>
+
   <details class="tab-grup">
-    <summary class="tab-grup-btn">⚙️ Yönetim ▾</summary>
+    <summary class="tab-grup-btn">YÖNETİM ▾</summary>
     <div class="tab-grup-menu">
       <button class="tab" onclick="switchTab('yedekfon')">Yedek Fon</button>
       <button class="tab" onclick="switchTab('kardagilim')">Kar Dağılım</button>
       <button class="tab" onclick="switchTab('finans')">Finansal Analiz</button>
       <button class="tab" id="tab-denetim" onclick="switchTab('denetim')" style="display:none">Denetim</button>
     </div>
-  </div>
+  </details>
+
 </div>
 
 <!-- KASA -->
