@@ -31,15 +31,21 @@
 
 <div class="app">
 
+<!-- GLOBAL TARİH FİLTRESİ -->
+<div class="aktif-tarih-kutu" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;margin-bottom:10px;flex-wrap:wrap">
+  <span style="font-weight:600;font-size:13px">Tarih:</span>
+  <input type="date" id="aktif-tarih" onchange="aktifTarihDegisti()" style="padding:4px 8px;font-size:14px">
+  <span style="color:#888;font-size:12px">—</span>
+  <input type="date" id="aktif-tarih-bit" onchange="aktifTarihDegisti()" style="padding:4px 8px;font-size:14px">
+  <button onclick="aktifTarihDegistir(-1)" style="padding:4px 10px" title="1 gün geri">&#9664;</button>
+  <button onclick="aktifTarihDegistir(1)" style="padding:4px 10px" title="1 gün ileri">&#9654;</button>
+  <button onclick="aktifTarihBugun()" style="padding:4px 10px">Bugün</button>
+  <button onclick="aktifTarihBuAy()" style="padding:4px 10px">Bu Ay</button>
+  <span style="color:#666;font-size:11px;margin-left:auto">Tüm ekranlar bu aralığa göre filtrelenir • Form tarihi = başlangıç</span>
+</div>
+
 <!-- ÖZET PANEL -->
 <div class="ozet-panel">
-  <div class="ozet-filtre">
-    <label>Özet:</label>
-    <input type="date" id="oz-bas" onchange="renderOzet();renderKasa()">
-    <span style="color:#888;font-size:12px">—</span>
-    <input type="date" id="oz-bit" onchange="renderOzet();renderKasa()">
-    <button class="btn" style="font-size:11px;padding:4px 8px" onclick="ozTemizle()">Bugün</button>
-  </div>
   <!-- Kar akış satırı: Gelir − İşletme Gideri = Net Kar − Ortaklara Ödenen = Kasada Kalan -->
   <div style="display:flex;align-items:stretch;gap:4px;margin-bottom:8px;flex-wrap:wrap">
     <div class="ok" style="flex:1;min-width:120px"><div class="ok-label">Toplam Gelir</div><div class="ok-val gc" id="oz-gelir">—</div></div>
@@ -64,15 +70,6 @@
 
 <!-- SEKMELER -->
 <div class="tabs-wrap">
-  
-<div class="aktif-tarih-kutu" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;margin-bottom:10px;flex-wrap:wrap">
-  <span style="font-weight:600">Aktif Tarih:</span>
-  <input type="date" id="aktif-tarih" onchange="aktifTarihDegisti()" style="padding:4px 8px;font-size:14px">
-  <button onclick="aktifTarihDegistir(-1)" style="padding:4px 10px" title="1 gun geri">&#9664;</button>
-  <button onclick="aktifTarihDegistir(1)" style="padding:4px 10px" title="1 gun ileri">&#9654;</button>
-  <button onclick="aktifTarihBugun()" style="padding:4px 10px">Bugun</button>
-  <span style="color:#666;font-size:12px;margin-left:auto">Gelir, Gider formlarindaki tarih buna baglidir</span>
-</div>
 
 <div class="tabs" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
 

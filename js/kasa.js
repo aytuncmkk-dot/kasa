@@ -8,13 +8,14 @@ function ozTemizle(){
 }
 
 function getOzetAralik(){
-  var bas=document.getElementById('oz-bas').value;
-  var bit=document.getElementById('oz-bit').value;
-  if(!bas&&!bit){
-    // Seçim yoksa son ay
+  var bas=(document.getElementById('aktif-tarih')||{}).value||'';
+  var bit=(document.getElementById('aktif-tarih-bit')||{}).value||'';
+  if(!bas){
     bas=thisMonth+'-01';
     var simdi=new Date();
     bit=simdi.getFullYear()+'-'+String(simdi.getMonth()+1).padStart(2,'0')+'-'+String(new Date(simdi.getFullYear(),simdi.getMonth()+1,0).getDate()).padStart(2,'0');
+  } else if(!bit){
+    bit=new Date().toISOString().split('T')[0];
   }
   return {bas:bas,bit:bit};
 }
@@ -22,11 +23,6 @@ function getOzetAralik(){
 function renderOzet(){
   var aralik=getOzetAralik();
   var bas=aralik.bas,bit=aralik.bit;
-  // Kayit listesini ozet araligıyla senkronize et
-  if(!document.getElementById('f-bas').value&&!document.getElementById('f-bit').value){
-    document.getElementById('f-bas').value=bas;
-    document.getElementById('f-bit').value=bit;
-  }
   var liste=kayitlar.filter(function(k){
     if(bas&&k.tarih<bas)return false;
     if(bit&&k.tarih>bit)return false;

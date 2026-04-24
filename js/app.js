@@ -221,41 +221,110 @@ function stokHareket(){ alert('Stok hareket modülü henüz aktif değil.'); }
 function katEkle(tur){ alert('Kategori ekleme ayarlar sayfası henüz aktif değil.'); }
 
 // =========================================
-// AKTİF TARİH mekaniği (Nisan 2026 eklendi)
+// GLOBAL TARİH FİLTRESİ
 // =========================================
 function aktifTarihDegisti(){
-  var t = document.getElementById('aktif-tarih');
-  if(!t || !t.value) return;
+  var at = document.getElementById('aktif-tarih');
+  var atBit = document.getElementById('aktif-tarih-bit');
+  if(!at) return;
+  var bas = at.value || '';
+  var bit = (atBit && atBit.value) ? atBit.value : (bas ? new Date().toISOString().split('T')[0] : '');
+
+  // Form tarihleri = başlangıç tarihi
   ['g-tarih','gi-tarih','fat-tarih','fon-tarih'].forEach(function(id){
     var el = document.getElementById(id);
-    if(el) el.value = t.value;
+    if(el && bas) el.value = bas;
   });
-  try{ localStorage.setItem('kasa_aktif_tarih', t.value); }catch(e){}
+
+  // Kasa tablo filtresi
+  var fBas = document.getElementById('f-bas');
+  var fBit = document.getElementById('f-bit');
+  if(fBas) fBas.value = bas;
+  if(fBit) fBit.value = bit;
+
+  // Kar Dağılım
+  if(bas){
+    var kdTip = document.getElementById('kd-tip');
+    var kdBas = document.getElementById('kd-bas');
+    var kdBit = document.getElementById('kd-bit');
+    if(kdTip) kdTip.value = 'aralik';
+    if(kdBas) kdBas.value = bas;
+    if(kdBit) kdBit.value = bit;
+    if(typeof kdTipDegisti === 'function') kdTipDegisti();
+  }
+
+  // Rapor
+  if(bas){
+    var rTip = document.getElementById('r-tip');
+    var rBas = document.getElementById('r-bas');
+    var rSon = document.getElementById('r-son');
+    if(rTip) rTip.value = 'aralik';
+    if(rBas) rBas.value = bas;
+    if(rSon) rSon.value = bit;
+    if(typeof raporTipDegisti === 'function') raporTipDegisti();
+  }
+
+  try{ localStorage.setItem('kasa_aktif_tarih', bas); }catch(e){}
+  try{ localStorage.setItem('kasa_aktif_tarih_bit', (atBit&&atBit.value)||''); }catch(e){}
+
+  renderOzet();
+  renderKasa();
+  if(typeof renderKarDagilim === 'function') renderKarDagilim();
+  if(typeof renderRapor === 'function') renderRapor();
+  if(typeof renderFinansAnaliz === 'function') renderFinansAnaliz();
+  if(typeof renderMaliyet === 'function') renderMaliyet();
 }
 
 function aktifTarihDegistir(gun){
   var at = document.getElementById('aktif-tarih');
+  var atBit = document.getElementById('aktif-tarih-bit');
   if(!at) return;
-  var mevcut = at.value || new Date().toISOString().split('T')[0];
-  var d = new Date(mevcut);
-  d.setDate(d.getDate() + gun);
-  at.value = d.toISOString().split('T')[0];
+  var bas = at.value || new Date().toISOString().split('T')[0];
+  var dBas = new Date(bas);
+  dBas.setDate(dBas.getDate() + gun);
+  at.value = dBas.toISOString().split('T')[0];
+  if(atBit && atBit.value){
+    var dBit = new Date(atBit.value);
+    dBit.setDate(dBit.getDate() + gun);
+    atBit.value = dBit.toISOString().split('T')[0];
+  }
   aktifTarihDegisti();
 }
 
 function aktifTarihBugun(){
   var at = document.getElementById('aktif-tarih');
-  if(!at) return;
-  at.value = new Date().toISOString().split('T')[0];
+  var atBit = document.getElementById('aktif-tarih-bit');
+  var bugun = new Date().toISOString().split('T')[0];
+  if(at) at.value = bugun;
+  if(atBit) atBit.value = bugun;
+  aktifTarihDegisti();
+}
+
+function aktifTarihBuAy(){
+  var at = document.getElementById('aktif-tarih');
+  var atBit = document.getElementById('aktif-tarih-bit');
+  var simdi = new Date();
+  var bas = simdi.getFullYear()+'-'+String(simdi.getMonth()+1).padStart(2,'0')+'-01';
+  var bit = simdi.toISOString().split('T')[0];
+  if(at) at.value = bas;
+  if(atBit) atBit.value = bit;
   aktifTarihDegisti();
 }
 
 function aktifTarihYukle(){
   var at = document.getElementById('aktif-tarih');
+  var atBit = document.getElementById('aktif-tarih-bit');
   if(!at) return;
-  var kayitli = null;
-  try{ kayitli = localStorage.getItem('kasa_aktif_tarih'); }catch(e){}
-  at.value = kayitli || new Date().toISOString().split('T')[0];
+  var kayitliBas = null, kayitliBit = null;
+  try{ kayitliBas = localStorage.getItem('kasa_aktif_tarih'); }catch(e){}
+  try{ kayitliBit = localStorage.getItem('kasa_aktif_tarih_bit'); }catch(e){}
+  if(!kayitliBas){
+    var simdi = new Date();
+    kayitliBas = simdi.getFullYear()+'-'+String(simdi.getMonth()+1).padStart(2,'0')+'-01';
+    kayitliBit = simdi.toISOString().split('T')[0];
+  }
+  at.value = kayitliBas;
+  if(atBit) atBit.value = kayitliBit || '';
   aktifTarihDegisti();
 }
 
