@@ -52,17 +52,6 @@ async function oturumKontrol(){
     if(isAdmin){
       var td=document.getElementById('tab-denetim');if(td)td.style.display='inline-block';
     }
-    if(!isAdmin){
-      // Sadece rapor ve kar dagilim goster
-      var gizlenecek=['kasa','fatura','yedekfon','stok','maliyet','denetim'];
-      gizlenecek.forEach(function(t){
-        var btn=document.querySelector('.tab[onclick*="'+t+'"]');
-        if(btn)btn.style.display='none';
-      });
-      // Formları gizle
-      document.querySelectorAll('.fb').forEach(function(el){el.style.display='none';});
-      switchTab('rapor');
-    }
     // Çıkış butonu
     var cb=document.createElement('button');
     cb.textContent='Çıkış';
