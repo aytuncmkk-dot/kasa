@@ -133,11 +133,23 @@ tbody tr:hover{background:#fafaf8}
   .field input,.field select,.field textarea{font-size:16px}
   .frow select,.frow input[type=month],.frow input[type=date]{font-size:16px}
 
-  /* Sekmeler — yatay kaydırma */
-  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:1px}
-  .tab-grup-btn{padding:8px 10px;font-size:12px}
-  .tab{padding:10px 10px;font-size:12px}
-  .tab-grup-menu{min-width:160px}
+  /* Sekmeler — mobilde düz görünür liste, dropdown yok */
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border-bottom:none;overflow:visible}
+  details.tab-grup>summary.tab-grup-btn{display:none}
+  details.tab-grup .tab-grup-menu{
+    display:flex !important;position:static !important;flex-direction:row !important;
+    flex-wrap:wrap !important;gap:6px !important;box-shadow:none !important;
+    border:none !important;background:transparent !important;
+    padding:0 !important;min-width:0 !important;margin:0 !important
+  }
+  .tab-grup-menu .tab{
+    padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;
+    background:#f9f9f8;color:#374151;font-size:13px;font-weight:500;border-bottom:none
+  }
+  .tab-grup-menu .tab.active,.tab.active{
+    background:#1f2937;color:#fff;border-color:#1f2937;border-bottom:none
+  }
+  .tab{padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;border-bottom:none}
 
   /* Butonlar */
   .btn{font-size:12px;padding:7px 12px}
