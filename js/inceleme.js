@@ -206,8 +206,9 @@ function incelemeHizliTarih(tip){
     bitis = new Date(bitis.getFullYear(), bitis.getMonth(), 0);
   }
   else if(tip === 'buyil'){ baslangic = new Date(bitis.getFullYear(), 0, 1); }
-  document.getElementById('inc-bas').value = baslangic.toISOString().slice(0,10);
-  document.getElementById('inc-bit').value = bitis.toISOString().slice(0,10);
+  function ld(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  document.getElementById('inc-bas').value = ld(baslangic);
+  document.getElementById('inc-bit').value = ld(bitis);
 
   document.querySelectorAll('.inc-chip').forEach(function(c){ c.classList.remove('active'); });
   var btn = document.querySelector('.inc-chip[data-tip="'+tip+'"]');

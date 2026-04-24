@@ -1,6 +1,7 @@
 // ==========================================================
 // GÜNLÜK SATIŞ RAPORU
 // ==========================================================
+function gsLD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 var _gsGelir = [];
 var _gsGider = [];
@@ -13,8 +14,8 @@ async function gunlukSatisAc(){
   var bitis = new Date();
   var baslangic = new Date();
   baslangic.setDate(baslangic.getDate() - 30);
-  document.getElementById('gs-bas').value = baslangic.toISOString().slice(0,10);
-  document.getElementById('gs-bit').value = bitis.toISOString().slice(0,10);
+  document.getElementById('gs-bas').value = gsLD(baslangic);
+  document.getElementById('gs-bit').value = gsLD(bitis);
   gunlukSatisYukle();
 }
 
@@ -150,7 +151,7 @@ function gsHizliTarih(tip){
     bitis     = new Date(bitis.getFullYear(), bitis.getMonth(), 0);
   }
   else if(tip==='buyil') baslangic = new Date(bitis.getFullYear(), 0, 1);
-  document.getElementById('gs-bas').value = baslangic.toISOString().slice(0,10);
-  document.getElementById('gs-bit').value = bitis.toISOString().slice(0,10);
+  document.getElementById('gs-bas').value = gsLD(baslangic);
+  document.getElementById('gs-bit').value = gsLD(bitis);
   gunlukSatisYukle();
 }
