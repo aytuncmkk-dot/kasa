@@ -33,8 +33,8 @@ function renderOzet(){
     return true;
   });
   var topGelir=liste.filter(function(k){return k.tur==='gelir';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var isletmeGider=liste.filter(function(k){return k.tur==='gider'&&k.kat!=='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var ortakOdenen=liste.filter(function(k){return k.tur==='gider'&&k.kat==='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var isletmeGider=liste.filter(function(k){return k.tur==='gider';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var ortakOdenen=liste.filter(function(k){return k.tur==='dagitim';}).reduce(function(s,k){return s+Number(k.tutar);},0);
   var netKar=topGelir-isletmeGider;
   var kasadaKalan=netKar-ortakOdenen;
   var topKarlilik=topGelir>0?((netKar/topGelir)*100):0;
@@ -52,7 +52,7 @@ function renderOzet(){
     topKisi+=gruplar[key].kisi;
     if(gruplar[key].kisi>0)kisiBazliGelir+=gruplar[key].tutar;
   });
-  var topBahsis=liste.filter(function(k){return k.tur==='gider'&&k.kat==='Adisyon Bahsis';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var topBahsis=liste.filter(function(k){return (k.tur==='gider')&&k.kat==='Adisyon Bahsis';}).reduce(function(s,k){return s+Number(k.tutar);},0);
   var kisiBasiOrt=topKisi>0?((kisiBazliGelir-topBahsis)/topKisi):0;
   var nakitGelir=liste.filter(function(k){return k.tur==='gelir'&&k.odeme==='Nakit';}).reduce(function(s,k){return s+Number(k.tutar);},0);
   var kkGelir=liste.filter(function(k){return k.tur==='gelir'&&k.odeme==='Kredi Karti';}).reduce(function(s,k){return s+Number(k.tutar);},0);
@@ -248,7 +248,7 @@ function kasaDuzenle(id){
 
 function duzKatGuncelle(){
   var tur=document.getElementById('duz-tur').value;
-  var list=tur==='gelir'?gelirKatlar:giderKatlar;
+  var list=tur==='gelir'?gelirKatlar:tur==='dagitim'?dagitimKatlar:giderKatlar;
   document.getElementById('duz-kat').innerHTML=list.map(function(k){return '<option value="'+k.ad+'">'+k.ad+'</option>';}).join('');
 }
 
@@ -307,16 +307,20 @@ function renderKasa(){
   emp.style.display='none';
   tbody.innerHTML=fil.map(function(k){
     var isGelir=k.tur==='gelir';
+    var isDagitim=k.tur==='dagitim';
+    var turBg=isGelir?'#E1F5EE':isDagitim?'#EFF6FF':'#FAECE7';
+    var turRenk=isGelir?'#0F6E56':isDagitim?'#1e40af':'#993C1D';
+    var turEtiket=isGelir?'Gelir':isDagitim?'Dağıtım':'Gider';
     var odmClass={'Nakit':'odm-n','Kredi Karti':'odm-k','Havale/EFT':'odm-h'}[k.odeme]||'';
     return '<tr>'+
       '<td style="white-space:nowrap">'+fmtT(k.tarih)+'</td>'+
-      '<td><span class="badge" style="background:'+(isGelir?'#E1F5EE':'#FAECE7')+';color:'+(isGelir?'#0F6E56':'#993C1D')+'">'+(isGelir?'Gelir':'Gider')+'</span></td>'+
+      '<td><span class="badge" style="background:'+turBg+';color:'+turRenk+'">'+turEtiket+'</span></td>'+
       '<td style="color:#666;font-size:11px" title="'+(k.kat||'')+'">'+(k.kat||'')+'</td>'+
       '<td title="'+(k.firma||'')+'">'+(k.firma||'')+'</td>'+
       '<td><span class="badge '+odmClass+'">'+(k.odeme||'-')+'</span></td>'+
       '<td style="color:#888;font-size:11px" title="'+(k.aciklama||'')+'">'+(k.aciklama||'')+'</td>'+
       '<td style="text-align:center;color:#888">'+(k.kisi_sayisi>0?k.kisi_sayisi:'')+'</td>'+
-      '<td style="text-align:right;font-weight:500;color:'+(isGelir?'#1D9E75':'#D85A30')+'">'+(isGelir?'+ ':'-  ')+para(k.tutar)+'</td>'+
+      '<td style="text-align:right;font-weight:500;color:'+(isGelir?'#1D9E75':isDagitim?'#1e40af':'#D85A30')+'">'+(isGelir?'+ ':'-  ')+para(k.tutar)+'</td>'+
       '<td><button class="edit-btn" onclick="kasaDuzenle('+k.id+')" title="Düzenle">✎</button></td>'+
       '<td><button class="del-btn" onclick="kasaSil('+k.id+')" title="Sil">×</button></td>'+
     '</tr>';

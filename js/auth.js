@@ -49,7 +49,10 @@ async function oturumKontrol(){
     }
     document.getElementById('conn-txt').textContent=(isAdmin?'Admin: ':'Kullanici: ')+user.email;
     SB_H['Authorization']='Bearer '+accessToken;
-    if(isAdmin){var td=document.getElementById('tab-denetim');if(td)td.style.display='inline-block';}
+    if(isAdmin){
+      var td=document.getElementById('tab-denetim');if(td)td.style.display='inline-block';
+      var mp=document.getElementById('migrasyon-panel');if(mp)mp.style.display='block';
+    }
     if(!isAdmin){
       // Sadece rapor ve kar dagilim goster
       var gizlenecek=['kasa','fatura','yedekfon','stok','maliyet','denetim'];

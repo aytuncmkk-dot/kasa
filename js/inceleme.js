@@ -94,21 +94,25 @@ function incelemeRender(liste){
   var html = '';
   liste.forEach(function(k){
     var isGelir = k.tur === 'gelir';
+    var isDagitim = k.tur === 'dagitim';
+    var turSinif = isGelir?'inc-gelir':isDagitim?'inc-dagitim':'inc-gider';
+    var turTagSinif = isGelir?'in':isDagitim?'dag':'out';
+    var turEtiket = isGelir?'Gelir':isDagitim?'Dağıtım':'Gider';
     var tarihGoster = k.tarih ? k.tarih.split('-') : ['','',''];
     var gun = tarihGoster[2]||'';
     var ay = tarihAy(tarihGoster[1]||'');
-    html += '<tr class="inc-row '+(isGelir?'inc-gelir':'inc-gider')+'">'+
+    html += '<tr class="inc-row '+turSinif+'">'+
       '<td class="inc-tarih-col"><div class="inc-gun">'+gun+'</div><div class="inc-ay">'+ay+'</div></td>'+
       '<td class="inc-aciklama-col">'+
         '<div class="inc-firma-line">'+(k.firma||'<span class="inc-muted">—</span>')+'</div>'+
         '<div class="inc-alt-line">'+
-          '<span class="inc-tag inc-tag-'+(isGelir?'in':'out')+'">'+(isGelir?'Gelir':'Gider')+'</span>'+
+          '<span class="inc-tag inc-tag-'+turTagSinif+'">'+turEtiket+'</span>'+
           (k.kat?'<span class="inc-sep">·</span><span class="inc-kat">'+k.kat+'</span>':'')+
           (k.aciklama?'<span class="inc-sep">·</span><span class="inc-desc">'+k.aciklama+'</span>':'')+
         '</div>'+
       '</td>'+
       '<td class="inc-odeme-col"><span class="inc-pill inc-pill-'+odemeKlas(k.odeme)+'">'+(k.odeme||'-')+'</span></td>'+
-      '<td class="inc-tutar-col '+(isGelir?'inc-pos':'inc-neg')+'">'+(isGelir?'+':'−')+' '+para(k.tutar)+'</td>'+
+      '<td class="inc-tutar-col '+(isGelir?'inc-pos':isDagitim?'inc-dag':'inc-neg')+'">'+(isGelir?'+':'−')+' '+para(k.tutar)+'</td>'+
       '<td class="inc-islem-col">'+
         '<button class="inc-btn inc-btn-edit" onclick="incelemeDuzenle('+k.id+')" title="Düzenle">✎</button>'+
         '<button class="inc-btn inc-btn-del" onclick="incelemeSil('+k.id+')" title="Sil">✕</button>'+
@@ -136,8 +140,8 @@ function incelemeOzet(liste){
   var gelir = 0, gider = 0, ortakOdenen = 0;
   liste.forEach(function(k){
     if(k.tur === 'gelir') gelir += Number(k.tutar)||0;
-    else if(k.kat === 'Ortaklara Ödenen') ortakOdenen += Number(k.tutar)||0;
-    else gider += Number(k.tutar)||0;
+    else if(k.tur === 'dagitim') ortakOdenen += Number(k.tutar)||0;
+    else if(k.tur === 'gider') gider += Number(k.tutar)||0;
   });
   var net = gelir - gider;
   var kasadaKalan = net - ortakOdenen;

@@ -201,7 +201,7 @@
     </div>
     <div class="frow" style="margin-bottom:10px">
       <label>Filtre:</label>
-      <select id="f-tur" onchange="renderKasa()"><option value="">Tümü</option><option value="gelir">Gelir</option><option value="gider">Gider</option></select>
+      <select id="f-tur" onchange="renderKasa()"><option value="">Tümü</option><option value="gelir">Gelir</option><option value="gider">Gider</option><option value="dagitim">Dağıtım</option></select>
       <select id="f-kat" onchange="renderKasa()"><option value="">Tüm kategoriler</option></select>
       <select id="f-odm" onchange="renderKasa()"><option value="">Tüm ödeme</option><option>Nakit</option><option>Kredi Karti</option><option>Havale/EFT</option></select>
       <input type="date" id="f-bas" onchange="renderKasa()">
@@ -471,6 +471,11 @@
 
   <!-- DENETİM -->
   <div id="pg-denetim" class="page">
+    <div id="migrasyon-panel" style="background:#fffbeb;border:1px solid #fbbf24;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:none">
+      <div style="font-weight:700;color:#92400e;margin-bottom:6px">⚙️ Tek Seferlik Veri Migrasyonu</div>
+      <div style="font-size:13px;color:#78350f;margin-bottom:10px">"Ortaklara Ödenen" kayıtlarını <strong>gider → dagitim</strong> türüne taşır. Veriler silinmez, sadece tür güncellenir. Bu butonu yalnızca <strong>bir kez</strong> çalıştırın.</div>
+      <button id="migrasyon-btn" class="btn" style="background:#d97706;color:#fff;border:none" onclick="migrasyonCalistir()">Migrasyonu Çalıştır</button>
+    </div>
     <div id="denetim-icerik"><div class="empty">Yukleniyor...</div></div>
   </div>
 
@@ -582,7 +587,7 @@
       <div class="field"><label>Tarih</label><input type="date" id="duz-tarih"></div>
       <div class="field"><label>Tür</label>
         <select id="duz-tur" onchange="duzKatGuncelle()">
-          <option value="gelir">Gelir</option><option value="gider">Gider</option>
+          <option value="gelir">Gelir</option><option value="gider">Gider</option><option value="dagitim">Dağıtım</option>
         </select>
       </div>
       <div class="field"><label>Kategori</label><select id="duz-kat"></select></div>
@@ -787,6 +792,9 @@
 #pg-inceleme .inc-tag{font-size:10px;padding:1px 7px;border-radius:4px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 #pg-inceleme .inc-tag-in{background:#d1fae5;color:#065f46}
 #pg-inceleme .inc-tag-out{background:#fee2e2;color:#991b1b}
+#pg-inceleme .inc-tag-dag{background:#dbeafe;color:#1e40af}
+#pg-inceleme .inc-dagitim{background:#f8faff}
+#pg-inceleme .inc-dag{color:#1e40af}
 
 /* Ödeme pill */
 #pg-inceleme .inc-odeme-col{width:110px}
@@ -891,6 +899,7 @@
             <option value="">Tümü</option>
             <option value="gelir">Gelir</option>
             <option value="gider">Gider</option>
+            <option value="dagitim">Dağıtım</option>
           </select>
         </div>
         <div class="inc-field">

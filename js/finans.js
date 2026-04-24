@@ -9,10 +9,8 @@ function renderFinansAnaliz(){
     if(!ay)return;
     if(!aylar[ay])aylar[ay]={gelir:0,gider:{},giderToplam:0,ortakOdenen:0};
     if(k.tur==="gelir")aylar[ay].gelir+=Number(k.tutar);
-    if(k.tur==="gider"){
-      if(k.kat==="Ortaklara Ödenen")aylar[ay].ortakOdenen+=Number(k.tutar);
-      else{aylar[ay].gider[k.kat]=(aylar[ay].gider[k.kat]||0)+Number(k.tutar);aylar[ay].giderToplam+=Number(k.tutar);}
-    }
+    if(k.tur==="gider"){aylar[ay].gider[k.kat]=(aylar[ay].gider[k.kat]||0)+Number(k.tutar);aylar[ay].giderToplam+=Number(k.tutar);}
+    if(k.tur==="dagitim")aylar[ay].ortakOdenen+=Number(k.tutar);
   });
   var ayList=Object.keys(aylar).sort();
   if(!ayList.length){document.getElementById("finans-icerik").innerHTML="<div class=\"empty\">Yeterli veri yok.</div>";return;}

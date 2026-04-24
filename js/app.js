@@ -12,8 +12,9 @@ async function yukle(){
     stokHareketleri = await dbGet('stok_hareketler','select=*&order=tarih.desc,id.desc');
     var katList  = await dbGet('kategoriler','select=*&order=tur.asc,ad.asc');
     ortaklar     = await dbGet('ortaklar','select=*&order=hisse_yuzdesi.desc');
-    gelirKatlar  = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
-    giderKatlar  = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
+    gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
+    giderKatlar   = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
+    dagitimKatlar = katList.filter(function(x){return x.tur==='dagitim';}).map(function(x){return {id:x.id,ad:x.ad};});
     setBag(true);
     hepsiniYenile();
   }catch(e){
@@ -54,13 +55,14 @@ function switchTab(t){
 function doldurKatListeleri(){
   var gSel=document.getElementById('gi-kat');
   var gAd=gSel.value;
-  var gOnchange=gSel.onchange;
   gSel.innerHTML='<option value="">— Seçiniz —</option>'+giderKatlar.map(function(k){return '<option value="'+k.ad+'"'+(k.ad===gAd?' selected':'')+'>'+k.ad+'</option>';}).join('');
   gSel.onchange=function(){giderKatSec(this.value);};
   var fSel=document.getElementById('fat-kat');
   fSel.innerHTML='<option value="">— Seçiniz —</option>'+giderKatlar.map(function(k){return '<option value="'+k.ad+'">'+k.ad+'</option>';}).join('');
   var fKat=document.getElementById('f-kat');
-  fKat.innerHTML='<option value="">Tüm kategoriler</option>'+gelirKatlar.concat(giderKatlar).map(function(k){return '<option value="'+k.ad+'">'+k.ad+'</option>';}).join('');
+  fKat.innerHTML='<option value="">Tüm kategoriler</option>'+
+    gelirKatlar.concat(giderKatlar).map(function(k){return '<option value="'+k.ad+'">'+k.ad+'</option>';}).join('')+
+    (dagitimKatlar.length?'<optgroup label="Dağıtım">'+dagitimKatlar.map(function(k){return '<option value="'+k.ad+'">'+k.ad+'</option>';}).join('')+'</optgroup>':'');
 }
 
 function updateFirmaList(){
@@ -113,6 +115,40 @@ function maliyetTipDegisti(){
   if(ar) ar.style.display = (tip === 'aralik') ? 'flex' : 'none';
   if(yil) yil.style.display = (tip === 'yil') ? '' : 'none';
   if(typeof renderMaliyet === 'function') renderMaliyet();
+}
+
+async function migrasyonCalistir(){
+  if(!confirm(
+    'Bu işlem veritabanındaki TÜM "Ortaklara Ödenen" kayıtlarını\n'+
+    '"gider" türünden "dagitim" türüne taşıyacak.\n\n'+
+    'Kayıt silinmez, sadece tür güncellenir.\n\n'+
+    'Devam etmek istiyor musunuz?'
+  )) return;
+  var btn=document.getElementById('migrasyon-btn');
+  if(btn){btn.disabled=true;btn.textContent='Çalışıyor...';}
+  try{
+    var H=Object.assign({},getSBH(),{'Prefer':'return=representation'});
+    var r1=await fetch(
+      SB_URL+'/rest/v1/kategoriler?ad=eq.'+encodeURIComponent('Ortaklara Ödenen'),
+      {method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})}
+    );
+    var r2=await fetch(
+      SB_URL+'/rest/v1/kayitlar?kat=eq.'+encodeURIComponent('Ortaklara Ödenen')+'&tur=eq.gider',
+      {method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})}
+    );
+    if(!r1.ok||!r2.ok){alert('Hata: kategoriler='+r1.status+', kayıtlar='+r2.status);return;}
+    var guncellenen=await r2.json();
+    alert('Migrasyon tamamlandı!\n'+
+      '• kategoriler tablosu güncellendi\n'+
+      '• '+(Array.isArray(guncellenen)?guncellenen.length:'?')+' kayıt "dagitim" türüne taşındı\n\n'+
+      'Sayfa yenileniyor...');
+    await yukle();
+  }catch(e){
+    alert('Migrasyon hatası: '+e.message);
+    console.error(e);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Migrasyonu Çalıştır';}
+  }
 }
 
 function exportXLSX(){

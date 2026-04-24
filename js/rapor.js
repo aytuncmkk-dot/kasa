@@ -63,9 +63,10 @@ function renderRapor(){
   var list=getRaporListe();
   var gel=list.filter(function(k){return k.tur==='gelir';});
   var gid=list.filter(function(k){return k.tur==='gider';});
+  var dag=list.filter(function(k){return k.tur==='dagitim';});
   var totGelir=gel.reduce(function(s,k){return s+Number(k.tutar);},0);
-  var isletmeGider=gid.filter(function(k){return k.kat!=='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var ortakOdenen=gid.filter(function(k){return k.kat==='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var isletmeGider=gid.reduce(function(s,k){return s+Number(k.tutar);},0);
+  var ortakOdenen=dag.reduce(function(s,k){return s+Number(k.tutar);},0);
   var netKar=totGelir-isletmeGider;
   var kasadaKalan=netKar-ortakOdenen;
   var karMarji=totGelir>0?((netKar/totGelir)*100):0;
@@ -118,9 +119,9 @@ function renderRapor(){
   html+=bolum(gelirIcerik);
 
   // Gider detayı
-  var giderIcerik=baslik('GİDER KATEGORİLERİ');
+  var giderIcerik=baslik('GİDER KATEGORİLERİ (İşletme)');
   var bilinenGiderKatlar=giderKatlar.map(function(k){return k.ad;});
-  giderKatlar.filter(function(k){return k.ad!=='Ortaklara Ödenen';}).forEach(function(kat){
+  giderKatlar.forEach(function(kat){
     var kayitlar_kat=gid.filter(function(k){return k.kat===kat.ad;});
     var toplam=kayitlar_kat.reduce(function(s,k){return s+Number(k.tutar);},0);
     if(toplam===0)return;
@@ -137,7 +138,7 @@ function renderRapor(){
     giderIcerik+=accordionSatir(uid,kat.ad,toplam,oran,'#D85A30',detaylar);
   });
   // Kategori listesinde olmayan (silinmiş/bilinmeyen) gider kayıtları
-  var digerleri=gid.filter(function(k){return k.kat!=='Ortaklara Ödenen'&&bilinenGiderKatlar.indexOf(k.kat)===-1;});
+  var digerleri=gid.filter(function(k){return bilinenGiderKatlar.indexOf(k.kat)===-1;});
   var digerleriTop=digerleri.reduce(function(s,k){return s+Number(k.tutar);},0);
   if(digerleriTop>0){
     var dOran=totGelir>0?((digerleriTop/totGelir)*100).toFixed(1):0;
@@ -147,6 +148,27 @@ function renderRapor(){
     giderIcerik+=accordionSatir('d_diger','⚠️ Diğer / Kategorisiz',digerleriTop,dOran,'#9333ea',dDetaylar);
   }
   html+=bolum(giderIcerik);
+
+  // Dağıtım detayı
+  if(dag.length){
+    var dagIcerik=baslik('ORTAK DAĞITIMI');
+    var dagOrtaklar={};
+    dag.forEach(function(k){
+      var key=(k.firma||'').trim()||'Diğer';
+      dagOrtaklar[key]=(dagOrtaklar[key]||0)+Number(k.tutar);
+    });
+    Object.keys(dagOrtaklar).sort(function(a,b){return dagOrtaklar[b]-dagOrtaklar[a];}).forEach(function(ad){
+      var v=dagOrtaklar[ad];
+      var oran=totGelir>0?((v/totGelir)*100).toFixed(1):0;
+      dagIcerik+='<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f0f0ec">'+
+        '<span style="font-size:13px;color:#444">'+ad+'</span>'+
+        '<div style="display:flex;gap:12px"><span style="font-size:11px;color:#888">%'+oran+'</span>'+
+        '<span style="font-weight:500;color:#1e40af">'+para(v)+'</span></div></div>';
+    });
+    dagIcerik+='<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#eff6ff;font-weight:700">'+
+      '<span>TOPLAM DAĞITIM</span><span style="color:#1e40af">'+para(ortakOdenen)+'</span></div>';
+    html+=bolum(dagIcerik);
+  }
 
   document.getElementById('r-karzarar').innerHTML=html;
 }

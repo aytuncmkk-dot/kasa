@@ -13,11 +13,12 @@ function renderKarDagilim(){
   var donemKayitlar=filtrele(kayitlar);kdBakiyeGuncelle(donemKayitlar);
   var donemGelir=donemKayitlar.filter(function(k){return k.tur==='gelir';});
   var donemGider=donemKayitlar.filter(function(k){return k.tur==='gider';});
+  var donemDag=donemKayitlar.filter(function(k){return k.tur==='dagitim';});
   var totGelir=donemGelir.reduce(function(s,k){return s+Number(k.tutar);},0);
-  var isletmeGider=donemGider.filter(function(k){return k.kat!=='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
-  var ortakOdenen=donemGider.filter(function(k){return k.kat==='Ortaklara Ödenen';}).reduce(function(s,k){return s+Number(k.tutar);},0);
+  var isletmeGider=donemGider.reduce(function(s,k){return s+Number(k.tutar);},0);
+  var ortakOdenen=donemDag.reduce(function(s,k){return s+Number(k.tutar);},0);
   var netKar=totGelir-isletmeGider;
-  var donemOdemeler=donemGider.filter(function(k){return k.kat==='Ortaklara Ödenen';});
+  var donemOdemeler=donemDag;
   var ortakCekilen={};
   donemOdemeler.forEach(function(k){var ad=(k.firma||'').trim();ortakCekilen[ad]=(ortakCekilen[ad]||0)+Number(k.tutar);});
   var donemAvanslar=filtrele(avansHareketler);
@@ -79,10 +80,8 @@ async function kdBakiyeGuncelle(donemKayitlar){
   var donemGelir=0, donemIsletme=0, donemOrtak=0;
   (donemKayitlar||[]).forEach(function(k){
     if(k.tur==='gelir') donemGelir+=Number(k.tutar)||0;
-    else if(k.tur==='gider'){
-      if(k.kat==='Ortaklara Ödenen') donemOrtak+=Number(k.tutar)||0;
-      else donemIsletme+=Number(k.tutar)||0;
-    }
+    else if(k.tur==='gider') donemIsletme+=Number(k.tutar)||0;
+    else if(k.tur==='dagitim') donemOrtak+=Number(k.tutar)||0;
   });
   var donemKalan=donemGelir-donemIsletme-donemOrtak;
   var el1=document.getElementById('kd-donem-bakiye');
@@ -96,10 +95,8 @@ async function kdBakiyeGuncelle(donemKayitlar){
     var tg=0,tIsletme=0,tOrtak=0;
     (tumu||[]).forEach(function(k){
       if(k.tur==='gelir') tg+=Number(k.tutar)||0;
-      else if(k.tur==='gider'){
-        if(k.kat==='Ortaklara Ödenen') tOrtak+=Number(k.tutar)||0;
-        else tIsletme+=Number(k.tutar)||0;
-      }
+      else if(k.tur==='gider') tIsletme+=Number(k.tutar)||0;
+      else if(k.tur==='dagitim') tOrtak+=Number(k.tutar)||0;
     });
     var tplm=tg-tIsletme-tOrtak;
     var el2=document.getElementById('kd-toplam-bakiye');
