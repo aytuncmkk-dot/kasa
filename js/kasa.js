@@ -209,8 +209,9 @@ async function giderKaydet(){
   if(kat==='Ortaklara Ödenen'&&!firma)hatalar.push('Ortak seçiniz');
   if(isNaN(tutar)||tutar<=0)hatalar.push('Tutar');
   if(hatalar.length>0){alert('Zorunlu alanlar eksik:\n- '+hatalar.join('\n- '));return;}
-  var r=await dbPost('kayitlar',[{tarih:tarih,tur:'gider',kat:kat,odeme:odeme,firma:firma,aciklama:aciklama,tutar:tutar,kisi_sayisi:0,fatura_var:false}]);
-  try{ await auditLog('EKLE','kayitlar',null,null,{tarih:tarih,tur:'gider',kat:kat,tutar:tutar,firma:firma,aciklama:aciklama},'Gider kaydı'); }catch(e){}
+  var kayitTur=(dagitimKatlar&&dagitimKatlar.some(function(k){return k.ad===kat;})) ? 'dagitim' : 'gider';
+  var r=await dbPost('kayitlar',[{tarih:tarih,tur:kayitTur,kat:kat,odeme:odeme,firma:firma,aciklama:aciklama,tutar:tutar,kisi_sayisi:0,fatura_var:false}]);
+  try{ await auditLog('EKLE','kayitlar',null,null,{tarih:tarih,tur:kayitTur,kat:kat,tutar:tutar,firma:firma,aciklama:aciklama},'Gider/Dagitim kaydı'); }catch(e){}
   if(!r.ok){alert('Kayıt hatası: '+r.status);return;}
   document.getElementById('gi-firma').value='';
   document.getElementById('gi-aciklama').value='';

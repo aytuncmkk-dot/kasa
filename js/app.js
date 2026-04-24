@@ -62,7 +62,11 @@ function switchTab(t){
 function doldurKatListeleri(){
   var gSel=document.getElementById('gi-kat');
   var gAd=gSel.value;
-  gSel.innerHTML='<option value="">— Seçiniz —</option>'+giderKatlar.map(function(k){return '<option value="'+k.ad+'"'+(k.ad===gAd?' selected':'')+'>'+k.ad+'</option>';}).join('');
+  var giderOpts=giderKatlar.map(function(k){return '<option value="'+k.ad+'"'+(k.ad===gAd?' selected':'')+'>'+k.ad+'</option>';}).join('');
+  var dagOpts=dagitimKatlar.length
+    ? '<optgroup label="── Dağıtım ──">'+dagitimKatlar.map(function(k){return '<option value="'+k.ad+'"'+(k.ad===gAd?' selected':'')+'>'+k.ad+'</option>';}).join('')+'</optgroup>'
+    : '';
+  gSel.innerHTML='<option value="">— Seçiniz —</option>'+giderOpts+dagOpts;
   gSel.onchange=function(){giderKatSec(this.value);};
   var fSel=document.getElementById('fat-kat');
   fSel.innerHTML='<option value="">— Seçiniz —</option>'+giderKatlar.map(function(k){return '<option value="'+k.ad+'">'+k.ad+'</option>';}).join('');
