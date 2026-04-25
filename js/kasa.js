@@ -133,6 +133,44 @@ function adisyonYukle(){
   rd.readAsDataURL(f);
 }
 
+function hzEnter(e, hedefId){
+  if(e.key==='Enter'){ e.preventDefault(); var el=document.getElementById(hedefId); if(el)el.focus(); }
+}
+
+function hzTarihGuncelle(){
+  var at = document.getElementById('aktif-tarih');
+  var lbl = document.getElementById('hz-tarih-lbl');
+  if(at && lbl) lbl.textContent = at.value ? fmtT(at.value) : '';
+}
+
+async function gelirHizliKaydet(){
+  var tarih = (document.getElementById('aktif-tarih')||{}).value || ldStr(new Date());
+  var kisi  = parseInt(document.getElementById('hz-kisi').value) || 0;
+  var kart  = parseFloat(document.getElementById('hz-kart').value) || 0;
+  var nakit = parseFloat(document.getElementById('hz-nakit').value) || 0;
+  if(!kart && !nakit){ document.getElementById('hz-kart').focus(); return; }
+  var btn = document.getElementById('hz-btn');
+  btn.disabled=true; btn.textContent='...';
+  var kayitlar=[];
+  if(kart>0) kayitlar.push({tarih:tarih,tur:'gelir',kat:'Masa Geliri',odeme:'Kredi Karti',firma:'',aciklama:'',tutar:kart,kisi_sayisi:kisi,fatura_var:false});
+  if(nakit>0) kayitlar.push({tarih:tarih,tur:'gelir',kat:'Masa Geliri',odeme:'Nakit',firma:'',aciklama:'',tutar:nakit,kisi_sayisi:kart>0?0:kisi,fatura_var:false});
+  for(var i=0;i<kayitlar.length;i++){
+    var r=await dbPost('kayitlar',kayitlar[i]);
+    if(!r.ok){ alert('Kayıt hatası: '+r.status); btn.disabled=false; btn.textContent='Kaydet ↵'; return; }
+    try{ await auditLog('EKLE','kayitlar',null,null,kayitlar[i],'Hızlı gelir'); }catch(e){}
+  }
+  document.getElementById('hz-kisi').value='';
+  document.getElementById('hz-kart').value='';
+  document.getElementById('hz-nakit').value='';
+  btn.disabled=false; btn.textContent='Kaydet ↵';
+  var sonuc=document.getElementById('hz-sonuc');
+  sonuc.textContent='✓ Kaydedildi — '+para(kart+nakit)+(kisi?' / '+kisi+' kişi':'');
+  sonuc.style.display='block';
+  setTimeout(function(){sonuc.style.display='none';},3000);
+  document.getElementById('hz-kisi').focus();
+  await yukle(); renderKasa();
+}
+
 async function gelirKaydet(){
   var __auditVeri = null;
   var tarih=document.getElementById('g-tarih').value;
@@ -214,8 +252,8 @@ async function giderKaydet(){
   document.getElementById('gi-tutar').value='';
   document.getElementById('gi-kat').value='';
   await yukle();
-  // Filtreleri temizle, tüm kayıtları yeniden tarih sırasıyla göster
   renderKasa();
+  document.getElementById('gi-kat').focus();
 }
 
 async function kasaSil(id){

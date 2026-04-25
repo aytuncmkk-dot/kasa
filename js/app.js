@@ -267,6 +267,7 @@ function aktifTarihDegisti(){
   try{ localStorage.setItem('kasa_aktif_tarih', bas); }catch(e){}
   try{ localStorage.setItem('kasa_aktif_tarih_bit', (atBit&&atBit.value)||''); }catch(e){}
 
+  if(typeof hzTarihGuncelle==='function') hzTarihGuncelle();
   renderOzet();
   renderKasa();
   if(typeof renderKarDagilim === 'function') renderKarDagilim();
