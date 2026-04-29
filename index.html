@@ -371,10 +371,30 @@
           <th style="width:110px;text-align:right">Tutar</th>
           <th>Açıklama</th>
           <th style="width:110px;text-align:right">Kalan Bakiye</th>
+          <th style="width:70px"></th>
         </tr></thead>
         <tbody id="fon-tablo"></tbody>
       </table>
       <div id="fon-empty" class="empty" style="display:none">Yedek fon hareketi yok.</div>
+    </div>
+  </div>
+
+  <!-- YEDEK FON DÜZENLE MODAL -->
+  <div id="fon-duz-modal" class="modal-bg" onclick="if(event.target===this)fonDuzKapat()">
+    <div class="modal">
+      <div class="modal-title">Hareketi Düzenle</div>
+      <div class="grid g4">
+        <div class="field"><label>Tarih <span class="req">*</span></label><input type="date" id="fon-duz-tarih"></div>
+        <div class="field"><label>İşlem <span class="req">*</span></label>
+          <select id="fon-duz-islem"><option value="giris">Giriş — Fona Yatırıldı</option><option value="cikis">Çıkış — Harcandı</option></select>
+        </div>
+        <div class="field"><label>Tutar (TL) <span class="req">*</span></label><input type="number" id="fon-duz-tutar" placeholder="0" min="0" step="0.01"></div>
+        <div class="field"><label>Açıklama</label><input type="text" id="fon-duz-aciklama" placeholder="Açıklama..."></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="fonDuzKapat()">İptal</button>
+        <button class="btn btn-p" onclick="fonDuzKaydet()">Kaydet</button>
+      </div>
     </div>
   </div>
 
