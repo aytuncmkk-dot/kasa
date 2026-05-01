@@ -6,10 +6,10 @@ async function yukle(){
   try{
     setBag(false);
     kayitlar     = await dbGetAll('kayitlar','select=*&order=tarih.desc,id.desc');
-    faturalar    = await dbGet('faturalar','select=*&order=tarih.desc');
-    fonHareketler= await dbGet('yedek_fon','select=*&order=tarih.desc');
+    faturalar    = await dbGetAll('faturalar','select=*&order=tarih.desc');
+    fonHareketler= await dbGetAll('yedek_fon','select=*&order=tarih.desc');
     stoklar      = await dbGet('stoklar','select=*&order=adi.asc');
-    stokHareketleri = await dbGet('stok_hareketler','select=*&order=tarih.desc,id.desc');
+    stokHareketleri = await dbGetAll('stok_hareketler','select=*&order=tarih.desc,id.desc');
     var katList  = await dbGet('kategoriler','select=*&order=tur.asc,ad.asc');
     ortaklar     = await dbGet('ortaklar','select=*&order=hisse_yuzdesi.desc');
     gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});

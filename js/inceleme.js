@@ -52,7 +52,7 @@ async function incelemeAra(){
 
   document.getElementById('inc-tbody').innerHTML = '<tr><td colspan="5" class="inc-loading">Yükleniyor...</td></tr>';
 
-  var kayitlar = await dbGet('kayitlar','tarih=gte.'+bas+'&tarih=lte.'+bit+'&order=tarih.desc,id.desc');
+  var kayitlar = await dbGetAll('kayitlar','tarih=gte.'+bas+'&tarih=lte.'+bit+'&order=tarih.desc,id.desc');
   _incelemeKayitlar = kayitlar || [];
   incelemeFiltreleVeGoster();
 }
