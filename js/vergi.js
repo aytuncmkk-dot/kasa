@@ -525,7 +525,7 @@ function donemYaziKisa(donemStr) {
 function isQAy(donemStr) {
   if (!donemStr) return false;
   var m = parseInt((donemStr.split('-')[1]) || 0);
-  return m === 3 || m === 6 || m === 9 || m === 12;
+  return m === 2 || m === 5 || m === 8 || m === 11;
 }
 
 function projDonemListesi() {
