@@ -241,6 +241,7 @@ function renderProjIcerik(donem) {
   var sistemToplam = 0, kullaniciToplam = 0;
 
   turler.forEach(function(tur) {
+    if (tur === 'gecici' && !qAy) return;
     var st = sistemTahmin(tur, donem);
     if (tur === 'kdv2' && kdv2SabitOnce && parseFloat(kdv2SabitOnce) > 0) {
       st = parseFloat(kdv2SabitOnce);
