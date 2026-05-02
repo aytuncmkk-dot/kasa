@@ -16,6 +16,7 @@ async function yukle(){
     giderKatlar   = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
     dagitimKatlar = katList.filter(function(x){return x.tur==='dagitim';}).map(function(x){return {id:x.id,ad:x.ad};});
     await otomatikDagitimMigrasyonu();
+    katSikligiSirala();
     setBag(true);
     hepsiniYenile();
   }catch(e){
@@ -376,4 +377,15 @@ function _ttKonumla(e){
   if(tx+270>window.innerWidth)tx=e.clientX-276;
   tt.style.left=tx+'px';
   tt.style.top=(e.clientY+14)+'px';
+}
+
+function katSikligiSirala() {
+  var giderFreq = {}, gelirFreq = {};
+  kayitlar.forEach(function(k) {
+    if (!k.kat) return;
+    if (k.tur === 'gider')  giderFreq[k.kat] = (giderFreq[k.kat] || 0) + 1;
+    if (k.tur === 'gelir')  gelirFreq[k.kat] = (gelirFreq[k.kat] || 0) + 1;
+  });
+  giderKatlar.sort(function(a, b) { return (giderFreq[b.ad] || 0) - (giderFreq[a.ad] || 0); });
+  gelirKatlar.sort(function(a, b) { return (gelirFreq[b.ad] || 0) - (gelirFreq[a.ad] || 0); });
 }
