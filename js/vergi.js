@@ -229,6 +229,8 @@ function renderProjIcerik(donem) {
   var qAy = isQAy(donem);
   var turler = ['kdv', 'kdv2', 'muhtasar', 'sgk', 'gecici', 'kurumlar', 'diger'];
 
+  var kdv2SabitOnce = vAyarOku('kdv2_sabit_' + donem) || vAyarOku('kdv2_sabit_global') || '';
+
   var html = '<div class="tw"><table><thead><tr>' +
     '<th>Vergi Türü</th>' +
     '<th style="text-align:right">Sistem Tahmini <span style="font-weight:400;color:#aaa">(son 3 ay ort.)</span></th>' +
@@ -240,6 +242,9 @@ function renderProjIcerik(donem) {
 
   turler.forEach(function(tur) {
     var st = sistemTahmin(tur, donem);
+    if (tur === 'kdv2' && kdv2SabitOnce && parseFloat(kdv2SabitOnce) > 0) {
+      st = parseFloat(kdv2SabitOnce);
+    }
     var kAnahtar = 'proj_' + tur + '_' + donem;
     var kStr = vAyarOku(kAnahtar);
     var kt = kStr ? parseFloat(kStr) : null;
