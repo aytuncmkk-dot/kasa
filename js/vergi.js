@@ -242,6 +242,9 @@ function renderProjIcerik(donem) {
 
   turler.forEach(function(tur) {
     if (tur === 'gecici' && !qAy) return;
+    var donemAy = parseInt((donem.split('-')[1]) || 0);
+    if (tur === 'kurumlar' && donemAy !== 4) return;
+    if (tur === 'diger') return;
     var st = sistemTahmin(tur, donem);
     if (tur === 'kdv2' && kdv2SabitOnce && parseFloat(kdv2SabitOnce) > 0) {
       st = parseFloat(kdv2SabitOnce);
@@ -603,7 +606,7 @@ function yaklasenOdemeler(basTarih, gunSayisi) {
     var vade = vYil + '-' + String(vAy).padStart(2, '0') + '-26';
     var donemStr = dYil + '-' + String(dAy).padStart(2, '0');
     if (vade >= basTarih && vade <= bitisStr) {
-      ['kdv', 'muhtasar', 'sgk'].forEach(function(tur) {
+      ['kdv', 'kdv2', 'muhtasar', 'sgk'].forEach(function(tur) {
         result.push({ tur: tur, donem: donemStr, vade: vade });
       });
     }
