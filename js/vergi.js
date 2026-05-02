@@ -96,12 +96,13 @@ async function importKayitlardan() {
   var hatalar = 0;
   for (var i = 0; i < hepsi.length; i++) {
     var k = hepsi[i];
+    var acikVeyaFirma = k.aciklama || k.firma || '';
     var r = await dbPost('vergi_kalemleri', {
-      donem:        donemTahmini(k.tarih, k.aciklama, k.kat),
-      tur:          turEtiket(k.kat, k.aciklama),
+      donem:        donemTahmini(k.tarih, acikVeyaFirma, k.kat),
+      tur:          turEtiket(k.kat, acikVeyaFirma),
       tutar:        k.tutar,
       odeme_tarihi: k.tarih,
-      aciklama:     (k.aciklama || '') + (k.kat === 'Muhasebe Giderleri' ? ' [Muh.Gider]' : ''),
+      aciklama:     acikVeyaFirma + (k.kat === 'Muhasebe Giderleri' ? ' [Muh.Gider]' : ''),
       kayit_id:     k.id,
       kaynak:       'otomatik'
     });
