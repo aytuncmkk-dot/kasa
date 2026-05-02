@@ -13,12 +13,13 @@ async function faturaKaydet(){
   if(!kat)hatalar.push('Kategori');
   if(isNaN(tutar)||tutar<=0)hatalar.push('Tutar');
   if(hatalar.length>0){alert('Zorunlu alanlar:\n- '+hatalar.join('\n- '));return;}
-  var yeni={tarih:tarih,firma:firma,fatura_no:document.getElementById('fat-no').value.trim(),vade:document.getElementById('fat-vade').value,kat:kat,aciklama:document.getElementById('fat-aciklama').value.trim(),tutar:tutar,durum:'bekliyor'};
+  var kdvTutar=parseFloat(document.getElementById('fat-kdv').value)||0;
+  var yeni={tarih:tarih,firma:firma,fatura_no:document.getElementById('fat-no').value.trim(),vade:document.getElementById('fat-vade').value,kat:kat,aciklama:document.getElementById('fat-aciklama').value.trim(),tutar:tutar,kdv_tutar:kdvTutar,durum:'bekliyor'};
   var r=await dbPost('faturalar',[yeni]);
   if(!r.ok){alert('Fatura kayıt hatası: '+r.status);return;}
   try{ await auditLog('EKLE','faturalar',null,null,yeni,'Fatura kaydı'); }catch(e){}
   faturalar.unshift(yeni);
-  ['fat-firma','fat-no','fat-vade','fat-aciklama','fat-tutar'].forEach(function(id){document.getElementById(id).value='';});
+  ['fat-firma','fat-no','fat-vade','fat-aciklama','fat-tutar','fat-kdv'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('fat-kat').value='';
   renderFaturalar();updateFirmaList();
 }
@@ -65,6 +66,7 @@ function renderFaturalar(){
       '<td style="color:'+(vadeGec?'#D85A30':'#888')+'">'+(f.vade?fmtT(f.vade)+(vadeGec?' (GEÇTİ)':''):'-')+'</td>'+
       '<td><span class="badge" style="background:'+(bek?'#FAECE7':'#E1F5EE')+';color:'+(bek?'#993C1D':'#0F6E56')+'">'+( bek?'Bekliyor':'Ödendi')+'</span></td>'+
       '<td style="text-align:right;font-weight:500;color:#D85A30">'+para(f.tutar)+'</td>'+
+      '<td style="text-align:right;font-size:11px;color:#888">'+(f.kdv_tutar>0?para(f.kdv_tutar):'-')+'</td>'+
       '<td style="white-space:nowrap">'+
         (bek?'<button class="btn-sm btn-sm-b" onclick="faturaOde('+f.id+')" style="margin-right:4px">Ödendi</button>':'')+
         '<button class="btn-sm btn-sm-r" onclick="faturaSil('+f.id+')">Sil</button>'+

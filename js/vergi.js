@@ -19,13 +19,14 @@ async function vergiSekmeAc() {
 }
 
 function vergiIcTabSec(t) {
-  ['takvim', 'proj', 'mutabakat', 'karlilik'].forEach(function(id) {
+  ['takvim', 'beyanname', 'proj', 'mutabakat', 'karlilik'].forEach(function(id) {
     var btn = document.getElementById('vitab-' + id);
     var sec = document.getElementById('vi-' + id);
     if (btn) btn.classList.toggle('active', id === t);
     if (sec) sec.style.display = id === t ? '' : 'none';
   });
   if (t === 'takvim')    renderVergiTakvim();
+  if (t === 'beyanname') renderKdvBeyanname();
   if (t === 'proj')      renderVergiProj();
   if (t === 'mutabakat') renderVergiMutabakat();
   if (t === 'karlilik')  renderKarlilik();
@@ -37,11 +38,13 @@ function renderVergi() {
   el.innerHTML =
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid #e0e0db;padding-bottom:10px">' +
       '<button id="vitab-takvim"    class="tab active" onclick="vergiIcTabSec(\'takvim\')"    style="font-size:12px">📅 Vergi Takvimi</button>' +
+      '<button id="vitab-beyanname" class="tab"        onclick="vergiIcTabSec(\'beyanname\')" style="font-size:12px">🧾 KDV Beyannamesi</button>' +
       '<button id="vitab-proj"      class="tab"        onclick="vergiIcTabSec(\'proj\')"      style="font-size:12px">📊 Projeksiyon</button>' +
       '<button id="vitab-mutabakat" class="tab"        onclick="vergiIcTabSec(\'mutabakat\')" style="font-size:12px">🔍 Mutabakat</button>' +
       '<button id="vitab-karlilik"  class="tab"        onclick="vergiIcTabSec(\'karlilik\')"  style="font-size:12px">📈 Karlılık Raporu</button>' +
     '</div>' +
     '<div id="vi-takvim"></div>' +
+    '<div id="vi-beyanname" style="display:none"></div>' +
     '<div id="vi-proj"      style="display:none"></div>' +
     '<div id="vi-mutabakat" style="display:none"></div>' +
     '<div id="vi-karlilik"  style="display:none"></div>';
@@ -756,6 +759,222 @@ function karlilikYazdir() {
     'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:5px 8px;font-size:10px;color:#6b7280;background:#f9fafb}' +
     'td{padding:5px 8px;border-bottom:1px solid #f3f4f6}.no-print{display:none}</style>' +
     '</head><body><h2>Aylık Karlılık Raporu</h2>' +
+    icerik.innerHTML + '</body></html>'
+  );
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 400);
+}
+
+// ── KDV BEYANNAMESİ ──────────────────────────────────────────
+
+var _beyDonem = '';
+
+function renderKdvBeyanname() {
+  var el = document.getElementById('vi-beyanname');
+  if (!el) return;
+  if (!_beyDonem) _beyDonem = today.slice(0, 7);
+
+  var donemler = projDonemListesi();
+  var sel = '<select id="bey-donem-sel" onchange="beyDonemDegisti()" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 10px;font-size:13px;background:#fff">';
+  donemler.forEach(function(d) {
+    sel += '<option value="' + d + '"' + (d === _beyDonem ? ' selected' : '') + '>' + donemYazi(d) + '</option>';
+  });
+  sel += '</select>';
+
+  el.innerHTML =
+    '<div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">' +
+      '<label style="font-size:12px;color:#888;font-weight:500">Dönem:</label>' + sel +
+    '</div>' +
+    '<div id="bey-icerik"></div>';
+
+  renderBeyIcerik(_beyDonem);
+}
+
+function beyDonemDegisti() {
+  var s = document.getElementById('bey-donem-sel');
+  if (s) { _beyDonem = s.value; renderBeyIcerik(_beyDonem); }
+}
+
+function renderBeyIcerik(donem) {
+  var el = document.getElementById('bey-icerik');
+  if (!el) return;
+
+  // ── İNDİRİLECEK KDV: faturalar tablosundan ──
+  var indirilecekOto = (typeof faturalar !== 'undefined' ? faturalar : [])
+    .filter(function(f) { return f.tarih && f.tarih.startsWith(donem) && parseFloat(f.kdv_tutar) > 0; })
+    .reduce(function(s, f) { return s + parseFloat(f.kdv_tutar); }, 0);
+
+  var indirilecekManuelStr = vAyarOku('bey_indirilecek_' + donem) || '';
+  var indirilecekManuel = indirilecekManuelStr ? parseFloat(indirilecekManuelStr) : null;
+  var indirilecek = indirilecekManuel !== null ? indirilecekManuel : indirilecekOto;
+
+  // ── HESAPLANAN KDV: kayıtlı değerler ──
+  var fatKdvStr   = vAyarOku('bey_fat_kdv_' + donem)   || '';
+  var fisKdvStr   = vAyarOku('bey_fis_kdv_' + donem)   || '';
+  var fatKdv  = fatKdvStr  ? parseFloat(fatKdvStr)  : null;
+  var fisKdv  = fisKdvStr  ? parseFloat(fisKdvStr)  : null;
+
+  var hesaplanan = (fatKdv || 0) + (fisKdv || 0);
+  var net = hesaplanan - indirilecek;
+
+  // Fatura sayısı (KDV girilmiş)
+  var fatSayisi = (typeof faturalar !== 'undefined' ? faturalar : [])
+    .filter(function(f) { return f.tarih && f.tarih.startsWith(donem) && parseFloat(f.kdv_tutar) > 0; }).length;
+  var fatToplamSayisi = (typeof faturalar !== 'undefined' ? faturalar : [])
+    .filter(function(f) { return f.tarih && f.tarih.startsWith(donem); }).length;
+
+  var html = '';
+
+  // ── HESAPLANAN KDV KARTI ──
+  html += '<div class="fb" style="margin-bottom:12px">' +
+    '<div class="fb-title" style="color:#185FA5">Hesaplanan KDV (Satış)</div>' +
+    '<div class="grid g4" style="margin-bottom:12px">' +
+
+    '<div class="field"><label>Satış Faturası KDV (TL)</label>' +
+      '<div style="display:flex;gap:6px;align-items:center">' +
+        '<input type="number" id="bey-fat-kdv" value="' + (fatKdv !== null ? fatKdv : '') + '" placeholder="CSV yükle veya gir" step="0.01" ' +
+          'style="flex:1;border:1px solid #e0e0db;border-radius:6px;padding:6px 10px;font-size:13px" ' +
+          'onchange="beyKdvKaydet(\'fat\',\'' + donem + '\',this.value)">' +
+        '<label style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap" title="Uyumsoft satış faturası CSV">' +
+          '📥 CSV<input type="file" accept=".csv" style="display:none" onchange="beyCsvYukle(this,\'' + donem + '\')">' +
+        '</label>' +
+      '</div>' +
+      '<div style="font-size:10px;color:#aaa;margin-top:3px">Uyumsoft → Satış Faturaları CSV yükleyin</div>' +
+    '</div>' +
+
+    '<div class="field"><label>Yazar Kasa / Fiş KDV (TL)</label>' +
+      '<input type="number" id="bey-fis-kdv" value="' + (fisKdv !== null ? fisKdv : '') + '" placeholder="Slipten girin" step="0.01" ' +
+        'style="width:100%;border:1px solid #e0e0db;border-radius:6px;padding:6px 10px;font-size:13px" ' +
+        'onchange="beyKdvKaydet(\'fis\',\'' + donem + '\',this.value)">' +
+    '</div>' +
+
+    '</div>' +
+    '<div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;border-top:1px solid #e0e0db;padding-top:10px">' +
+      '<span style="font-size:12px;color:#888">Toplam Hesaplanan:</span>' +
+      '<span style="font-size:18px;font-weight:700;color:#185FA5">' + (hesaplanan ? para(hesaplanan) : '—') + '</span>' +
+    '</div>' +
+  '</div>';
+
+  // ── İNDİRİLECEK KDV KARTI ──
+  var kdvUyariHtml = '';
+  if (fatToplamSayisi > 0 && fatSayisi < fatToplamSayisi) {
+    kdvUyariHtml = '<div style="font-size:11px;color:#b45309;margin-top:6px">⚠️ ' + donemYazi(donem) +
+      ' döneminde ' + fatToplamSayisi + ' faturadan ' + fatSayisi + ' tanesinde KDV tutarı girilmiş. ' +
+      'Eksik girişler için fatura sayfasından güncelleyin.</div>';
+  }
+
+  html += '<div class="fb" style="margin-bottom:12px">' +
+    '<div class="fb-title" style="color:#0e7490">İndirilecek KDV (Alış)</div>' +
+    '<div class="grid g4" style="margin-bottom:12px">' +
+    '<div class="field"><label>Faturalardan Otomatik <span style="color:#aaa;font-weight:400">(' + fatSayisi + ' fatura)</span></label>' +
+      '<div style="padding:8px 10px;background:#f3f4f6;border-radius:6px;font-size:14px;font-weight:500;color:#0e7490">' +
+        (indirilecekOto > 0 ? para(indirilecekOto) : '<span style="color:#aaa">KDV girilmemiş</span>') +
+      '</div>' +
+      kdvUyariHtml +
+    '</div>' +
+    '<div class="field"><label>Manuel Düzeltme (TL) <span style="color:#aaa;font-weight:400">opsiyonel</span></label>' +
+      '<input type="number" id="bey-ind-manuel" value="' + (indirilecekManuelStr || '') + '" placeholder="Boş bırakın = otomatik" step="0.01" ' +
+        'style="width:100%;border:1px solid #e0e0db;border-radius:6px;padding:6px 10px;font-size:13px" ' +
+        'onchange="beyKdvKaydet(\'indirilecek\',\'' + donem + '\',this.value)">' +
+    '</div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;border-top:1px solid #e0e0db;padding-top:10px">' +
+      '<span style="font-size:12px;color:#888">Toplam İndirilecek:</span>' +
+      '<span style="font-size:18px;font-weight:700;color:#0e7490">' + (indirilecek ? para(indirilecek) : '—') + '</span>' +
+    '</div>' +
+  '</div>';
+
+  // ── NET SONUÇ ──
+  var netRenk = net > 0 ? '#991b1b' : '#166534';
+  var netBg   = net > 0 ? '#fef2f2' : '#dcfce7';
+  var netEtiket = net > 0 ? '📤 Ödenecek KDV' : '💰 İade / Devredecek KDV';
+
+  html += '<div style="background:' + netBg + ';border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">' +
+    '<div>' +
+      '<div style="font-size:13px;font-weight:600;color:' + netRenk + '">' + netEtiket + '</div>' +
+      '<div style="font-size:11px;color:#888;margin-top:2px">' + donemYazi(donem) + ' dönemi KDV-1 Beyannamesi</div>' +
+    '</div>' +
+    '<div style="font-size:28px;font-weight:800;color:' + netRenk + '">' +
+      (hesaplanan ? para(Math.abs(net)) : '—') +
+    '</div>' +
+  '</div>';
+
+  // ── DETAY TABLOSU ──
+  if (hesaplanan || indirilecek) {
+    html += '<div class="tw" style="margin-top:14px"><table>' +
+      '<thead><tr><th>Kalem</th><th style="text-align:right">Tutar</th></tr></thead><tbody>' +
+      '<tr><td>Satış Faturası KDV</td><td style="text-align:right">' + (fatKdv ? para(fatKdv) : '—') + '</td></tr>' +
+      '<tr><td>Yazar Kasa / Fiş KDV</td><td style="text-align:right">' + (fisKdv ? para(fisKdv) : '—') + '</td></tr>' +
+      '<tr style="border-top:2px solid #e5e7eb;font-weight:600"><td>Toplam Hesaplanan KDV</td><td style="text-align:right;color:#185FA5">' + para(hesaplanan) + '</td></tr>' +
+      '<tr><td>İndirilecek KDV</td><td style="text-align:right;color:#0e7490">− ' + para(indirilecek) + '</td></tr>' +
+      '<tr style="background:#f9f9f8;font-weight:700"><td>' + netEtiket + '</td><td style="text-align:right;color:' + netRenk + '">' + para(Math.abs(net)) + '</td></tr>' +
+      '</tbody></table></div>';
+  }
+
+  el.innerHTML = html;
+}
+
+async function beyKdvKaydet(tur, donem, val) {
+  var anahtar = 'bey_' + tur + '_kdv_' + donem;
+  if (tur === 'indirilecek') anahtar = 'bey_indirilecek_' + donem;
+  await vAyarKaydet(anahtar, val || '0');
+  renderBeyIcerik(donem);
+}
+
+function beyCsvYukle(input, donem) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var parsed = uyumCsvParse(e.target.result);
+    if (parsed.hatali) { alert('CSV okunamadı: ' + parsed.mesaj); return; }
+
+    var toplamKdv = 0;
+    var satirSayisi = 0;
+    var kdvCol = 'Toplam KDV';
+
+    parsed.rows.forEach(function(row) {
+      // Fatura Tarihi: "DD.MM.YYYY HH:MM:SS"
+      var tarihStr = (row['Fatura Tarihi'] || '').split(' ')[0];
+      var parts = tarihStr.split('.');
+      if (parts.length !== 3) return;
+      var satAy = parts[2] + '-' + parts[1]; // YYYY-MM
+      if (satAy !== donem) return;
+
+      var kdvStr = (row[kdvCol] || '0').replace(',', '.');
+      var kdv = parseFloat(kdvStr) || 0;
+      toplamKdv += kdv;
+      satirSayisi++;
+    });
+
+    if (!satirSayisi) {
+      alert(donemYazi(donem) + ' döneminde satış faturası bulunamadı.\n\nCSV dosyasının doğru ay için olduğundan emin olun.');
+      input.value = '';
+      return;
+    }
+
+    var kdvYuvarlak = Math.round(toplamKdv * 100) / 100;
+    document.getElementById('bey-fat-kdv').value = kdvYuvarlak;
+    beyKdvKaydet('fat', donem, String(kdvYuvarlak));
+    input.value = '';
+    alert(donemYazi(donem) + ': ' + satirSayisi + ' fatura okundu.\nHesaplanan KDV: ' + para(kdvYuvarlak));
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function beyYazdir() {
+  var icerik = document.getElementById('bey-icerik');
+  if (!icerik) return;
+  var win = window.open('', '_blank');
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>KDV Beyannamesi</title>' +
+    '<style>body{font-family:system-ui,sans-serif;font-size:12px;color:#111;margin:24px}' +
+    'h2{font-size:15px;margin-bottom:14px}table{width:100%;border-collapse:collapse}' +
+    'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:5px 8px;font-size:11px;color:#6b7280;background:#f9fafb}' +
+    'td{padding:5px 8px;border-bottom:1px solid #f3f4f6}.no-print{display:none}' +
+    'input,select,label{display:none}' +
+    '</style></head><body><h2>KDV Beyannamesi</h2>' +
     icerik.innerHTML + '</body></html>'
   );
   win.document.close();
