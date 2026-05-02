@@ -19,7 +19,7 @@ async function vergiSekmeAc() {
 }
 
 function vergiIcTabSec(t) {
-  ['takvim', 'proj', 'mutabakat'].forEach(function(id) {
+  ['takvim', 'proj', 'mutabakat', 'karlilik'].forEach(function(id) {
     var btn = document.getElementById('vitab-' + id);
     var sec = document.getElementById('vi-' + id);
     if (btn) btn.classList.toggle('active', id === t);
@@ -28,6 +28,7 @@ function vergiIcTabSec(t) {
   if (t === 'takvim')    renderVergiTakvim();
   if (t === 'proj')      renderVergiProj();
   if (t === 'mutabakat') renderVergiMutabakat();
+  if (t === 'karlilik')  renderKarlilik();
 }
 
 function renderVergi() {
@@ -38,10 +39,12 @@ function renderVergi() {
       '<button id="vitab-takvim"    class="tab active" onclick="vergiIcTabSec(\'takvim\')"    style="font-size:12px">📅 Vergi Takvimi</button>' +
       '<button id="vitab-proj"      class="tab"        onclick="vergiIcTabSec(\'proj\')"      style="font-size:12px">📊 Projeksiyon</button>' +
       '<button id="vitab-mutabakat" class="tab"        onclick="vergiIcTabSec(\'mutabakat\')" style="font-size:12px">🔍 Mutabakat</button>' +
+      '<button id="vitab-karlilik"  class="tab"        onclick="vergiIcTabSec(\'karlilik\')"  style="font-size:12px">📈 Karlılık Raporu</button>' +
     '</div>' +
     '<div id="vi-takvim"></div>' +
     '<div id="vi-proj"      style="display:none"></div>' +
-    '<div id="vi-mutabakat" style="display:none"></div>';
+    '<div id="vi-mutabakat" style="display:none"></div>' +
+    '<div id="vi-karlilik"  style="display:none"></div>';
   renderVergiTakvim();
 }
 
@@ -649,6 +652,115 @@ function yaklasenOdemeler(basTarih, gunSayisi) {
   });
 
   return result.sort(function(a, b) { return a.vade > b.vade ? 1 : -1; });
+}
+
+function renderKarlilik() {
+  var el = document.getElementById('vi-karlilik');
+  if (!el) return;
+
+  var vergiKatlar = ['Vergiler', 'SGK'];
+  var byMonth = {};
+
+  kayitlar.forEach(function(k) {
+    var m = k.tarih.slice(0, 7);
+    if (!byMonth[m]) byMonth[m] = { gelir: 0, opGider: 0, vergiGider: 0, dagitim: 0 };
+    var t = parseFloat(k.tutar) || 0;
+    if (k.tur === 'gelir') {
+      byMonth[m].gelir += t;
+    } else if (k.tur === 'dagitim') {
+      byMonth[m].dagitim += t;
+    } else if (k.tur === 'gider') {
+      if (vergiKatlar.indexOf(k.kat) >= 0) byMonth[m].vergiGider += t;
+      else byMonth[m].opGider += t;
+    }
+  });
+
+  var aylar = Object.keys(byMonth).filter(function(m) {
+    return byMonth[m].gelir > 0;
+  }).sort().reverse();
+
+  if (!aylar.length) {
+    el.innerHTML = '<div class="empty">Henüz kayıt yok.</div>';
+    return;
+  }
+
+  var renk = function(v) { return v >= 0 ? '#166534' : '#991b1b'; };
+  var bg   = function(v) { return v >= 40 ? '#dcfce7' : v >= 20 ? '#fefce8' : v >= 0 ? '#fff7ed' : '#fef2f2'; };
+
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+    '<div style="font-size:13px;font-weight:500;color:#555">Aylık Karlılık Analizi</div>' +
+    '<button class="btn no-print" onclick="karlilikYazdir()" style="font-size:11px">🖨 Yazdır</button>' +
+    '</div>';
+
+  html += '<div class="tw"><table><thead><tr>' +
+    '<th>Ay</th>' +
+    '<th style="text-align:right">Gelir</th>' +
+    '<th style="text-align:right">İşletme Gideri</th>' +
+    '<th style="text-align:right">Vergi & SGK</th>' +
+    '<th style="text-align:right">Vergi Öncesi Kar</th>' +
+    '<th style="text-align:right">Marj %</th>' +
+    '<th style="text-align:right">Vergi Sonrası Kar</th>' +
+    '<th style="text-align:right">Marj %</th>' +
+    '</tr></thead><tbody>';
+
+  var totGelir = 0, totOp = 0, totVergi = 0;
+
+  aylar.forEach(function(m) {
+    var d = byMonth[m];
+    var vonce = d.gelir - d.opGider;
+    var vsonra = d.gelir - d.opGider - d.vergiGider;
+    var mOnce = d.gelir ? (vonce / d.gelir * 100) : 0;
+    var mSonra = d.gelir ? (vsonra / d.gelir * 100) : 0;
+    totGelir += d.gelir; totOp += d.opGider; totVergi += d.vergiGider;
+
+    html += '<tr>' +
+      '<td style="font-weight:500">' + donemYazi(m) + '</td>' +
+      '<td style="text-align:right">' + para(d.gelir) + '</td>' +
+      '<td style="text-align:right;color:#555">' + para(d.opGider) + '</td>' +
+      '<td style="text-align:right;color:#b45309">' + para(d.vergiGider) + '</td>' +
+      '<td style="text-align:right;font-weight:500;color:' + renk(vonce) + '">' + para(vonce) + '</td>' +
+      '<td style="text-align:right"><span style="padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;background:' + bg(mOnce) + ';color:' + renk(mOnce) + '">' + mOnce.toFixed(1) + '%</span></td>' +
+      '<td style="text-align:right;font-weight:500;color:' + renk(vsonra) + '">' + para(vsonra) + '</td>' +
+      '<td style="text-align:right"><span style="padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;background:' + bg(mSonra) + ';color:' + renk(mSonra) + '">' + mSonra.toFixed(1) + '%</span></td>' +
+      '</tr>';
+  });
+
+  // Genel toplam
+  var totVonce = totGelir - totOp;
+  var totVsonra = totGelir - totOp - totVergi;
+  var totMonce = totGelir ? (totVonce / totGelir * 100) : 0;
+  var totMsonra = totGelir ? (totVsonra / totGelir * 100) : 0;
+  html += '<tr style="background:#f3f4f6;border-top:2px solid #e5e7eb;font-weight:600">' +
+    '<td>TOPLAM / ORT.</td>' +
+    '<td style="text-align:right">' + para(totGelir) + '</td>' +
+    '<td style="text-align:right;color:#555">' + para(totOp) + '</td>' +
+    '<td style="text-align:right;color:#b45309">' + para(totVergi) + '</td>' +
+    '<td style="text-align:right;color:' + renk(totVonce) + '">' + para(totVonce) + '</td>' +
+    '<td style="text-align:right"><span style="padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;background:' + bg(totMonce) + ';color:' + renk(totMonce) + '">' + totMonce.toFixed(1) + '%</span></td>' +
+    '<td style="text-align:right;color:' + renk(totVsonra) + '">' + para(totVsonra) + '</td>' +
+    '<td style="text-align:right"><span style="padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;background:' + bg(totMsonra) + ';color:' + renk(totMsonra) + '">' + totMsonra.toFixed(1) + '%</span></td>' +
+    '</tr>';
+
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+function karlilikYazdir() {
+  var icerik = document.getElementById('vi-karlilik');
+  if (!icerik) return;
+  var win = window.open('', '_blank');
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Karlılık Raporu</title>' +
+    '<style>body{font-family:system-ui,sans-serif;font-size:11px;color:#111;margin:24px}' +
+    'h2{font-size:15px;margin-bottom:14px}table{width:100%;border-collapse:collapse}' +
+    'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:5px 8px;font-size:10px;color:#6b7280;background:#f9fafb}' +
+    'td{padding:5px 8px;border-bottom:1px solid #f3f4f6}.no-print{display:none}</style>' +
+    '</head><body><h2>Aylık Karlılık Raporu</h2>' +
+    icerik.innerHTML + '</body></html>'
+  );
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 400);
 }
 
 function vergiTakvimYazdir() {
