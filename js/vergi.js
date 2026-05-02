@@ -153,6 +153,7 @@ function renderVergiTakvim() {
       '<th style="text-align:right">Tahmini Tutar</th><th>Durum</th>' +
       '</tr></thead><tbody>';
 
+    var ayToplam = 0;
     gruplar[ay].forEach(function(o) {
       var odendi = vergiKalemleri.some(function(v) {
         return v.tur === o.tur && v.donem === o.donem;
@@ -170,6 +171,7 @@ function renderVergiTakvim() {
         if (kdv2s > 0) tahmin = kdv2s;
       }
       var tahminStr = tahmin ? para(tahmin) : '<span style="color:#aaa">—</span>';
+      if (tahmin) ayToplam += tahmin;
       if (!odendi && tahmin) bekleyenToplam += tahmin;
 
       var vadeBg = gecikti ? 'background:#fef2f2' : '';
@@ -183,6 +185,13 @@ function renderVergiTakvim() {
         '</tr>';
     });
 
+    if (ayToplam > 0) {
+      html += '<tr style="background:#f3f4f6;border-top:2px solid #e5e7eb">' +
+        '<td colspan="3" style="font-weight:600;font-size:12px;color:#374151">AYLIK TOPLAM</td>' +
+        '<td style="text-align:right;font-weight:700;font-size:13px;color:#111">' + para(ayToplam) + '</td>' +
+        '<td></td>' +
+        '</tr>';
+    }
     html += '</tbody></table></div></div>';
   });
 
