@@ -133,6 +133,7 @@ function renderVergiTakvim() {
   } else {
     html += '<button id="vergi-import-btn" class="btn" onclick="importKayitlardan()" style="font-size:11px;color:#888">↻ Yeniden İçe Aktar</button>';
   }
+  html += '<button class="btn no-print" onclick="vergiTakvimYazdir()" style="font-size:11px">🖨 Yazdır</button>';
   html += '</div></div>';
 
   var odemeler = yaklasenOdemeler(today, 90);
@@ -648,4 +649,31 @@ function yaklasenOdemeler(basTarih, gunSayisi) {
   });
 
   return result.sort(function(a, b) { return a.vade > b.vade ? 1 : -1; });
+}
+
+function vergiTakvimYazdir() {
+  var icerik = document.getElementById('vi-takvim');
+  if (!icerik) return;
+  var win = window.open('', '_blank');
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<title>Vergi Takvimi</title>' +
+    '<style>' +
+    'body{font-family:system-ui,sans-serif;font-size:12px;color:#111;margin:24px}' +
+    'h2{font-size:16px;margin-bottom:16px}' +
+    '.sec-title{font-weight:700;font-size:14px;margin:16px 0 6px;color:#374151}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:4px}' +
+    'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:5px 8px;font-size:11px;color:#6b7280;background:#f9fafb}' +
+    'td{padding:5px 8px;border-bottom:1px solid #f3f4f6}' +
+    '.badge{padding:2px 6px;border-radius:4px;font-size:10px}' +
+    'tr:last-child td{border-bottom:none}' +
+    '@media print{button{display:none}}' +
+    '</style></head><body>' +
+    '<h2>Vergi Ödeme Takvimi — Önümüzdeki 90 Gün</h2>' +
+    icerik.innerHTML +
+    '</body></html>'
+  );
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 400);
 }
