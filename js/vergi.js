@@ -177,6 +177,9 @@ function renderVergiTakvim() {
         var kdv2s = parseFloat(vAyarOku('kdv2_sabit_' + o.vade.slice(0, 7)) || vAyarOku('kdv2_sabit_global') || '0');
         if (kdv2s > 0) tahmin = kdv2s;
       }
+      // Beyanname hesabı varsa onu kullan (proj_kdv_YYYY-MM veya proj_kdv2_YYYY-MM)
+      var beyTahmin = parseFloat(vAyarOku('proj_' + o.tur + '_' + o.donem) || '0');
+      if (beyTahmin > 0) tahmin = beyTahmin;
       var tahminStr = tahmin ? para(tahmin) : '<span style="color:#aaa">—</span>';
       if (tahmin) ayToplam += tahmin;
       if (!odendi && tahmin) bekleyenToplam += tahmin;
