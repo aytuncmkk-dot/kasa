@@ -73,6 +73,7 @@ function switchTab(t){
   if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
   if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='ozelrapor'){if(typeof ozelRaporKatGuncelle==='function')ozelRaporKatGuncelle();if(typeof renderOzelRapor==='function')renderOzelRapor();}
+  if(t==='vergi'){if(typeof vergiSekmeAc==='function')vergiSekmeAc();}
 }
 
 function doldurKatListeleri(){
