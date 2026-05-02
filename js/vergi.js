@@ -165,6 +165,10 @@ function renderVergiTakvim() {
           : '<span class="badge" style="background:#fefce8;color:#854d0e">Bekliyor</span>';
 
       var tahmin = sistemTahmin(o.tur, o.donem);
+      if (o.tur === 'kdv2') {
+        var kdv2s = parseFloat(vAyarOku('kdv2_sabit_' + o.vade.slice(0, 7)) || vAyarOku('kdv2_sabit_global') || '0');
+        if (kdv2s > 0) tahmin = kdv2s;
+      }
       var tahminStr = tahmin ? para(tahmin) : '<span style="color:#aaa">—</span>';
       if (!odendi && tahmin) bekleyenToplam += tahmin;
 
@@ -623,6 +627,14 @@ function yaklasenOdemeler(basTarih, gunSayisi) {
   ].forEach(function(g) {
     if (g.vade >= basTarih && g.vade <= bitisStr) {
       result.push({ tur: 'gecici', donem: g.donem, vade: g.vade });
+    }
+  });
+
+  // Kurumlar Vergisi: her yıl 30 Nisan
+  [yil, yil + 1].forEach(function(y) {
+    var vade = y + '-04-30';
+    if (vade >= basTarih && vade <= bitisStr) {
+      result.push({ tur: 'kurumlar', donem: (y - 1) + '-12', vade: vade });
     }
   });
 
