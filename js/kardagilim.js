@@ -48,10 +48,11 @@ function renderKarDagilim(){
   html+='<div class="ok"><div class="ok-label">DÖNEM GİDERİ</div><div class="ok-val rc">'+para(isletmeGider)+'</div></div>';
   html+='<div class="ok"><div class="ok-label">NET KAR</div><div class="ok-val '+(netKar>=0?'gc':'rc')+'">'+para(netKar)+'</div></div>';
   html+='</div>';
+  var kalanDagitilabilir=dagitilabilirKar-ortakOdenen;
   html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
-  html+='<div class="ok" style="border:1px solid #d1fae5;background:#f0fdf4"><div class="ok-label" style="color:#065f46">YEDEK FON (Toplam)</div><div class="ok-val" style="color:#059669">'+para(yedekFonBakiye)+'</div></div>';
-  html+='<div class="ok" style="border:2px solid #1a1a1a"><div class="ok-label" style="font-weight:700">DAĞITILABİLİR KAR</div><div class="ok-val '+(dagitilabilirKar>=0?'gc':'rc')+'">'+para(dagitilabilirKar)+'</div></div>';
-  html+='<div class="ok"><div class="ok-label">TOPLAM DAĞITILAN</div><div class="ok-val bc">'+para(ortakOdenen)+'</div></div>';
+  html+='<div class="ok" style="border:1px solid #d1fae5;background:#f0fdf4"><div class="ok-label" style="color:#065f46">YEDEK FON (Dönem)</div><div class="ok-val" style="color:#059669">'+para(yedekFonBakiye)+'</div></div>';
+  html+='<div class="ok"><div class="ok-label">AVANS / DAĞITILAN</div><div class="ok-val bc">'+para(ortakOdenen)+'</div></div>';
+  html+='<div class="ok" style="border:2px solid #1a1a1a"><div class="ok-label" style="font-weight:700">KALAN DAĞITILABİLİR</div><div class="ok-val '+(kalanDagitilabilir>=0?'gc':'rc')+'">'+para(kalanDagitilabilir)+'</div></div>';
   html+='</div>';
   // Ortak kartları
   html+='<div style="display:grid;grid-template-columns:repeat('+Math.min(ortaklar.length,3)+',1fr);gap:10px;margin-bottom:12px">';
