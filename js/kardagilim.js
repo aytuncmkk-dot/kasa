@@ -19,12 +19,13 @@ function renderKarDagilim(){
   var ortakOdenen=donemDag.reduce(function(s,k){return s+Number(k.tutar);},0);
   var netKar=totGelir-isletmeGider;
 
-  // Yedek fon — toplam bakiye (dönemsel değil, tüm zamanlara göre)
-  var yedekFonBakiye=0;
-  (fonHareketler||[]).forEach(function(f){
-    if(f.islem==='giris') yedekFonBakiye+=Number(f.tutar)||0;
-    else if(f.islem==='cikis') yedekFonBakiye-=Number(f.tutar)||0;
-  });
+  // Yedek fon — dönem filtresiyle eşleştirilmiş
+  var donemFon=filtrele(fonHareketler||[]);
+  var yedekFonBakiye=donemFon.reduce(function(s,f){
+    if(f.islem==='giris') return s+(Number(f.tutar)||0);
+    if(f.islem==='cikis') return s-(Number(f.tutar)||0);
+    return s;
+  },0);
   var dagitilabilirKar=netKar-yedekFonBakiye;
 
   var donemOdemeler=donemDag;
