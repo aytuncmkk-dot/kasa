@@ -2,6 +2,23 @@
 // OZELRAPOR — Özel kategori bazlı rapor
 // ============================================================
 
+function ozelRaporTipDegisti(){
+  var tip=document.getElementById('oz-tip').value;
+  document.getElementById('oz-ay').style.display=tip==='ay'?'':'none';
+  document.getElementById('oz-aralik-wrap').style.display=tip==='aralik'?'flex':'none';
+  document.getElementById('oz-yil').style.display=tip==='yil'?'':'none';
+}
+
+function getOzelRaporListe(){
+  var tip=document.getElementById('oz-tip').value;
+  return kayitlar.filter(function(k){
+    if(tip==='ay')return k.tarih.startsWith(document.getElementById('oz-ay').value);
+    if(tip==='aralik'){var b=document.getElementById('oz-bas').value,s=document.getElementById('oz-son').value;if(b&&s)return k.tarih>=b&&k.tarih<=s;return true;}
+    if(tip==='yil')return k.tarih.startsWith(document.getElementById('oz-yil').value);
+    return true;
+  });
+}
+
 function renderOzelRapor(){
   var seciliKatlar=[];
   document.querySelectorAll('.ozel-kat-cb:checked').forEach(function(cb){seciliKatlar.push(cb.value);});
@@ -9,7 +26,7 @@ function renderOzelRapor(){
     document.getElementById('ozel-sonuc').innerHTML='<div class="empty">Lutfen en az bir kategori secin.</div>';
     return;
   }
-  var list=getRaporListe();
+  var list=getOzelRaporListe();
   var gid=list.filter(function(k){return k.tur==='gider';});
   var gel=list.filter(function(k){return k.tur==='gelir';});
   var totGelir=gel.reduce(function(s,k){return s+Number(k.tutar);},0);
@@ -46,4 +63,3 @@ function ozelRaporKatGuncelle(){
     return '<label style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer;font-size:13px"><input type="checkbox" class="ozel-kat-cb" value="'+k+'"> '+k+'</label>';
   }).join('');
 }
-

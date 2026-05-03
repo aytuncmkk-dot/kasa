@@ -447,9 +447,7 @@
             <button class="btn btn-p" style="width:100%;margin-top:10px" onclick="renderOzelRapor()">Raporu Getir</button>
           </div>
         </div>
-        <div id="ozel-sonuc">
-          <div class="empty">Sol taraftan kategori seçin.</div>
-        </div>
+        <div id="ozel-sonuc-eski"></div>
       </div>
     </div>
   </div>
@@ -578,19 +576,19 @@
     <div style="background:#f9f9f8;border:1px solid #e8e8e4;border-radius:10px;padding:12px;margin-bottom:14px">
       <div style="font-size:12px;font-weight:500;color:#555;margin-bottom:8px">RAPOR DÖNEMİ</div>
       <div class="frow" style="margin-bottom:0">
-        <select id="r-tip" onchange="raporTipDegisti()" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
+        <select id="oz-tip" onchange="ozelRaporTipDegisti()" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
           <option value="ay">Aylık</option>
           <option value="aralik">Tarih Aralığı</option>
           <option value="yil">Yıllık</option>
           <option value="tumu">Tüm Zamanlar</option>
         </select>
-        <input type="month" id="r-ay" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
-        <span id="r-aralik-wrap" style="display:none;gap:6px;align-items:center">
-          <input type="date" id="r-bas" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
+        <input type="month" id="oz-ay" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
+        <span id="oz-aralik-wrap" style="display:none;gap:6px;align-items:center">
+          <input type="date" id="oz-bas" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
           <span style="color:#888">—</span>
-          <input type="date" id="r-son" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
+          <input type="date" id="oz-son" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
         </span>
-        <input type="number" id="r-yil" placeholder="2026" style="width:80px;display:none;border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
+        <input type="number" id="oz-yil" placeholder="2026" style="width:80px;display:none;border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">
         <button class="btn btn-p" onclick="renderOzelRapor()">Raporu Getir</button>
       </div>
     </div>
@@ -603,7 +601,7 @@
             <button class="btn-sm" onclick="document.querySelectorAll('.ozel-kat-cb').forEach(function(c){c.checked=true});renderOzelRapor()" style="font-size:11px">Tümünü Seç</button>
             <button class="btn-sm" onclick="document.querySelectorAll('.ozel-kat-cb').forEach(function(c){c.checked=false});renderOzelRapor()" style="font-size:11px">Temizle</button>
           </div>
-          <div id="ozel-kat-listesi"></div>
+          <div id="ozel-kat-list"></div>
         </div>
       </div>
       <div>
