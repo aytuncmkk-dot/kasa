@@ -19,7 +19,7 @@ async function vergiSekmeAc() {
 }
 
 function vergiIcTabSec(t) {
-  ['takvim', 'beyanname', 'proj', 'mutabakat', 'karlilik'].forEach(function(id) {
+  ['takvim', 'beyanname', 'proj', 'mutabakat', 'karlilik', 'yuk'].forEach(function(id) {
     var btn = document.getElementById('vitab-' + id);
     var sec = document.getElementById('vi-' + id);
     if (btn) btn.classList.toggle('active', id === t);
@@ -30,6 +30,7 @@ function vergiIcTabSec(t) {
   if (t === 'proj')      renderVergiProj();
   if (t === 'mutabakat') renderVergiMutabakat();
   if (t === 'karlilik')  renderKarlilik();
+  if (t === 'yuk')       renderVergiYukAnalizi();
 }
 
 function renderVergi() {
@@ -42,12 +43,14 @@ function renderVergi() {
       '<button id="vitab-proj"      class="tab"        onclick="vergiIcTabSec(\'proj\')"      style="font-size:12px">📊 Projeksiyon</button>' +
       '<button id="vitab-mutabakat" class="tab"        onclick="vergiIcTabSec(\'mutabakat\')" style="font-size:12px">🔍 Mutabakat</button>' +
       '<button id="vitab-karlilik"  class="tab"        onclick="vergiIcTabSec(\'karlilik\')"  style="font-size:12px">📈 Karlılık Raporu</button>' +
+      '<button id="vitab-yuk"       class="tab"        onclick="vergiIcTabSec(\'yuk\')"       style="font-size:12px">⚠️ Vergi Yükü Analizi</button>' +
     '</div>' +
     '<div id="vi-takvim"></div>' +
     '<div id="vi-beyanname" style="display:none"></div>' +
     '<div id="vi-proj"      style="display:none"></div>' +
     '<div id="vi-mutabakat" style="display:none"></div>' +
-    '<div id="vi-karlilik"  style="display:none"></div>';
+    '<div id="vi-karlilik"  style="display:none"></div>' +
+    '<div id="vi-yuk"       style="display:none"></div>';
   renderVergiTakvim();
 }
 
@@ -983,6 +986,141 @@ function beyYazdir() {
   win.document.close();
   win.focus();
   setTimeout(function() { win.print(); }, 400);
+}
+
+// ── VERGİ YÜKÜ ANALİZİ ───────────────────────────────────────
+
+var _yukBas = '';
+var _yukSon = '';
+
+function renderVergiYukAnalizi() {
+  var el = document.getElementById('vi-yuk');
+  if (!el) return;
+
+  // Varsayılan dönem: son 6 ay
+  if (!_yukBas) {
+    var d = new Date();
+    d.setMonth(d.getMonth() - 5);
+    _yukBas = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-01';
+    _yukSon = today;
+  }
+
+  var KV_ORAN = 0.25;
+  var RESMI_DISINDA = ['Eğlence Giderleri', 'Extra Personel'];
+
+  var liste = kayitlar.filter(function(k) {
+    return k.tarih >= _yukBas && k.tarih <= _yukSon;
+  });
+
+  var topGelir = liste.filter(function(k) { return k.tur === 'gelir'; })
+    .reduce(function(s, k) { return s + Number(k.tutar); }, 0);
+  var topGider = liste.filter(function(k) { return k.tur === 'gider'; })
+    .reduce(function(s, k) { return s + Number(k.tutar); }, 0);
+
+  var katToplam = {};
+  RESMI_DISINDA.forEach(function(kat) {
+    katToplam[kat] = liste.filter(function(k) { return k.tur === 'gider' && k.kat === kat; })
+      .reduce(function(s, k) { return s + Number(k.tutar); }, 0);
+  });
+
+  var toplamRD = RESMI_DISINDA.reduce(function(s, k) { return s + katToplam[k]; }, 0);
+  var vergiKaybi = Math.round(toplamRD * KV_ORAN);
+  var gelireOran = topGelir > 0 ? (toplamRD / topGelir * 100) : 0;
+  var gidereOran = topGider > 0 ? (toplamRD / topGider * 100) : 0;
+
+  // Aylık kırılım
+  var aylikData = {};
+  liste.forEach(function(k) {
+    if (k.tur !== 'gider' || RESMI_DISINDA.indexOf(k.kat) === -1) return;
+    var ay = k.tarih.slice(0, 7);
+    if (!aylikData[ay]) { aylikData[ay] = {}; RESMI_DISINDA.forEach(function(kat) { aylikData[ay][kat] = 0; }); }
+    aylikData[ay][k.kat] += Number(k.tutar);
+  });
+
+  var html =
+    // Dönem filtresi
+    '<div style="background:#f9f9f8;border:1px solid #e8e8e4;border-radius:10px;padding:12px;margin-bottom:16px">' +
+      '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:8px">DÖNEM</div>' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+        '<input type="date" id="yuk-bas" value="' + _yukBas + '" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">' +
+        '<span style="color:#888">—</span>' +
+        '<input type="date" id="yuk-son" value="' + _yukSon + '" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">' +
+        '<button class="btn btn-p" onclick="_yukBas=document.getElementById(\'yuk-bas\').value;_yukSon=document.getElementById(\'yuk-son\').value;renderVergiYukAnalizi()" style="font-size:12px">Getir</button>' +
+      '</div>' +
+    '</div>';
+
+  // Özet kartlar
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">';
+
+  RESMI_DISINDA.forEach(function(kat) {
+    var v = katToplam[kat];
+    var oran = topGelir > 0 ? (v / topGelir * 100).toFixed(1) : 0;
+    html += '<div class="ok">' +
+      '<div class="ok-label">' + kat + '</div>' +
+      '<div class="ok-val rc">' + para(v) + '</div>' +
+      '<div style="font-size:11px;color:#aaa;margin-top:3px">Gelirin %' + oran + '\'i</div>' +
+    '</div>';
+  });
+
+  html += '<div class="ok" style="border:2px solid #fbbf24;background:#fefce8">' +
+    '<div class="ok-label" style="color:#92400e">Toplam Resmi Dışı Gider</div>' +
+    '<div class="ok-val" style="color:#b45309">' + para(toplamRD) + '</div>' +
+    '<div style="font-size:11px;color:#92400e;margin-top:3px">Tüm giderin %' + gidereOran.toFixed(1) + '\'i</div>' +
+  '</div>';
+
+  html += '<div class="ok" style="border:2px solid #f87171;background:#fef2f2">' +
+    '<div class="ok-label" style="color:#991b1b">Ödenen Fazla Vergi (KV %25)</div>' +
+    '<div class="ok-val" style="color:#dc2626;font-size:22px">' + para(vergiKaybi) + '</div>' +
+    '<div style="font-size:11px;color:#991b1b;margin-top:3px">Bu giderler indirilebilseydi</div>' +
+  '</div>';
+
+  html += '</div>';
+
+  // Ortaklara mesaj kutusu
+  html += '<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px;margin-bottom:16px">' +
+    '<div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px">📌 Ortaklara Özet</div>' +
+    '<div style="font-size:13px;color:#7f1d1d;line-height:1.7">' +
+      'Seçilen dönemde <strong>' + para(katToplam['Eğlence Giderleri']) + '</strong> eğlence gideri ve ' +
+      '<strong>' + para(katToplam['Extra Personel']) + '</strong> extra personel ödemesi yapıldı. ' +
+      'Bu <strong>' + para(toplamRD) + '</strong>'lik harcama resmi kayıt altına alınamadığı için kurumlar vergisi matrahından düşülemiyor. ' +
+      '%25 kurumlar vergisi oranıyla hesaplandığında işletmemiz bu dönemde <strong>' + para(vergiKaybi) + '</strong> fazla vergi ödedi.' +
+    '</div>' +
+  '</div>';
+
+  // Aylık kırılım tablosu
+  var aylar = Object.keys(aylikData).sort();
+  if (aylar.length) {
+    html += '<div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px">AYLIK KIRILIM</div>';
+    html += '<div class="tw"><table><thead><tr>' +
+      '<th>Ay</th>' +
+      RESMI_DISINDA.map(function(k) { return '<th style="text-align:right">' + k + '</th>'; }).join('') +
+      '<th style="text-align:right">Toplam</th>' +
+      '<th style="text-align:right">Vergi Kaybı (%25)</th>' +
+    '</tr></thead><tbody>';
+
+    aylar.forEach(function(ay) {
+      var d = aylikData[ay];
+      var ayTop = RESMI_DISINDA.reduce(function(s, k) { return s + d[k]; }, 0);
+      html += '<tr>' +
+        '<td style="font-weight:500">' + donemYazi(ay) + '</td>' +
+        RESMI_DISINDA.map(function(k) {
+          return '<td style="text-align:right;color:#D85A30">' + (d[k] ? para(d[k]) : '<span style="color:#ccc">—</span>') + '</td>';
+        }).join('') +
+        '<td style="text-align:right;font-weight:600;color:#b45309">' + para(ayTop) + '</td>' +
+        '<td style="text-align:right;font-weight:600;color:#dc2626">' + para(Math.round(ayTop * KV_ORAN)) + '</td>' +
+      '</tr>';
+    });
+
+    html += '<tr style="background:#f9f9f8;font-weight:700;border-top:2px solid #e5e7eb">' +
+      '<td>TOPLAM</td>' +
+      RESMI_DISINDA.map(function(k) { return '<td style="text-align:right;color:#D85A30">' + para(katToplam[k]) + '</td>'; }).join('') +
+      '<td style="text-align:right;color:#b45309">' + para(toplamRD) + '</td>' +
+      '<td style="text-align:right;color:#dc2626">' + para(vergiKaybi) + '</td>' +
+    '</tr>';
+    html += '</tbody></table></div>';
+  }
+
+  el.innerHTML = html;
 }
 
 function vergiTakvimYazdir() {
