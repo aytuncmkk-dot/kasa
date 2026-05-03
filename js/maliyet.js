@@ -138,7 +138,8 @@ function renderMaliyet() {
       var kayitlarKat = gid.filter(function(k) { return k.kat === kat; });
       var kayitGruplar = {};
       kayitlarKat.forEach(function(k) {
-        var anahtar = (k.aciklama && k.aciklama.trim()) ? k.aciklama.trim() : (k.firma && k.firma.trim() ? k.firma.trim() : 'Diğer');
+        var rawAnahtar = (k.aciklama && k.aciklama.trim()) ? k.aciklama.trim() : (k.firma && k.firma.trim() ? k.firma.trim() : 'Diğer');
+        var anahtar = kat === 'Personel Giderleri' ? normalizePersonelAdi(rawAnahtar) : rawAnahtar;
         kayitGruplar[anahtar] = (kayitGruplar[anahtar] || 0) + Number(k.tutar);
       });
       var top3 = Object.keys(kayitGruplar)

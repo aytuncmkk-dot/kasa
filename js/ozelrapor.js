@@ -40,7 +40,8 @@ function renderOzelRapor(){
     var uid='oz_'+kat.replace(/[^a-zA-Z0-9]/g,'_');
     var gruplar={};
     kayitlar_kat.forEach(function(k){
-      var key=(k.aciklama&&k.aciklama.trim())?k.aciklama.trim():(k.firma&&k.firma.trim()?k.firma.trim():'Diger');
+      var rawKey=(k.aciklama&&k.aciklama.trim())?k.aciklama.trim():(k.firma&&k.firma.trim()?k.firma.trim():'Diger');
+      var key=kat==='Personel Giderleri'?normalizePersonelAdi(rawKey):rawKey;
       gruplar[key]=(gruplar[key]||0)+Number(k.tutar);
     });
     var detaylar=Object.keys(gruplar).sort(function(a,b){return gruplar[b]-gruplar[a];}).map(function(key){
