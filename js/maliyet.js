@@ -9,15 +9,6 @@ var MAL_GRUPLAR = [
   { baslik: 'SABİT GİDERLER',   kisa: 'sabit',    renk: '#374151', katlar: ['Sabit Giderler','Kadıköy Belediyesi','Banka Giderleri','Kredi Ödemeleri','İletişim Giderleri','Muhasebe Giderleri','MÜYAP','Reklam Giderleri','Temizlik Giderleri','Tamir & Tadilat'] },
 ];
 
-var MAL_HEDEF_DEFAULT = { yiyecek: 30, personel: 35, eglence: 15, sabit: 18 };
-
-function malHedefOku(kisa) {
-  var v = localStorage.getItem('mal_hedef_' + kisa);
-  return v !== null ? parseFloat(v) : MAL_HEDEF_DEFAULT[kisa];
-}
-function malHedefKaydet(kisa, v) {
-  localStorage.setItem('mal_hedef_' + kisa, v);
-}
 
 function maliyetTipDegisti() {
   var tip = document.getElementById('m-tip').value;
@@ -124,30 +115,16 @@ function renderMaliyet() {
   MAL_GRUPLAR.forEach(function(g) {
     var gt = grupTop(g);
     var oran = topGelir > 0 ? (gt / topGelir * 100) : 0;
-    var hedef = malHedefOku(g.kisa);
-    var fark = oran - hedef;
-    var durumRenk = fark <= 0 ? '#166534' : fark <= 5 ? '#92400e' : '#dc2626';
-    var durumBg   = fark <= 0 ? '#dcfce7' : fark <= 5 ? '#fefce8' : '#fef2f2';
 
     html += '<div style="background:#fff;border:1px solid #e0e0db;border-radius:10px;overflow:hidden">' +
       '<div style="background:' + g.renk + ';color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">' +
         '<span style="font-size:12px;font-weight:700">' + g.baslik + '</span>' +
         '<span style="font-size:18px;font-weight:800">' + para(gt) + '</span>' +
       '</div>' +
-      '<div style="padding:8px 12px;display:flex;gap:10px;border-bottom:1px solid #f0f0ec">' +
-        '<div style="flex:1;text-align:center">' +
+      '<div style="padding:8px 12px;display:flex;justify-content:center;border-bottom:1px solid #f0f0ec">' +
+        '<div style="text-align:center">' +
           '<div style="font-size:10px;color:#888">GELİRE ORAN</div>' +
-          '<div style="font-size:20px;font-weight:700;color:' + g.renk + '">%' + oran.toFixed(1) + '</div>' +
-        '</div>' +
-        '<div style="flex:1;text-align:center">' +
-          '<div style="font-size:10px;color:#888">HEDEF</div>' +
-          '<div style="font-size:20px;font-weight:700;color:#888">%' + hedef.toFixed(1) + '</div>' +
-        '</div>' +
-        '<div style="flex:1;text-align:center">' +
-          '<div style="font-size:10px;color:#888">FARK</div>' +
-          '<div style="font-size:18px;font-weight:700;padding:2px 8px;border-radius:6px;background:' + durumBg + ';color:' + durumRenk + '">' +
-            (fark > 0 ? '+' : '') + fark.toFixed(1) + '%' +
-          '</div>' +
+          '<div style="font-size:26px;font-weight:800;color:' + g.renk + '">%' + oran.toFixed(1) + '</div>' +
         '</div>' +
       '</div>';
 
@@ -245,68 +222,60 @@ function renderMaliyet() {
     html += '</tbody></table></div>';
   }
 
-  // ── EN BÜYÜK 15 TEKİL GİDER ─────────────────────────────────
-  var top15 = gid.slice().sort(function(a, b) { return Number(b.tutar) - Number(a.tutar); }).slice(0, 15);
-  if (top15.length) {
-    html += '<div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px">EN BÜYÜK 15 GİDER KAYDI</div>';
-    html += '<div class="tw" style="margin-bottom:16px"><table><thead><tr>' +
-      '<th>#</th><th>Tarih</th><th>Kategori</th><th>Açıklama / Firma</th>' +
-      '<th style="text-align:right">Tutar</th><th style="text-align:right">Gelire %</th>' +
-    '</tr></thead><tbody>';
-    top15.forEach(function(k, i) {
-      var acik = (k.aciklama && k.aciklama.trim()) || (k.firma && k.firma.trim()) || '—';
-      var oran = topGelir > 0 ? (Number(k.tutar) / topGelir * 100).toFixed(2) : 0;
-      html += '<tr>' +
-        '<td style="color:#aaa;font-size:11px">' + (i + 1) + '</td>' +
-        '<td style="font-size:12px;white-space:nowrap">' + fmtT(k.tarih) + '</td>' +
-        '<td style="font-size:12px">' + (k.kat || '—') + '</td>' +
-        '<td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + acik + '</td>' +
-        '<td style="text-align:right;font-weight:600;color:#D85A30">' + para(Number(k.tutar)) + '</td>' +
-        '<td style="text-align:right;font-size:11px;color:#aaa">%' + oran + '</td>' +
-      '</tr>';
-    });
-    html += '</tbody></table></div>';
-  }
+  // ── KARLILIK & ÇEKİMLER ─────────────────────────────────────
+  var dag = list.filter(function(k) { return k.tur === 'dagitim'; });
+  var topDag = dag.reduce(function(s, k) { return s + Number(k.tutar); }, 0);
+  var kasadaKalan = netKar - topDag;
 
-  // ── BİR SONRAKİ SEZON HEDEFLERİ ─────────────────────────────
-  html += '<div style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:10px;padding:14px">' +
-    '<div style="font-size:13px;font-weight:700;color:#3730a3;margin-bottom:12px">🎯 Bir Sonraki Sezon Hedefleri</div>' +
-    '<div style="font-size:11px;color:#6366f1;margin-bottom:12px">Hedef yüzdeleri düzenleyin — tasarruf potansiyeli otomatik hesaplanır (aynı gelir baz alınır)</div>' +
-    '<div class="tw"><table><thead><tr>' +
-      '<th>Kategori</th>' +
-      '<th style="text-align:right">Bu Sezon TL</th>' +
-      '<th style="text-align:right">Bu Sezon %</th>' +
-      '<th style="text-align:right;width:110px">Hedef %</th>' +
-      '<th style="text-align:right">Tasarruf Potansiyeli</th>' +
-    '</tr></thead><tbody>';
-
-  var topTasarruf = 0;
-  MAL_GRUPLAR.forEach(function(g) {
-    var gt    = grupTop(g);
-    var oran  = topGelir > 0 ? (gt / topGelir * 100) : 0;
-    var hedef = malHedefOku(g.kisa);
-    var tasarruf = topGelir > 0 ? Math.max(0, (oran - hedef) / 100 * topGelir) : 0;
-    topTasarruf += tasarruf;
-    var tRenk = tasarruf > 0 ? '#166534' : '#aaa';
-    html += '<tr>' +
-      '<td style="font-weight:600;color:' + g.renk + '">' + g.baslik + '</td>' +
-      '<td style="text-align:right">' + para(gt) + '</td>' +
-      '<td style="text-align:right;font-weight:600">%' + oran.toFixed(1) + '</td>' +
-      '<td style="text-align:right">' +
-        '<input type="number" value="' + hedef + '" min="0" max="100" step="0.5" ' +
-          'style="width:80px;border:1px solid #c7d2fe;border-radius:6px;padding:4px 8px;font-size:12px;text-align:right;background:#fff" ' +
-          'onchange="malHedefKaydet(\'' + g.kisa + '\',this.value);renderMaliyet()">' +
-      '</td>' +
-      '<td style="text-align:right;font-weight:600;color:' + tRenk + '">' +
-        (tasarruf > 0 ? para(tasarruf) : '<span style="color:#aaa">—</span>') +
-      '</td>' +
-    '</tr>';
+  var ortakDag = {};
+  dag.forEach(function(k) {
+    var isim = (k.firma && k.firma.trim()) || (k.aciklama && k.aciklama.trim()) || 'Diğer';
+    ortakDag[isim] = (ortakDag[isim] || 0) + Number(k.tutar);
   });
 
-  html += '<tr style="background:#e0e7ff;font-weight:700;border-top:2px solid #c7d2fe">' +
-    '<td colspan="4" style="color:#3730a3">TOPLAM TASARRUF POTANSİYELİ</td>' +
-    '<td style="text-align:right;font-size:15px;color:#166534">' + (topTasarruf > 0 ? para(topTasarruf) : '—') + '</td>' +
+  var klRenk = karMarji >= 30 ? '#166534' : karMarji >= 15 ? '#92400e' : '#dc2626';
+  html += '<div style="background:#fff;border:1px solid #e0e0db;border-radius:10px;overflow:hidden;margin-bottom:16px">' +
+    '<div style="background:#1a1a2e;color:#fff;padding:8px 12px;font-size:12px;font-weight:700">KARLILIK & ÇEKİMLER</div>' +
+    '<div class="tw"><table><tbody>';
+
+  html += '<tr style="background:#f9f9f8">' +
+    '<td style="font-weight:600">Toplam Gelir</td>' +
+    '<td style="text-align:right;font-weight:700;color:#166534">' + para(topGelir) + '</td>' +
+    '<td style="text-align:right;color:#aaa;font-size:11px"></td>' +
+  '</tr>' +
+  '<tr>' +
+    '<td style="color:#555">İşletme Maliyeti</td>' +
+    '<td style="text-align:right;color:#D85A30">− ' + para(topMaliyet) + '</td>' +
+    '<td style="text-align:right;color:#aaa;font-size:11px">%' + (topGelir > 0 ? (topMaliyet/topGelir*100).toFixed(1) : 0) + '</td>' +
+  '</tr>' +
+  '<tr style="border-top:2px solid #e0e0db;background:#f0fdf4">' +
+    '<td style="font-weight:700">NET KAR</td>' +
+    '<td style="text-align:right;font-weight:800;font-size:16px;color:' + klRenk + '">' + para(netKar) + '</td>' +
+    '<td style="text-align:right;font-weight:700;color:' + klRenk + '">%' + karMarji.toFixed(1) + '</td>' +
   '</tr>';
+
+  if (topDag > 0) {
+    html += '<tr style="background:#fffbeb;border-top:2px solid #e0e0db">' +
+      '<td style="font-weight:600;color:#92400e">Ortaklara Çekilen (Toplam)</td>' +
+      '<td style="text-align:right;font-weight:700;color:#b45309">− ' + para(topDag) + '</td>' +
+      '<td style="text-align:right;color:#aaa;font-size:11px">%' + (netKar > 0 ? (topDag/netKar*100).toFixed(1) : 0) + ' (kardan)</td>' +
+    '</tr>';
+    Object.keys(ortakDag).sort().forEach(function(isim) {
+      html += '<tr>' +
+        '<td style="padding-left:24px;font-size:12px;color:#666">↳ ' + isim + '</td>' +
+        '<td style="text-align:right;font-size:12px;color:#b45309">' + para(ortakDag[isim]) + '</td>' +
+        '<td></td>' +
+      '</tr>';
+    });
+    html += '<tr style="border-top:2px solid #e0e0db;background:' + (kasadaKalan >= 0 ? '#f0fdf4' : '#fef2f2') + '">' +
+      '<td style="font-weight:700">KASADA KALAN</td>' +
+      '<td style="text-align:right;font-weight:800;font-size:16px;color:' + (kasadaKalan >= 0 ? '#166534' : '#dc2626') + '">' + para(kasadaKalan) + '</td>' +
+      '<td></td>' +
+    '</tr>';
+  } else {
+    html += '<tr style="background:#f9f9f8"><td colspan="3" style="color:#aaa;font-size:12px;text-align:center">Bu dönemde ortak çekimi kaydedilmemiş</td></tr>';
+  }
+
   html += '</tbody></table></div></div>';
 
   el.innerHTML = html;
