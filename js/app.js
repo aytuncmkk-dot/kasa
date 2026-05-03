@@ -214,7 +214,23 @@ function exportXLSX(){
 }
 
 function karDagilimPDF(){
-  window.print();
+  var icerik = document.getElementById('kd-icerik');
+  if(!icerik) return;
+  var w = window.open('','_blank','width=1200,height=800');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Kar Dağılım Raporu</title><style>'+
+    '@page{size:A4 landscape;margin:12mm}'+
+    'body{font-family:system-ui,sans-serif;font-size:12px;color:#1a1a1a;margin:0;padding:0}'+
+    '.ok{background:#fff;border:1px solid #e0e0db;border-radius:8px;padding:10px 12px}'+
+    '.ok-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;font-weight:600;margin-bottom:4px}'+
+    '.ok-val{font-size:16px;font-weight:700}'+
+    '.gc{color:#1D9E75}.rc{color:#D85A30}.bc{color:#1e40af}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px}'+
+    'th{background:#1a1a1a;color:#fff;padding:6px 8px;text-align:left}'+
+    'td{padding:5px 8px;border-bottom:1px solid #f0f0ee}'+
+    '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+  '</style></head><body>'+icerik.innerHTML+'</body></html>');
+  w.document.close();
+  w.onload = function(){ w.print(); w.close(); };
 }
 
 // Stok modülü placeholder'ları — ileride stok.js'te gerçek halleri olacak
