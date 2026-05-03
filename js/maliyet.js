@@ -536,7 +536,7 @@ function maliyetRaporuYazdir() {
   var vergiNot = topRD > 0 ? (
     '<div class="notice"><div class="notice-title">⚠️ Vergi Yükü Notu</div>' +
     '<div class="notice-body">Bu dönemde <strong>' + para(katTop('Eğlence Giderleri')) + '</strong> eğlence gideri ve <strong>' + para(katTop('Extra Personel')) + '</strong> extra personel ödemesi yapılmıştır. ' +
-    'Bu <strong>' + para(topRD) + '</strong>'lik harcama kurumlar vergisi matrahından düşülememektedir. ' +
+    'Bu <strong>' + para(topRD) + '</strong>&#8217;lik harcama kurumlar vergisi matrahından düşülememektedir. ' +
     '%25 oranında <strong>' + para(vergiKaybi) + '</strong> fazla vergi ödenmektedir.</div></div>'
   ) : '';
 

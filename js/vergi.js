@@ -1082,7 +1082,7 @@ function renderVergiYukAnalizi() {
     '<div style="font-size:13px;color:#7f1d1d;line-height:1.7">' +
       'Seçilen dönemde <strong>' + para(katToplam['Eğlence Giderleri']) + '</strong> eğlence gideri ve ' +
       '<strong>' + para(katToplam['Extra Personel']) + '</strong> extra personel ödemesi yapıldı. ' +
-      'Bu <strong>' + para(toplamRD) + '</strong>'lik harcama resmi kayıt altına alınamadığı için kurumlar vergisi matrahından düşülemiyor. ' +
+      'Bu <strong>' + para(toplamRD) + '</strong>&#8217;lik harcama resmi kayıt altına alınamadığı için kurumlar vergisi matrahından düşülemiyor. ' +
       '%25 kurumlar vergisi oranıyla hesaplandığında işletmemiz bu dönemde <strong>' + para(vergiKaybi) + '</strong> fazla vergi ödedi.' +
     '</div>' +
   '</div>';
