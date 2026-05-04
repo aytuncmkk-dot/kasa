@@ -128,13 +128,13 @@ function renderMaliyet() {
         '</div>' +
       '</div>';
 
-    // Alt kategoriler
+    // Alt kategoriler — accordion
     g.katlar.forEach(function(kat) {
       var v = katTop(kat);
       if (!v) return;
       var ko = topGelir > 0 ? (v / topGelir * 100).toFixed(1) : 0;
+      var uid = 'mal_' + g.kisa + '_' + kat.replace(/[^a-zA-Z0-9]/g, '_');
 
-      // Top 3 kayıt bu kategori için
       var kayitlarKat = gid.filter(function(k) { return k.kat === kat; });
       var kayitGruplar = {};
       kayitlarKat.forEach(function(k) {
@@ -142,25 +142,30 @@ function renderMaliyet() {
         var anahtar = kat === 'Personel Giderleri' ? normalizePersonelAdi(rawAnahtar) : rawAnahtar;
         kayitGruplar[anahtar] = (kayitGruplar[anahtar] || 0) + Number(k.tutar);
       });
-      var top3 = Object.keys(kayitGruplar)
-        .sort(function(a, b) { return kayitGruplar[b] - kayitGruplar[a]; })
-        .slice(0, 3);
+      var sortedKeys = Object.keys(kayitGruplar).sort(function(a, b) { return kayitGruplar[b] - kayitGruplar[a]; });
 
-      html += '<div style="padding:6px 12px;border-bottom:1px solid #f5f5f3">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center">' +
-          '<span style="font-size:12px;color:#555">' + kat + '</span>' +
+      html += '<div style="border-bottom:1px solid #f5f5f3">' +
+        '<div onclick="accordionToggle(\'' + uid + '\')" style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;cursor:pointer">' +
+          '<div style="display:flex;align-items:center;gap:6px">' +
+            '<span id="' + uid + '_icon" style="color:#bbb;font-size:10px">&#9658;</span>' +
+            '<span style="font-size:12px;color:#555">' + kat + '</span>' +
+          '</div>' +
           '<div style="display:flex;gap:10px;align-items:center">' +
             '<span style="font-size:11px;color:#aaa">%' + ko + '</span>' +
             '<span style="font-size:12px;font-weight:600;color:' + g.renk + '">' + para(v) + '</span>' +
           '</div>' +
         '</div>';
 
-      if (top3.length) {
-        html += '<div style="margin-top:3px">';
-        top3.forEach(function(key) {
-          html += '<div style="display:flex;justify-content:space-between;padding:1px 0;font-size:11px;color:#999">' +
-            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">' + key + '</span>' +
-            '<span>' + para(kayitGruplar[key]) + '</span>' +
+      if (sortedKeys.length) {
+        html += '<div id="' + uid + '" style="display:none;background:#fafaf9;border-top:1px solid #f0f0ec">';
+        sortedKeys.forEach(function(key) {
+          var pct = v > 0 ? ((kayitGruplar[key] / v) * 100).toFixed(0) : 0;
+          html += '<div style="display:flex;justify-content:space-between;padding:4px 12px 4px 28px;font-size:11px;color:#777">' +
+            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + key + '</span>' +
+            '<div style="display:flex;gap:8px">' +
+              '<span style="color:#ccc">%' + pct + '</span>' +
+              '<span style="color:' + g.renk + '">' + para(kayitGruplar[key]) + '</span>' +
+            '</div>' +
           '</div>';
         });
         html += '</div>';
