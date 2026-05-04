@@ -95,11 +95,26 @@ function doldurKatListeleri(){
 }
 
 function updateFirmaList(){
-  var firmalar={};
-  kayitlar.forEach(function(k){if(k.firma&&k.firma.trim())firmalar[k.firma.trim()]=1;});
-  faturalar.forEach(function(f){if(f.firma&&f.firma.trim())firmalar[f.firma.trim()]=1;});
+  var freq={};
+  kayitlar.forEach(function(k){
+    var f=k.firma&&k.firma.trim();
+    if(!f)return;
+    // Sadece sayıdan oluşan ya da çok kısa değerleri atla
+    if(/^\d[\d\s.,/-]*$/.test(f))return;
+    if(f.length<3)return;
+    freq[f]=(freq[f]||0)+1;
+  });
+  // Faturalardaki resmi firma adlarını her zaman ekle (frekans 0.5 = alfabetik sona)
+  faturalar.forEach(function(f){
+    var n=f.firma&&f.firma.trim();
+    if(!n||n.length<3)return;
+    if(!freq[n])freq[n]=0.5;
+  });
   var dl=document.getElementById('firma-list');
-  if(dl)dl.innerHTML=Object.keys(firmalar).sort().map(function(f){return '<option value="'+f+'"></option>';}).join('');
+  if(!dl)return;
+  // En sık kullanılandan az kullanılana sırala
+  var sirali=Object.keys(freq).sort(function(a,b){return freq[b]-freq[a];});
+  dl.innerHTML=sirali.map(function(f){return '<option value="'+f+'"></option>';}).join('');
 }
 
 
