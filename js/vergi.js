@@ -1330,7 +1330,7 @@ function personelMaliyetRaporu() {
 
     // ÖZET KARŞILAŞTIRMA
     '<div class="sec"><div class="sec-title">ÖZET KARŞILAŞTIRMA</div>' +
-    '<table><thead><tr><th>Senaryo</th><th style="text-align:right">Şirket Maliyeti</th><th style="text-align:right">Personel Net</th><th style="text-align:right">Fark (Mevcut'a Göre)</th><th>Yasal Risk</th></tr></thead><tbody>' +
+    '<table><thead><tr><th>Senaryo</th><th style="text-align:right">Şirket Maliyeti</th><th style="text-align:right">Personel Net</th><th style="text-align:right">Fark (Mevcut Duruma Göre)</th><th>Yasal Risk</th></tr></thead><tbody>' +
     '<tr class="tr-s1"><td><strong>1. Mevcut (Kayıt Dışı)</strong></td><td style="text-align:right;font-weight:700;color:#dc2626">' + p(s1_toplam) + '</td><td style="text-align:right">' + p(s1_net) + '</td><td style="text-align:right;color:#888">—</td><td>🔴 Yüksek</td></tr>' +
     '<tr class="tr-s2"><td><strong>2. Resmi — Yük Şirkette</strong></td><td style="text-align:right;font-weight:700;color:#1d4ed8">' + p(s2_toplam) + '</td><td style="text-align:right">' + p(s2_net) + '</td><td style="text-align:right;color:#dc2626">' + pf(s2_fark) + '</td><td>🟢 Sıfır</td></tr>' +
     '<tr class="tr-s3"><td><strong>3. Resmi — Yük Personelde</strong></td><td style="text-align:right;font-weight:700;color:#16a34a">' + p(s3_toplam) + '</td><td style="text-align:right">' + p(s3_net) + '</td><td style="text-align:right;color:#16a34a">' + pf(s3_fark) + '</td><td>🟢 Sıfır</td></tr>' +
