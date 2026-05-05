@@ -1049,7 +1049,10 @@ function renderVergiYukAnalizi() {
         '<button class="btn btn-p" onclick="_yukBas=document.getElementById(\'yuk-bas\').value;_yukSon=document.getElementById(\'yuk-son\').value;renderVergiYukAnalizi()" style="font-size:12px">Getir</button>' +
       '</div>' +
     '</div>' +
-    '<button class="btn no-print" onclick="vergiYukYazdir()" style="font-size:12px;white-space:nowrap">🖨 PDF / Yazdır</button>' +
+    '<div style="display:flex;gap:6px">' +
+    '<button class="btn no-print" onclick="vergiYukYazdir()" style="font-size:12px;white-space:nowrap">🖨 Vergi Yükü PDF</button>' +
+    '<button class="btn btn-p no-print" onclick="personelMaliyetRaporu()" style="font-size:12px;white-space:nowrap">📊 3 Senaryo Raporu</button>' +
+    '</div>' +
     '</div>';
 
   // Özet kartlar
@@ -1190,6 +1193,173 @@ function renderVergiYukAnalizi() {
   }
 
   el.innerHTML = html;
+}
+
+function personelMaliyetRaporu() {
+  // ── Hesaplar ──────────────────────────────────────────────
+  var KV = 0.25, SGK_ISVEREN = 0.225, SGK_ISCI = 0.15, GV_ORT = 0.25;
+
+  var RESMI_DISINDA = ['Eğlence Giderleri', 'Extra Personel'];
+  var bas = _yukBas || '', son = _yukSon || today;
+  var liste = kayitlar.filter(function(k) { return k.tarih >= bas && k.tarih <= son; });
+  var katToplam = {};
+  RESMI_DISINDA.forEach(function(kat) {
+    katToplam[kat] = liste.filter(function(k) { return k.tur === 'gider' && k.kat === kat; })
+      .reduce(function(s, k) { return s + Number(k.tutar); }, 0);
+  });
+  var RD = RESMI_DISINDA.reduce(function(s, k) { return s + katToplam[k]; }, 0);
+  if (!RD) { alert('Seçili dönemde resmi dışı gider bulunamadı.'); return; }
+
+  var baslik = bas && son ? (donemYazi(bas.slice(0,7)) + ' – ' + donemYazi(son.slice(0,7))) : 'Tüm Dönem';
+  var tarih = new Date().toLocaleDateString('tr-TR');
+
+  // S1: Mevcut
+  var s1_nakit  = RD;
+  var s1_kv     = Math.round(RD * KV);
+  var s1_toplam = s1_nakit + s1_kv;
+  var s1_net    = RD;
+
+  // S2: Resmi, yük şirkette (personel aynı net alır)
+  var netOran   = 1 - SGK_ISCI - (1 - SGK_ISCI) * GV_ORT;  // 0.6375
+  var s2_brut   = Math.round(RD / netOran);
+  var s2_sgk    = Math.round(s2_brut * SGK_ISVEREN);
+  var s2_isvMal = s2_brut + s2_sgk;
+  var s2_kvTas  = Math.round(s2_isvMal * KV);
+  var s2_toplam = s2_isvMal - s2_kvTas;
+  var s2_net    = RD;
+  var s2_fark   = s2_toplam - s1_toplam;
+
+  // S3: Resmi, yük personelde (aynı brüt ödenir)
+  var s3_brut   = RD;
+  var s3_sgk    = Math.round(s3_brut * SGK_ISVEREN);
+  var s3_isvMal = s3_brut + s3_sgk;
+  var s3_kvTas  = Math.round(s3_isvMal * KV);
+  var s3_toplam = s3_isvMal - s3_kvTas;
+  var s3_isciSGK = Math.round(s3_brut * SGK_ISCI);
+  var s3_gv      = Math.round((s3_brut - s3_isciSGK) * GV_ORT);
+  var s3_net    = s3_brut - s3_isciSGK - s3_gv;
+  var s3_fark   = s3_toplam - s1_toplam;
+  var s3_netKayip = s1_net - s3_net;
+
+  var p = function(n) { return n.toLocaleString('tr-TR', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' ₺'; };
+  var pf = function(n) { return (n >= 0 ? '+' : '') + p(n); };
+
+  var css =
+    '@page{size:A4 portrait;margin:11mm}' +
+    '*{box-sizing:border-box;margin:0;padding:0}' +
+    'html{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'body{font-family:"Helvetica Neue",Arial,sans-serif;font-size:10.5px;color:#1a1a1a;background:#fff;padding:0}' +
+    '.logo-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:2px solid #1a1a1a;padding-bottom:10px}' +
+    '.title{font-size:17px;font-weight:800}.subtitle{font-size:10px;color:#666;margin-top:3px}' +
+    '.meta{text-align:right;font-size:9.5px;color:#888;line-height:1.6}' +
+    '.sec{margin-bottom:13px}' +
+    '.sec-title{font-size:10.5px;font-weight:700;color:#fff;background:#1a1a1a;padding:5px 10px;border-radius:4px;margin-bottom:8px;letter-spacing:.5px}' +
+    'table{width:100%;border-collapse:collapse;font-size:10px}' +
+    'thead tr{background:#f3f4f6}' +
+    'th{text-align:left;padding:5px 8px;font-size:9px;font-weight:700;color:#374151;border-bottom:2px solid #e5e7eb}' +
+    'td{padding:5px 8px;border-bottom:1px solid #f0f0f0;vertical-align:top}' +
+    'tr:last-child td{border-bottom:none}' +
+    '.tr-s1 td{background:#fff7f7}.tr-s2 td{background:#eff6ff}.tr-s3 td{background:#f0fdf4}' +
+    '.tr-diff td{background:#1a1a1a;color:#fff;font-weight:700}' +
+    '.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}' +
+    '.card{border-radius:7px;padding:9px 11px}' +
+    '.card-red{background:#fff7f7;border:1px solid #fca5a5}.card-blue{background:#eff6ff;border:1px solid #93c5fd}.card-green{background:#f0fdf4;border:1px solid #86efac}' +
+    '.card-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#888;margin-bottom:3px}' +
+    '.card-val{font-size:16px;font-weight:900}.card-sub{font-size:9px;color:#666;margin-top:3px;line-height:1.5}' +
+    '.red{color:#dc2626}.blue{color:#1d4ed8}.green{color:#16a34a}.amber{color:#d97706}' +
+    '.verdict{border-radius:9px;padding:12px 14px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}' +
+    '.verdict-red{background:#fef2f2;border:2px solid #fca5a5}.verdict-green{background:#f0fdf4;border:2px solid #86efac}.verdict-amber{background:#fffbeb;border:2px solid #fcd34d}' +
+    '.verdict-label{font-size:11px;font-weight:700}.verdict-val{font-size:22px;font-weight:900;white-space:nowrap}' +
+    '.note{background:#fffbeb;border:1px solid #fcd34d;border-radius:7px;padding:9px 12px;font-size:9.5px;color:#78350f;line-height:1.6;margin-top:10px}' +
+    '.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px;font-size:9px}' +
+    '.pro{color:#166534}.con{color:#991b1b}' +
+    '.footer{margin-top:12px;border-top:1px solid #e5e7eb;padding-top:8px;font-size:8.5px;color:#aaa;display:flex;justify-content:space-between}';
+
+  var html =
+    '<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Personel Maliyet Analizi</title><style>' + css + '</style></head><body>' +
+
+    // BAŞLIK
+    '<div class="logo-row">' +
+      '<div><div class="title">Personel Maliyet Analizi</div>' +
+      '<div class="subtitle">3 Senaryo Karşılaştırması — Kayıt Dışı vs. Resmi Bordro</div></div>' +
+      '<div class="meta">Ziyade Fasıl<br>Dönem: ' + baslik + '<br>Tarih: ' + tarih + '</div>' +
+    '</div>' +
+
+    // BÖLÜM 1: MEVCUT DURUM
+    '<div class="sec"><div class="sec-title">BÖLÜM 1 — ŞU ANKİ DURUM (Kayıt Dışı Nakit Ödeme)</div>' +
+    '<div class="grid3">' +
+      '<div class="card card-red"><div class="card-label">Eğlence Giderleri</div><div class="card-val red">' + p(katToplam['Eğlence Giderleri']) + '</div><div class="card-sub">Nakit, belgesiz</div></div>' +
+      '<div class="card card-red"><div class="card-label">Extra Personel</div><div class="card-val red">' + p(katToplam['Extra Personel']) + '</div><div class="card-sub">Nakit, belgesiz</div></div>' +
+      '<div class="card card-red"><div class="card-label">Toplam</div><div class="card-val red">' + p(RD) + '</div><div class="card-sub">Dönem toplamı</div></div>' +
+    '</div>' +
+    '<table><thead><tr><th>Kalem</th><th style="text-align:right">Tutar</th><th>Açıklama</th></tr></thead><tbody>' +
+    '<tr class="tr-s1"><td>Personele nakit ödeme</td><td style="text-align:right;font-weight:700">' + p(s1_nakit) + '</td><td>Elden verilen para</td></tr>' +
+    '<tr class="tr-s1"><td>Fazladan ödenen Kurumlar Vergisi</td><td style="text-align:right;font-weight:700;color:#dc2626">+ ' + p(s1_kv) + '</td><td>Gider yazılamıyor → kâr sayılıyor → %25 KV</td></tr>' +
+    '<tr class="tr-diff"><td>ŞİRKET GERÇEK MALİYETİ</td><td style="text-align:right">' + p(s1_toplam) + '</td><td>Personel eline: ' + p(s1_net) + '</td></tr>' +
+    '</tbody></table>' +
+    '<div class="pros-cons"><div><div class="pro">✓ Basit, bürokrasi yok</div><div class="pro">✓ Personel memnun (tam nakit alır)</div><div class="pro">✓ Esnek, anlık karar</div></div>' +
+    '<div><div class="con">✗ ' + p(s1_kv) + ' fazla vergi ödeniyor</div><div class="con">✗ SGK denetiminde ağır ceza riski</div><div class="con">✗ Vergi incelemesinde açıklanamaz</div><div class="con">✗ Personel gelecekte hak talep edebilir</div></div></div>' +
+    '</div>' +
+
+    // BÖLÜM 2: RESMİ — YÜK ŞİRKETTE
+    '<div class="sec"><div class="sec-title">BÖLÜM 2 — RESMİ BORDRO, YÜK ŞİRKETTE (Personel Aynı Parayı Alır)</div>' +
+    '<table><thead><tr><th>Kalem</th><th style="text-align:right">Tutar</th><th>Açıklama</th></tr></thead><tbody>' +
+    '<tr class="tr-s2"><td>Brüt maaş ödemesi</td><td style="text-align:right;font-weight:700">' + p(s2_brut) + '</td><td>Personele ' + p(s2_net) + ' net geçmesi için gereken brüt</td></tr>' +
+    '<tr class="tr-s2"><td>İşveren SGK payı (%22,5)</td><td style="text-align:right;font-weight:700;color:#d97706">+ ' + p(s2_sgk) + '</td><td>SSK %20,5 + İşsizlik %2</td></tr>' +
+    '<tr class="tr-s2"><td>KV tasarrufu (%25)</td><td style="text-align:right;font-weight:700;color:#16a34a">− ' + p(s2_kvTas) + '</td><td>Tüm giderler artık matrahtan düşülüyor</td></tr>' +
+    '<tr class="tr-diff"><td>ŞİRKET GERÇEK MALİYETİ</td><td style="text-align:right">' + p(s2_toplam) + '</td><td>Personel eline: ' + p(s2_net) + ' (değişmedi)</td></tr>' +
+    '</tbody></table>' +
+    '<div class="verdict verdict-red"><div><div class="verdict-label red">Mevcut duruma göre ek maliyet (dönem)</div><div style="font-size:9px;color:#666;margin-top:2px">Personel aynı parayı alır — fazlayı şirket üstlenir</div></div><div class="verdict-val red">' + pf(s2_fark) + '</div></div>' +
+    '<div class="pros-cons"><div><div class="pro">✓ Personel aynı net parayı alır, memnun</div><div class="pro">✓ Tamamen yasal, sıfır ceza riski</div><div class="pro">✓ Personel SGK, emeklilik, sağlık güvencesi alır</div><div class="pro">✓ Giderler vergiden düşülür</div></div>' +
+    '<div><div class="con">✗ Aylık ~' + p(Math.round(s2_fark/4)) + ' ek maliyet</div><div class="con">✗ SGK bildirimi, bordro bürokrasisi</div><div class="con">✗ Muhasebe workload artar</div></div></div>' +
+    '</div>' +
+
+    // BÖLÜM 3: RESMİ — YÜK PERSONELDE
+    '<div class="sec"><div class="sec-title">BÖLÜM 3 — RESMİ BORDRO, YÜK PERSONELDE (Aynı Brüt, Kesintiler Personelden)</div>' +
+    '<table><thead><tr><th>Kalem</th><th style="text-align:right">Şirket</th><th style="text-align:right">Personel</th><th>Açıklama</th></tr></thead><tbody>' +
+    '<tr class="tr-s3"><td>Brüt maaş</td><td style="text-align:right;font-weight:700">' + p(s3_brut) + '</td><td style="text-align:right">' + p(s3_brut) + '</td><td>Şu anki nakit tutarının aynısı</td></tr>' +
+    '<tr class="tr-s3"><td>İşveren SGK (%22,5)</td><td style="text-align:right;color:#d97706">+ ' + p(s3_sgk) + '</td><td style="text-align:right;color:#888">—</td><td>Şirket öder</td></tr>' +
+    '<tr class="tr-s3"><td>İşçi SGK (%15) + Gelir Vergisi</td><td style="text-align:right;color:#888">—</td><td style="text-align:right;color:#dc2626">− ' + p(s3_isciSGK + s3_gv) + '</td><td>Personel maaşından kesilir</td></tr>' +
+    '<tr class="tr-s3"><td>KV tasarrufu (%25)</td><td style="text-align:right;color:#16a34a">− ' + p(s3_kvTas) + '</td><td style="text-align:right;color:#888">—</td><td>Giderler matrahtan düşülür</td></tr>' +
+    '<tr class="tr-diff"><td>SONUÇ</td><td style="text-align:right">' + p(s3_toplam) + '</td><td style="text-align:right">' + p(s3_net) + ' net</td><td>Personel ' + p(s3_netKayip) + ' az alır</td></tr>' +
+    '</tbody></table>' +
+    '<div class="verdict verdict-green"><div><div class="verdict-label green">Mevcut duruma göre şirket tasarrufu (dönem)</div><div style="font-size:9px;color:#555;margin-top:2px">Ama personel eline ' + p(s3_netKayip) + ' daha az geçer</div></div><div class="verdict-val green">' + p(Math.abs(s3_fark)) + ' tasarruf</div></div>' +
+    '<div class="pros-cons"><div><div class="pro">✓ Şirket ' + p(Math.abs(s3_fark)) + ' tasarruf eder</div><div class="pro">✓ Yasal, sıfır ceza riski</div><div class="pro">✓ Personel SGK güvencesi alır</div></div>' +
+    '<div><div class="con">✗ Personel %' + Math.round(s3_netKayip/RD*100) + ' daha az alır — büyük ihtimalle kabul etmez</div><div class="con">✗ Personel kaybı ve istifa riski</div><div class="con">✗ Talep ederlerse zam vermek zorunda kalınır</div></div></div>' +
+    '</div>' +
+
+    // ÖZET KARŞILAŞTIRMA
+    '<div class="sec"><div class="sec-title">ÖZET KARŞILAŞTIRMA</div>' +
+    '<table><thead><tr><th>Senaryo</th><th style="text-align:right">Şirket Maliyeti</th><th style="text-align:right">Personel Net</th><th style="text-align:right">Fark (Mevcut'a Göre)</th><th>Yasal Risk</th></tr></thead><tbody>' +
+    '<tr class="tr-s1"><td><strong>1. Mevcut (Kayıt Dışı)</strong></td><td style="text-align:right;font-weight:700;color:#dc2626">' + p(s1_toplam) + '</td><td style="text-align:right">' + p(s1_net) + '</td><td style="text-align:right;color:#888">—</td><td>🔴 Yüksek</td></tr>' +
+    '<tr class="tr-s2"><td><strong>2. Resmi — Yük Şirkette</strong></td><td style="text-align:right;font-weight:700;color:#1d4ed8">' + p(s2_toplam) + '</td><td style="text-align:right">' + p(s2_net) + '</td><td style="text-align:right;color:#dc2626">' + pf(s2_fark) + '</td><td>🟢 Sıfır</td></tr>' +
+    '<tr class="tr-s3"><td><strong>3. Resmi — Yük Personelde</strong></td><td style="text-align:right;font-weight:700;color:#16a34a">' + p(s3_toplam) + '</td><td style="text-align:right">' + p(s3_net) + '</td><td style="text-align:right;color:#16a34a">' + pf(s3_fark) + '</td><td>🟢 Sıfır</td></tr>' +
+    '</tbody></table></div>' +
+
+    // SONUÇ DEĞERLENDİRMESİ
+    '<div class="sec"><div class="sec-title">SONUÇ DEĞERLENDİRMESİ</div>' +
+    '<div style="border:1px solid #e0e0e0;border-radius:8px;padding:12px;font-size:10.5px;line-height:1.8">' +
+    '<strong>Önerilen yaklaşım: Senaryo 2 (Resmi, yük şirkette)</strong><br>' +
+    'Aylık yaklaşık <strong>' + p(Math.round(s2_fark/4)) + ' ek maliyetle</strong> tüm yasal riskler ortadan kalkar. ' +
+    'Personel memnuniyeti değişmez, şirket SGK ve vergi denetimlerinde korunur. ' +
+    'Senaryo 3 kağıt üzerinde cazip görünse de pratikte personelin büyük bölümü ' + p(s3_netKayip) + ' zam talep eder, bu da tasarrufu sıfırlar.<br><br>' +
+    '<strong>Muhasebeciden istenecek hesap:</strong> SGK 5 puan işveren indirimi ve asgari ücret desteği uygulandığında ' +
+    'Senaryo 2\'nin ek maliyeti önemli ölçüde düşer. Bu teşvikler dahil edilmeden nihai karar verilmemeli.' +
+    '</div></div>' +
+
+    // NOT
+    '<div class="note"><strong>⚠️ Not:</strong> Gelir vergisi ortalama %25, işçi SGK %15, işveren SGK %22,5 baz alınmıştır. ' +
+    'Gerçek rakamlar personel sayısına, bireysel gelir dilimlerine ve uygulanabilecek SGK teşviklerine göre değişir. ' +
+    'Bu rapor muhasebeci onayına sunulmak üzere hazırlanmıştır.</div>' +
+
+    '<div class="footer"><span>Ziyade Fasıl — Gizli, Yalnızca Ortaklar İçin</span><span>Kasa Defteri • ' + tarih + ' • Tahmini değerler</span></div>' +
+    '</body></html>';
+
+  var win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
 }
 
 function vergiYukYazdir() {
