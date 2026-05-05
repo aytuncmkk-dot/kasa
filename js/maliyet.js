@@ -143,6 +143,12 @@ function renderMaliyet() {
         var anahtar = kat === 'Personel Giderleri' ? normalizePersonelAdi(rawAnahtar) : rawAnahtar;
         kayitGruplar[anahtar] = (kayitGruplar[anahtar] || 0) + Number(k.tutar);
       });
+      // Yiyecek Giderleri'nde 10.000 TL altı kalemleri "MUHTELİF YİYECEK" altında topla
+      if(kat === 'Yiyecek Giderleri'){
+        var muh = 0;
+        Object.keys(kayitGruplar).forEach(function(key){if(kayitGruplar[key]<10000){muh+=kayitGruplar[key];delete kayitGruplar[key];}});
+        if(muh > 0) kayitGruplar['MUHTELİF YİYECEK'] = (kayitGruplar['MUHTELİF YİYECEK'] || 0) + muh;
+      }
       // Eğlence Giderleri'nde SAZ/DANS/DJ dışındakileri "DİĞER" altında topla
       if(kat === 'Eğlence Giderleri'){
         var egD = 0;

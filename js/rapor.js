@@ -136,7 +136,7 @@ function renderRapor(){
     // Yiyecek Giderleri'nde 1500 TL altı kalemleri "MUHTELİF YİYECEK" altında topla
     if(kat.ad==='Yiyecek Giderleri'){
       var muhtelif=0;
-      Object.keys(gruplar).forEach(function(key){if(gruplar[key]<1500){muhtelif+=gruplar[key];delete gruplar[key];}});
+      Object.keys(gruplar).forEach(function(key){if(gruplar[key]<10000){muhtelif+=gruplar[key];delete gruplar[key];}});
       if(muhtelif>0)gruplar['MUHTELİF YİYECEK']=(gruplar['MUHTELİF YİYECEK']||0)+muhtelif;
     }
     // Eğlence Giderleri'nde SAZ/DANS/DJ dışındakileri "DİĞER" altında topla
