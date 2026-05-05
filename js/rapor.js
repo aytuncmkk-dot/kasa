@@ -133,6 +133,12 @@ function renderRapor(){
       var key=kat.ad==='Personel Giderleri'?normalizePersonelAdi(rawKey):rawKey;
       gruplar[key]=(gruplar[key]||0)+Number(k.tutar);
     });
+    // Yiyecek Giderleri'nde 1500 TL altı kalemleri "MUHTELİF YİYECEK" altında topla
+    if(kat.ad==='Yiyecek Giderleri'){
+      var muhtelif=0;
+      Object.keys(gruplar).forEach(function(key){if(gruplar[key]<1500){muhtelif+=gruplar[key];delete gruplar[key];}});
+      if(muhtelif>0)gruplar['MUHTELİF YİYECEK']=(gruplar['MUHTELİF YİYECEK']||0)+muhtelif;
+    }
     var detaylar=Object.keys(gruplar).sort(function(a,b){return gruplar[b]-gruplar[a];}).map(function(key){
       return {key:key,val:gruplar[key],pct:toplam>0?((gruplar[key]/toplam)*100).toFixed(0):0};
     });
