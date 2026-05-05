@@ -191,6 +191,57 @@ function renderMaliyet() {
 
   html += '</div>';
 
+  // ── RAPORA DAHİL OLMAYAN GİDERLER ───────────────────────────
+  var dahilOlmayanKatlar = ['Adisyon Bahşiş','Ağırlama Giderleri','Burs ve Yardımlar','Müşteriye İadeler','Yatırım'];
+  var dahilOlmayanTop = dahilOlmayanKatlar.reduce(function(s, k) { return s + katTop(k); }, 0);
+  if(dahilOlmayanTop > 0){
+    var doRenk = '#6b7280';
+    var doHtml = '<div style="background:#fff;border:1px solid #e0e0db;border-radius:10px;overflow:hidden;margin-bottom:16px">' +
+      '<div style="background:' + doRenk + ';color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="font-size:12px;font-weight:700">RAPORA DAHİL OLMAYAN GİDERLER</span>' +
+        '<span style="font-size:18px;font-weight:800">' + para(dahilOlmayanTop) + '</span>' +
+      '</div>';
+    dahilOlmayanKatlar.forEach(function(kat){
+      var v = katTop(kat);
+      if(!v) return;
+      var ko = topGelir > 0 ? (v / topGelir * 100).toFixed(1) : 0;
+      var uid = 'mal_do_' + kat.replace(/[^a-zA-Z0-9]/g,'_');
+      var kayitlarKat = gid.filter(function(k){ return k.kat === kat; });
+      var kayitGruplar = {};
+      kayitlarKat.forEach(function(k){
+        var rawAnahtar = (k.aciklama && k.aciklama.trim()) ? k.aciklama.trim() : (k.firma && k.firma.trim() ? k.firma.trim() : 'Diğer');
+        kayitGruplar[rawAnahtar] = (kayitGruplar[rawAnahtar] || 0) + Number(k.tutar);
+      });
+      var sortedKeys = Object.keys(kayitGruplar).sort(function(a,b){ return kayitGruplar[b]-kayitGruplar[a]; });
+      doHtml += '<div style="border-bottom:1px solid #f5f5f3">' +
+        '<div onclick="accordionToggle(\'' + uid + '\')" style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;cursor:pointer">' +
+          '<div style="display:flex;align-items:center;gap:6px">' +
+            '<span id="' + uid + '_icon" style="color:#bbb;font-size:10px">&#9658;</span>' +
+            '<span style="font-size:12px;color:#555">' + kat + '</span>' +
+          '</div>' +
+          '<div style="display:flex;gap:10px;align-items:center">' +
+            '<span style="font-size:11px;color:#aaa">%' + ko + '</span>' +
+            '<span style="font-size:12px;font-weight:600;color:' + doRenk + '">' + para(v) + '</span>' +
+          '</div>' +
+        '</div>';
+      if(sortedKeys.length){
+        doHtml += '<div id="' + uid + '" style="display:none;background:#fafaf9;border-top:1px solid #f0f0ec">';
+        sortedKeys.forEach(function(key){
+          var pct = v > 0 ? ((kayitGruplar[key]/v)*100).toFixed(0) : 0;
+          doHtml += '<div style="display:flex;justify-content:space-between;padding:4px 12px 4px 28px;font-size:11px;color:#777">' +
+            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + key + '</span>' +
+            '<div style="display:flex;gap:8px"><span style="color:#ccc">%' + pct + '</span>' +
+            '<span style="color:' + doRenk + '">' + para(kayitGruplar[key]) + '</span></div>' +
+          '</div>';
+        });
+        doHtml += '</div>';
+      }
+      doHtml += '</div>';
+    });
+    doHtml += '</div>';
+    html += doHtml;
+  }
+
   // ── AYLIK TREND ─────────────────────────────────────────────
   var aylarSet = {};
   list.forEach(function(k) { aylarSet[k.tarih.slice(0, 7)] = true; });
