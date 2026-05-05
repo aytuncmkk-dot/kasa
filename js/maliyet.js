@@ -16,13 +16,13 @@ function maliyetTipDegisti() {
   document.getElementById('m-ay').style.display          = tip === 'ay'     ? '' : 'none';
   document.getElementById('m-aralik-wrap').style.display = tip === 'aralik' ? 'flex' : 'none';
   document.getElementById('m-yil').style.display         = tip === 'yil'    ? '' : 'none';
-  if (tip === 'sezon') {
-    // Otomatik sezon: geçen Kasım 1 → bu Mart 31
-    var simdi = new Date();
-    var sezonYil = simdi.getMonth() >= 10 ? simdi.getFullYear() : simdi.getFullYear() - 1;
-    document.getElementById('m-bas').value = sezonYil + '-11-01';
-    document.getElementById('m-son').value = (sezonYil + 1) + '-03-31';
+  if (tip === 'yukseksezon') {
+    document.getElementById('m-bas').value = '2025-10-15';
+    document.getElementById('m-son').value = '2026-03-31';
     document.getElementById('m-aralik-wrap').style.display = 'flex';
+  }
+  if (tip === 'dusuksezon') {
+    document.getElementById('m-aralik-wrap').style.display = 'none';
   }
   renderMaliyet();
 }
@@ -31,7 +31,9 @@ function getMaliyetListe() {
   var tip = document.getElementById('m-tip').value;
   return kayitlar.filter(function(k) {
     if (tip === 'ay')    return k.tarih.startsWith(document.getElementById('m-ay').value);
-    if (tip === 'aralik' || tip === 'sezon') {
+    if (tip === 'yukseksezon') return k.tarih >= '2025-10-15' && k.tarih <= '2026-03-31';
+    if (tip === 'dusuksezon')  return k.tarih < '2025-10-15' || k.tarih > '2026-03-31';
+    if (tip === 'aralik') {
       var b = document.getElementById('m-bas').value, s = document.getElementById('m-son').value;
       if (b && s) return k.tarih >= b && k.tarih <= s;
       return true;
@@ -76,7 +78,11 @@ function renderMaliyet() {
   // Dönem metni
   var tip = document.getElementById('m-tip').value;
   var donemMetni = '';
-  if (tip === 'sezon' || tip === 'aralik') {
+  if (tip === 'yukseksezon') {
+    donemMetni = '🔥 Yüksek Sezon: 15.10.2025 — 31.03.2026';
+  } else if (tip === 'dusuksezon') {
+    donemMetni = '❄️ Düşük Sezon (Sezon Dışı)';
+  } else if (tip === 'aralik') {
     var b2 = document.getElementById('m-bas').value, s2 = document.getElementById('m-son').value;
     if (b2 && s2) donemMetni = b2.split('-').reverse().join('.') + ' — ' + s2.split('-').reverse().join('.');
   } else if (tip === 'ay') {
@@ -356,7 +362,11 @@ function renderMaliyet() {
 function maliyetRaporuYazdir() {
   var tip = document.getElementById('m-tip').value;
   var bas = '', son = '';
-  if (tip === 'sezon' || tip === 'aralik') {
+  if (tip === 'yukseksezon') {
+    bas = '2025-10-15'; son = '2026-03-31';
+  } else if (tip === 'dusuksezon') {
+    bas = ''; son = '';
+  } else if (tip === 'aralik') {
     bas = document.getElementById('m-bas').value;
     son = document.getElementById('m-son').value;
   } else if (tip === 'ay') {
