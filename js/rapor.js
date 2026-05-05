@@ -139,6 +139,12 @@ function renderRapor(){
       Object.keys(gruplar).forEach(function(key){if(gruplar[key]<1500){muhtelif+=gruplar[key];delete gruplar[key];}});
       if(muhtelif>0)gruplar['MUHTELİF YİYECEK']=(gruplar['MUHTELİF YİYECEK']||0)+muhtelif;
     }
+    // Eğlence Giderleri'nde SAZ/DANS/DJ dışındakileri "DİĞER" altında topla
+    if(kat.ad==='Eğlence Giderleri'){
+      var egDiger=0;
+      Object.keys(gruplar).forEach(function(key){if(['SAZ','DANS','DJ'].indexOf(key)===-1){egDiger+=gruplar[key];delete gruplar[key];}});
+      if(egDiger>0)gruplar['DİĞER']=(gruplar['DİĞER']||0)+egDiger;
+    }
     var detaylar=Object.keys(gruplar).sort(function(a,b){return gruplar[b]-gruplar[a];}).map(function(key){
       return {key:key,val:gruplar[key],pct:toplam>0?((gruplar[key]/toplam)*100).toFixed(0):0};
     });
