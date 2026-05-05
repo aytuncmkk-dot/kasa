@@ -466,6 +466,7 @@
         <option value="hafta">Haftalık</option>
         <option value="ay">Aylık</option>
         <option value="aralik">Tarih Aralığı</option>
+        <option value="sezon">Yüksek Sezon</option>
         <option value="tumu">Tüm Zamanlar</option>
       </select>
       <input type="month" id="kd-ay" onchange="renderKarDagilim()" style="border:1px solid #e0e0db;border-radius:8px;padding:5px 8px;font-size:13px;outline:none">
@@ -473,6 +474,21 @@
         <input type="date" id="kd-bas" onchange="renderKarDagilim()" style="border:1px solid #e0e0db;border-radius:8px;padding:5px 8px;font-size:13px;outline:none">
         <span style="color:#888">—</span>
         <input type="date" id="kd-bit" onchange="renderKarDagilim()" style="border:1px solid #e0e0db;border-radius:8px;padding:5px 8px;font-size:13px;outline:none">
+      </span>
+      <span id="kd-sezon" style="display:none;gap:4px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:11px;color:#888;margin-right:2px">Aylar:</span>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-01" onchange="renderKarDagilim()"> Oca</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-02" onchange="renderKarDagilim()"> Şub</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-03" onchange="renderKarDagilim()"> Mar</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-04" onchange="renderKarDagilim()"> Nis</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-05" onchange="renderKarDagilim()"> May</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-06" onchange="renderKarDagilim()"> Haz</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-07" onchange="renderKarDagilim()"> Tem</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-08" onchange="renderKarDagilim()"> Ağu</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-09" onchange="renderKarDagilim()"> Eyl</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-10" onchange="renderKarDagilim()"> Eki</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-11" onchange="renderKarDagilim()"> Kas</label>
+        <label style="font-size:12px;cursor:pointer"><input type="checkbox" id="kd-m-12" onchange="renderKarDagilim()"> Ara</label>
       </span>
       <button class="btn btn-p" onclick="renderKarDagilim()">Getir</button>
     </div>

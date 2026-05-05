@@ -145,8 +145,10 @@ function kdTipDegisti(){
   var tip = document.getElementById('kd-tip').value;
   var ay = document.getElementById('kd-ay');
   var ar = document.getElementById('kd-aralik');
+  var sz = document.getElementById('kd-sezon');
   if(ay) ay.style.display = (tip === 'ay') ? '' : 'none';
   if(ar) ar.style.display = (tip === 'aralik') ? 'flex' : 'none';
+  if(sz) sz.style.display = (tip === 'sezon') ? 'flex' : 'none';
   if(typeof renderKarDagilim === 'function') renderKarDagilim();
 }
 
