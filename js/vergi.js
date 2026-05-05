@@ -1038,8 +1038,9 @@ function renderVergiYukAnalizi() {
   });
 
   var html =
-    // Dönem filtresi
-    '<div style="background:#f9f9f8;border:1px solid #e8e8e4;border-radius:10px;padding:12px;margin-bottom:16px">' +
+    // Dönem filtresi + PDF butonu
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+    '<div style="background:#f9f9f8;border:1px solid #e8e8e4;border-radius:10px;padding:12px;flex:1">' +
       '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:8px">DÖNEM</div>' +
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
         '<input type="date" id="yuk-bas" value="' + _yukBas + '" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">' +
@@ -1047,6 +1048,8 @@ function renderVergiYukAnalizi() {
         '<input type="date" id="yuk-son" value="' + _yukSon + '" style="border:1px solid #e0e0db;border-radius:8px;padding:6px 9px;font-size:13px;outline:none">' +
         '<button class="btn btn-p" onclick="_yukBas=document.getElementById(\'yuk-bas\').value;_yukSon=document.getElementById(\'yuk-son\').value;renderVergiYukAnalizi()" style="font-size:12px">Getir</button>' +
       '</div>' +
+    '</div>' +
+    '<button class="btn no-print" onclick="vergiYukYazdir()" style="font-size:12px;white-space:nowrap">🖨 PDF / Yazdır</button>' +
     '</div>';
 
   // Özet kartlar
@@ -1187,6 +1190,43 @@ function renderVergiYukAnalizi() {
   }
 
   el.innerHTML = html;
+}
+
+function vergiYukYazdir() {
+  var icerik = document.getElementById('vi-yuk');
+  if (!icerik) return;
+  var bas = _yukBas ? _yukBas.slice(0, 7) : '';
+  var son = _yukSon ? _yukSon.slice(0, 7) : '';
+  var baslik = bas && son ? (donemYazi(bas) + ' – ' + donemYazi(son)) : 'Tüm Dönem';
+  var win = window.open('', '_blank');
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Vergi Yükü Analizi</title>' +
+    '<style>' +
+    'body{font-family:system-ui,sans-serif;font-size:12px;color:#111;margin:28px}' +
+    'h2{font-size:16px;margin-bottom:4px}' +
+    '.donem{font-size:12px;color:#888;margin-bottom:18px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:14px}' +
+    'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:6px 8px;font-size:11px;color:#6b7280;background:#f9fafb}' +
+    'td{padding:6px 8px;border-bottom:1px solid #f3f4f6;font-size:12px}' +
+    '.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}' +
+    '.ok{background:#f9f9f8;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:10px}' +
+    '.ok-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px}' +
+    '.ok-val{font-size:18px;font-weight:700;margin-top:4px}' +
+    '.rc{color:#dc2626}' +
+    '.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}' +
+    '.kazanim{background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}' +
+    '.no-print,.btn{display:none}' +
+    'input,select{display:none}' +
+    '@media print{body{margin:14px}}' +
+    '</style></head><body>' +
+    '<h2>⚠️ Vergi Yükü Analizi</h2>' +
+    '<div class="donem">Dönem: ' + baslik + ' &nbsp;|&nbsp; Ziyade Fasıl</div>' +
+    icerik.innerHTML +
+    '</body></html>'
+  );
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 400);
 }
 
 function vergiTakvimYazdir() {
