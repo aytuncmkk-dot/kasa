@@ -1039,7 +1039,7 @@ function renderVergiYukAnalizi() {
 
   var html =
     // Dönem filtresi + PDF butonu
-    '<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+    '<div class="no-print" style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
     '<div style="background:#f9f9f8;border:1px solid #e8e8e4;border-radius:10px;padding:12px;flex:1">' +
       '<div style="font-size:12px;font-weight:500;color:#555;margin-bottom:8px">DÖNEM</div>' +
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
