@@ -1202,22 +1202,31 @@ function vergiYukYazdir() {
   win.document.write(
     '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Vergi Yükü Analizi</title>' +
     '<style>' +
-    'body{font-family:system-ui,sans-serif;font-size:12px;color:#111;margin:28px}' +
-    'h2{font-size:16px;margin-bottom:4px}' +
-    '.donem{font-size:12px;color:#888;margin-bottom:18px}' +
-    'table{width:100%;border-collapse:collapse;margin-bottom:14px}' +
-    'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:6px 8px;font-size:11px;color:#6b7280;background:#f9fafb}' +
-    'td{padding:6px 8px;border-bottom:1px solid #f3f4f6;font-size:12px}' +
-    '.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}' +
-    '.ok{background:#f9f9f8;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:10px}' +
-    '.ok-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px}' +
-    '.ok-val{font-size:18px;font-weight:700;margin-top:4px}' +
+    '@page{size:A4 portrait;margin:6mm}' +
+    'html{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'body{font-family:system-ui,sans-serif;font-size:9.5px;color:#111;margin:0;padding:0;zoom:0.8}' +
+    'h2{font-size:13px;margin:0 0 2px}' +
+    '.donem{font-size:10px;color:#888;margin-bottom:10px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:8px}' +
+    'th{text-align:left;border-bottom:2px solid #e5e7eb;padding:3px 6px;font-size:9px;color:#6b7280;background:#f9fafb}' +
+    'td{padding:3px 6px;border-bottom:1px solid #f3f4f6;font-size:9px}' +
+    '.badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8px;font-weight:600}' +
+    '.ok{background:#f9f9f8;border:1px solid #e8e8e4;border-radius:6px;padding:6px 8px;margin-bottom:5px}' +
+    '.ok-label{font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.5px}' +
+    '.ok-val{font-size:14px;font-weight:700;margin-top:2px}' +
     '.rc{color:#dc2626}' +
-    '.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}' +
-    '.kazanim{background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px;display:flex;justify-content:space-between;align-items:center;margin-top:12px}' +
-    '.no-print,.btn{display:none}' +
-    'input,select{display:none}' +
-    '@media print{body{margin:14px}}' +
+    '.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}' +
+    '.kazanim{background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:6px}' +
+    '.no-print,.btn{display:none!important}' +
+    'input,select{display:none!important}' +
+    'div[style*="margin-bottom:16px"]{margin-bottom:6px!important}' +
+    'div[style*="margin-bottom:14px"]{margin-bottom:5px!important}' +
+    'div[style*="margin-top:12px"]{margin-top:5px!important}' +
+    'div[style*="font-size:28px"]{font-size:16px!important}' +
+    'div[style*="font-size:22px"]{font-size:13px!important}' +
+    'div[style*="padding:14px"]{padding:7px!important}' +
+    'div[style*="padding:20px"]{padding:9px!important}' +
+    'div[style*="padding:16px"]{padding:7px!important}' +
     '</style></head><body>' +
     '<h2>⚠️ Vergi Yükü Analizi</h2>' +
     '<div class="donem">Dönem: ' + baslik + ' &nbsp;|&nbsp; Ziyade Fasıl</div>' +
