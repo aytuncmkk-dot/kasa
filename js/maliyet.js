@@ -143,6 +143,12 @@ function renderMaliyet() {
         var anahtar = kat === 'Personel Giderleri' ? normalizePersonelAdi(rawAnahtar) : rawAnahtar;
         kayitGruplar[anahtar] = (kayitGruplar[anahtar] || 0) + Number(k.tutar);
       });
+      // Eğlence Giderleri'nde SAZ/DANS/DJ dışındakileri "DİĞER" altında topla
+      if(kat === 'Eğlence Giderleri'){
+        var egD = 0;
+        Object.keys(kayitGruplar).forEach(function(key){if(['SAZ','DANS','DJ'].indexOf(key)===-1){egD+=kayitGruplar[key];delete kayitGruplar[key];}});
+        if(egD > 0) kayitGruplar['DİĞER'] = (kayitGruplar['DİĞER'] || 0) + egD;
+      }
       var sortedKeys = Object.keys(kayitGruplar).sort(function(a, b) { return kayitGruplar[b] - kayitGruplar[a]; });
 
       html += '<div style="border-bottom:1px solid #f5f5f3">' +
