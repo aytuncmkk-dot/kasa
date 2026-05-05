@@ -345,6 +345,24 @@ function aktifTarihBuAy(){
   aktifTarihDegisti();
 }
 
+function aktifTarihYuksekSezon(){
+  var at = document.getElementById('aktif-tarih');
+  var atBit = document.getElementById('aktif-tarih-bit');
+  if(at) at.value = '2025-10-15';
+  if(atBit) atBit.value = '2026-03-31';
+  aktifTarihDegisti();
+}
+
+function aktifTarihDusukSezon(){
+  var at = document.getElementById('aktif-tarih');
+  var atBit = document.getElementById('aktif-tarih-bit');
+  // Düşük sezon: veri başlangıcından yüksek sezon öncesine kadar
+  // (Hangi sekmedeyse kendi filtresi de sezon dışını gösterir)
+  if(at) at.value = '2025-05-01';
+  if(atBit) atBit.value = '2025-10-14';
+  aktifTarihDegisti();
+}
+
 function aktifTarihYukle(){
   var at = document.getElementById('aktif-tarih');
   var atBit = document.getElementById('aktif-tarih-bit');
