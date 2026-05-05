@@ -1120,6 +1120,72 @@ function renderVergiYukAnalizi() {
     html += '</tbody></table></div>';
   }
 
+  // ── RESMİ ÜCRET KARŞILAŞTIRMASI ──────────────────────────────
+  if (toplamRD > 0) {
+    var SGK_ISVEREN = 0.225; // %20.5 SSK + %2 İşsizlik (standart oran)
+
+    var mevcutEkstraKV      = Math.round(toplamRD * KV_ORAN);
+    var mevcutToplamMaliyet = toplamRD + mevcutEkstraKV;
+
+    var resmiSGKPay         = Math.round(toplamRD * SGK_ISVEREN);
+    var resmiIsverenMaliyet = toplamRD + resmiSGKPay;
+    var resmiKVTasarrufu    = Math.round(resmiIsverenMaliyet * KV_ORAN);
+    var resmiNetMaliyet     = resmiIsverenMaliyet - resmiKVTasarrufu;
+
+    var kazanim             = mevcutToplamMaliyet - resmiNetMaliyet;
+
+    html += '<div style="font-size:12px;font-weight:600;color:#555;margin:18px 0 8px">📊 RESMİ ÜCRET KARŞILAŞTIRMASI</div>';
+    html += '<div style="font-size:11px;color:#888;margin-bottom:10px">' +
+      'Aynı tutarın kayıt dışı ödenmesi ile brüt ücret olarak gösterilmesi arasındaki vergisel maliyet farkı.' +
+    '</div>';
+
+    html += '<div class="tw"><table><thead><tr>' +
+      '<th>Kalem</th>' +
+      '<th style="text-align:right;color:#dc2626">Mevcut Durum<br><span style="font-weight:400;font-size:10px">(kayıt dışı ödeme)</span></th>' +
+      '<th style="text-align:right;color:#166534">Resmi Brüt Ücret<br><span style="font-weight:400;font-size:10px">(bordro ile gösterilseydi)</span></th>' +
+    '</tr></thead><tbody>' +
+
+    '<tr>' +
+      '<td>Nakit ödeme (eğlence + extra personel)</td>' +
+      '<td style="text-align:right;font-weight:600">' + para(toplamRD) + '</td>' +
+      '<td style="text-align:right;font-weight:600">' + para(toplamRD) + '</td>' +
+    '</tr>' +
+
+    '<tr>' +
+      '<td>İşveren SGK payı (%22,5 — SSK + İşsizlik)</td>' +
+      '<td style="text-align:right;color:#aaa">—</td>' +
+      '<td style="text-align:right;color:#b45309">+ ' + para(resmiSGKPay) + '</td>' +
+    '</tr>' +
+
+    '<tr style="border-top:1px solid #e5e7eb">' +
+      '<td style="font-weight:600">Toplam işveren maliyeti</td>' +
+      '<td style="text-align:right;font-weight:600">' + para(toplamRD) + '</td>' +
+      '<td style="text-align:right;font-weight:600">' + para(resmiIsverenMaliyet) + '</td>' +
+    '</tr>' +
+
+    '<tr>' +
+      '<td>Kurumlar Vergisi etkisi (%25)</td>' +
+      '<td style="text-align:right;color:#dc2626">+ ' + para(mevcutEkstraKV) + '<br><span style="font-size:10px;font-weight:400">(gider yazılamıyor → kâr sayılıyor)</span></td>' +
+      '<td style="text-align:right;color:#166534">− ' + para(resmiKVTasarrufu) + '<br><span style="font-size:10px;font-weight:400">(gider yazılabilir → KV matrahı düşer)</span></td>' +
+    '</tr>' +
+
+    '<tr style="background:#f3f4f6;border-top:2px solid #e5e7eb;font-weight:700">' +
+      '<td>GERÇEK NET MALİYET</td>' +
+      '<td style="text-align:right;font-size:15px;color:#dc2626">' + para(mevcutToplamMaliyet) + '</td>' +
+      '<td style="text-align:right;font-size:15px;color:#166534">' + para(resmiNetMaliyet) + '</td>' +
+    '</tr>' +
+
+    '</tbody></table></div>';
+
+    html += '<div style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:16px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:700;color:#166534">💰 Resmi gösterilseydi bu kadar tasarruf ederdiniz</div>' +
+        '<div style="font-size:11px;color:#166534;margin-top:4px;opacity:0.8">Not: Bu hesap muhasebeci onayı gerektirir. SGK oranları ve kişisel duruma göre değişebilir.</div>' +
+      '</div>' +
+      '<div style="font-size:28px;font-weight:800;color:#166534">' + para(kazanim) + '</div>' +
+    '</div>';
+  }
+
   el.innerHTML = html;
 }
 
