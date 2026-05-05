@@ -16,7 +16,7 @@ function uid(){return Math.floor(Math.random()*900000000)+100000000;}
 function normalizePersonelAdi(str) {
   if (!str || !str.trim()) return 'Diğer';
   var s = str.toUpperCase().trim();
-  s = s.replace(/\s*[-–]\s*(BANKA|ELDEN|AVANS|MAAŞ)$/i, '');
+  s = s.replace(/\s*[-–]\s*(BANKA|ELDEN|AVANS|MAAŞ|İZİN PARASI|AVANS PARASI|YOL PARASI|ASKER YOL PARASI)$/i, '');
   s = s.replace(/\s+(BANKA|ELDEN|AVANS|MAAŞ)$/i, '');
   s = s.trim();
   if (s === 'KEREM SELVİ') s = 'KEREM SELVİLİ';
