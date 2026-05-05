@@ -4,9 +4,10 @@
 
 var MAL_GRUPLAR = [
   { baslik: 'YİYECEK & İÇECEK', kisa: 'yiyecek', renk: '#b45309', katlar: ['Yiyecek Giderleri', 'İçecek Giderleri'] },
-  { baslik: 'PERSONEL',          kisa: 'personel', renk: '#7c3aed', katlar: ['Personel Giderleri', 'Extra Personel'] },
+  { baslik: 'PERSONEL',          kisa: 'personel', renk: '#7c3aed', katlar: ['Personel Giderleri', 'Extra Personel', 'SGK'] },
   { baslik: 'EĞLENCE',           kisa: 'eglence',  renk: '#0e7490', katlar: ['Eğlence Giderleri'] },
   { baslik: 'SABİT GİDERLER',   kisa: 'sabit',    renk: '#374151', katlar: ['Sabit Giderler','Kadıköy Belediyesi','Banka Giderleri','Kredi Ödemeleri','İletişim Giderleri','Muhasebe Giderleri','MÜYAP','Reklam Giderleri','Temizlik Giderleri','Tamir & Tadilat'] },
+  { baslik: 'VERGİLER',          kisa: 'vergiler', renk: '#dc2626', katlar: ['Vergiler'] },
 ];
 
 
