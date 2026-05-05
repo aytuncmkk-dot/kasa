@@ -8,11 +8,7 @@ function renderKarDagilim(){
     if(tip==='hafta'){var d=new Date();d.setDate(d.getDate()-7);var hw=ldStr(d);return list.filter(function(k){return k.tarih>=hw;});}
     if(tip==='ay'){var ay=document.getElementById('kd-ay').value;return list.filter(function(k){return k.tarih.startsWith(ay);});}
     if(tip==='aralik'){var b=document.getElementById('kd-bas').value,s=document.getElementById('kd-bit').value;if(b&&s)return list.filter(function(k){return k.tarih>=b&&k.tarih<=s;});}
-    if(tip==='sezon'){
-      var secAy=[];
-      ['01','02','03','04','05','06','07','08','09','10','11','12'].forEach(function(m){var cb=document.getElementById('kd-m-'+m);if(cb&&cb.checked)secAy.push(m);});
-      if(secAy.length)return list.filter(function(k){return secAy.indexOf(k.tarih.slice(5,7))>=0;});
-    }
+    if(tip==='sezon'){return list.filter(function(k){return k.tarih>='2025-10-15'&&k.tarih<='2026-03-31';});}
     return list;
   }
   var donemKayitlar=filtrele(kayitlar);kdBakiyeGuncelle(donemKayitlar);
@@ -43,12 +39,7 @@ function renderKarDagilim(){
   if(tip==='hafta')donemStr='Son 7 Gün';
   else if(tip==='ay')donemStr=document.getElementById('kd-ay').value;
   else if(tip==='aralik'){var kb=document.getElementById('kd-bas').value,ks=document.getElementById('kd-bit').value;donemStr=(kb&&ks)?fmtT(kb)+' — '+fmtT(ks):'Tarih Aralığı';}
-  else if(tip==='sezon'){
-    var ayAdlari=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
-    var secAdlar=[];
-    ['01','02','03','04','05','06','07','08','09','10','11','12'].forEach(function(m,i){var cb=document.getElementById('kd-m-'+m);if(cb&&cb.checked)secAdlar.push(ayAdlari[i]);});
-    donemStr='Sezon: '+(secAdlar.length?secAdlar.join(', '):'— (ay seçilmedi)');
-  }
+  else if(tip==='sezon')donemStr='Yüksek Sezon: 15 Eki 2025 — 31 Mar 2026';
   else donemStr='Tüm Zamanlar';
   html+='<div style="background:#1a1a1a;color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">';
   html+='<div><div style="font-size:11px;color:#aaa;margin-bottom:2px">KAR DAĞILIM RAPORU</div><div style="font-size:16px;font-weight:600">'+donemStr+'</div></div>';
