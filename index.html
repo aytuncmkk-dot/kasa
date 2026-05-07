@@ -88,6 +88,7 @@
       <button class="tab" onclick="switchTab('cariler')">Cariler</button>
       <button class="tab" onclick="switchTab('gunluksatis')">Günlük Satış Raporu</button>
       <button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
+      <button class="tab" onclick="switchTab('eslestirme')">Adisyon Eşleştirme</button>
     </div>
   </details>
 
@@ -698,6 +699,7 @@
 <script src="js/finans.js"></script>
 <script src="js/uyumsoft.js"></script>
 <script src="js/vergi.js"></script>
+<script src="js/eslestirme.js"></script>
 <script src="js/app.js"></script>
 <script src="js/init.js"></script>
 <!-- =============== CARILER TAB =============== -->
@@ -785,6 +787,99 @@
     .btn-sm{padding:3px 8px;font-size:12px;cursor:pointer}
     .btn-primary{background:#3498db;color:#fff;border:none;border-radius:4px}
   </style>
+</div>
+
+<!-- =============== ADİSYON EŞLEŞTİRME =============== -->
+<div id="pg-eslestirme" class="page">
+  <style>
+    #pg-eslestirme{padding:0}
+    #pg-eslestirme h2{margin:0 0 4px 0;font-size:20px}
+    #pg-eslestirme .es-header{padding:14px 18px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px}
+    #pg-eslestirme .es-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:10px 0 6px 0}
+    #pg-eslestirme .es-controls label{font-size:11px;color:#6b7280;display:block;margin-bottom:4px}
+    #pg-eslestirme .es-controls input[type=date]{padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
+    #pg-eslestirme .es-controls button{padding:7px 14px;border-radius:6px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-size:13px}
+    #pg-eslestirme .es-controls button.primary{background:#1f2937;color:#fff;border-color:#1f2937}
+    #pg-eslestirme .es-controls button.primary:hover{background:#111827}
+    #pg-eslestirme .es-controls button:hover{background:#f9fafb}
+    #pg-eslestirme .es-ozet-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}
+    #pg-eslestirme .es-ozet-card{padding:12px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:6px}
+    #pg-eslestirme .es-ozet-card .lbl{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+    #pg-eslestirme .es-ozet-card .val{font-size:16px;font-weight:700;color:#111827}
+    #pg-eslestirme .es-ozet-card .sub{font-size:11px;color:#6b7280;margin-top:3px}
+    #pg-eslestirme .es-ozet-card.ok{border-left:4px solid #16a34a;background:#f0fdf4}
+    #pg-eslestirme .es-ozet-card.warn{border-left:4px solid #dc2626;background:#fef2f2}
+    #pg-eslestirme .es-pills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px 0}
+    #pg-eslestirme .es-pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:#f3f4f6;color:#374151}
+    #pg-eslestirme .es-pill.green{background:#dcfce7;color:#166534}
+    #pg-eslestirme .es-pill.yellow{background:#fef3c7;color:#92400e}
+    #pg-eslestirme .es-pill.red{background:#fee2e2;color:#991b1b}
+    #pg-eslestirme .es-pill.blue{background:#dbeafe;color:#1e40af}
+    #pg-eslestirme table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e7eb;border-radius:6px;font-size:12px}
+    #pg-eslestirme th{background:#f3f4f6;padding:9px 10px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;border-bottom:2px solid #e5e7eb}
+    #pg-eslestirme td{padding:9px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+    #pg-eslestirme td.num,#pg-eslestirme th.num{text-align:right;font-variant-numeric:tabular-nums}
+    #pg-eslestirme tr.es-row-green td{background:#f0fdf4}
+    #pg-eslestirme tr.es-row-yellow td{background:#fffbeb}
+    #pg-eslestirme tr.es-row-red td{background:#fef2f2}
+    #pg-eslestirme tr.es-row-blue td{background:#eff6ff}
+    #pg-eslestirme .es-mini-btn{padding:3px 8px;font-size:11px;border:1px solid #d1d5db;background:#fff;border-radius:4px;cursor:pointer}
+    #pg-eslestirme .es-mini-btn:hover{background:#f3f4f6}
+    #pg-eslestirme .small{font-size:11px;color:#6b7280}
+    #pg-eslestirme .num{font-variant-numeric:tabular-nums}
+    #pg-eslestirme textarea{width:100%;min-height:60px;padding:8px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit;font-size:12px;resize:vertical}
+  </style>
+
+  <div class="es-header">
+    <h2>Adisyon ↔ Kasa Eşleştirme</h2>
+    <p class="small" style="margin:4px 0 0 0">Simpra POS adisyonlarını günlük kasa kayıtlarıyla otomatik eşleştirir. Birleşik (1 müşteri = N adisyon) ve kapora kayıtları otomatik tanınır.</p>
+
+    <div class="es-controls">
+      <div>
+        <label>Tarih</label>
+        <input type="date" id="es-tarih" onchange="esTarihDegisti()">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="primary" onclick="esCsvSec()">📁 Simpra CSV Yükle</button>
+        <input type="file" id="es-csv-input" accept=".csv" style="display:none" onchange="esCsvYuklendi(event)">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button onclick="esYenidenEslestir()">🔄 Otomatik Eşleştir</button>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button onclick="esKaydet()">💾 Kaydet</button>
+      </div>
+      <div style="flex:1;text-align:right">
+        <span id="es-info-kayit" class="small"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="es-ozet"></div>
+
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:160px">Durum</th>
+          <th>Kasa Kaydı</th>
+          <th>Simpra Adisyon(lar)</th>
+          <th class="num" style="width:100px">Fark</th>
+          <th>Not</th>
+          <th style="width:140px">İşlem</th>
+        </tr>
+      </thead>
+      <tbody id="es-tbody"></tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:14px">
+    <label class="small" style="display:block;margin-bottom:4px;color:#6b7280">Notlar (kaydedilir)</label>
+    <textarea id="es-notlar" placeholder="Bu güne özel not, açıklama veya şüpheli kayıt..."></textarea>
+  </div>
 </div>
 <!-- =============== /CARILER TAB =============== -->
 
