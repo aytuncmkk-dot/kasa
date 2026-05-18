@@ -797,17 +797,22 @@
 
 <!-- =============== VADELİ ÖDEMELER =============== -->
 <div id="pg-vadeler" class="page">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <h2 style="margin:0">Vadeli Ödemeler</h2>
-    <button class="btn btn-p" onclick="vadeTakipAc()">+ Cari Takibe Al</button>
-  </div>
+  <h2 style="margin:0 0 14px">Cari Hesap</h2>
 
-  <!-- BÜTÇE ÖZETİ -->
+  <!-- VADE ÖZETİ -->
   <div id="vd-budget"></div>
 
-  <!-- CARİ BAZLI LİSTE -->
+  <!-- CARİ SEÇİCİ -->
+  <div style="margin-bottom:16px;max-width:400px">
+    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Cari Seç</label>
+    <select id="vd-cari-sec" onchange="vdCariSecildi()" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff">
+      <option value="">— Cari seçin —</option>
+    </select>
+  </div>
+
+  <!-- SEÇİLİ CARİ DETAY -->
   <div id="vd-cariler-listesi"></div>
-  <div id="vd-empty" class="empty" style="display:none">Takip edilen cari yok. "Cari Takibe Al" ile başlayın.</div>
+  <div id="vd-empty" class="empty" style="display:block">Yukarıdan bir cari seçin.</div>
 
   <style>
     #pg-vadeler .field label{display:block;font-size:11px;color:#6b7280;margin-bottom:3px;font-weight:500}
