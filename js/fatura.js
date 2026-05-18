@@ -32,10 +32,12 @@ async function faturaOde(id){
   if(!confirm('Bu fatura ödendi olarak işaretlensin mi?'))return;
   var __eskiFat = faturalar.find(function(f){return f.id===id;});
   await dbPatch('faturalar','id',id,{durum:'odendi'});
-  try{ await auditYaz('GUNCELLE','faturalar',id,__eskiFat,{durum:'odendi'},'Fatura ödendi olarak işaretlendi'); }catch(e){}
-  var f=faturalar.find(function(x){return x.id==id;});
+  try{ await auditLog('GUNCELLE','faturalar',id,__eskiFat,{durum:'odendi'},'Fatura ödendi olarak işaretlendi'); }catch(e){}
+  var f=faturalar.find(function(x){return x.id===id;});
   if(f)f.durum='odendi';
   renderFaturalar();
+  if(typeof renderVadeler==='function') renderVadeler();
+  if(typeof renderVadeUyarilari==='function') renderVadeUyarilari();
 }
 
 async function faturaSil(id){

@@ -95,15 +95,19 @@ function vdCariEkle() {
     _vdTakipKaydet();
   }
   if(el) el.value = '';
+  var scrollY = window.scrollY;
   renderVadeler();
   renderVadeBudget();
+  window.scrollTo(0, scrollY);
 }
 
 function vdCariKaldir(cari_id) {
   _vdTakipListesi = _vdTakipListesi.filter(function(x){ return x !== cari_id; });
   _vdTakipKaydet();
+  var scrollY = window.scrollY;
   renderVadeler();
   renderVadeBudget();
+  window.scrollTo(0, scrollY);
 }
 
 // ---- BUDGET ÖZET ----
@@ -215,6 +219,21 @@ function renderVadeler() {
   el.innerHTML = html;
 }
 
+// Sadece belirli bir cari kartını yeniler — scroll ve açık/kapalı durum korunur
+function _refreshCariKart(cari_id) {
+  var el = document.getElementById('vd-kart-'+cari_id);
+  if(!el) { renderVadeler(); return; }
+  var wasOpen = el.open;
+  var scrollY = window.scrollY;
+  var tmpDiv = document.createElement('div');
+  tmpDiv.innerHTML = _cariKart(Number(cari_id));
+  var newEl = tmpDiv.firstElementChild;
+  if(wasOpen) newEl.setAttribute('open', '');
+  el.parentNode.replaceChild(newEl, el);
+  window.scrollTo(0, scrollY);
+  renderVadeBudget();
+}
+
 // ---- CARİ KART (fatura + ödeme + öneri) ----
 
 function _cariKart(cari_id) {
@@ -237,17 +256,16 @@ function _cariKart(cari_id) {
   var bakiye        = toplamFatura - toplamOdeme;
   var oneriler      = _onerilenKayitlar(cari_id, fatList);
 
-  // Veri varsa kapalı başla, yoksa açık
-  var veriVar = fatList.length || odList.length || oneriler.length;
   var bakiyeRenk = bakiye > 0 ? '#dc2626' : (bakiye < 0 ? '#059669' : '#6b7280');
 
-  var html = '<details '+(veriVar?'':'open')+' style="border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;overflow:hidden">';
+  // Her kart varsayılan açık — kullanıcı kapatabilir; _refreshCariKart durumu korur
+  var html = '<details id="vd-kart-'+cari_id+'" open style="border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;overflow:hidden">';
 
-  // --- Summary (her zaman görünen başlık) ---
-  html += '<summary style="background:#f9fafb;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;border-bottom:1px solid #e5e7eb" onclick="this.parentElement.open&&event.stopPropagation&&null">';
+  // --- Summary (başlık satırı) ---
+  html += '<summary style="background:#f9fafb;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;border-bottom:1px solid #e5e7eb">';
   html += '<span style="font-weight:600;font-size:14px">'+htmlEsc(cadi)+'</span>';
   html += '<div style="display:flex;align-items:center;gap:10px" onclick="event.stopPropagation()">';
-  if(veriVar) {
+  if(fatList.length || odList.length) {
     html += '<span style="font-size:12px;font-weight:700;color:'+bakiyeRenk+'">'+
       (bakiye>0?'Borç ':'')+(bakiye<0?'Alacak ':'')+para(Math.abs(bakiye))+'</span>';
     html += '<span style="font-size:11px;color:#9ca3af">'+fatList.length+' fatura · '+odList.length+' ödeme</span>';
@@ -388,11 +406,9 @@ async function kaydiCarieBagla(kayit_id, cari_id) {
   var kayit = (window.kayitlar||[]).find(function(k){ return k.id===kayit_id; });
   if(kayit && kayit.firma && typeof aliasAtaSessiz==='function') {
     await aliasAtaSessiz(kayit.firma, cari_id);
-    // Alias listesini DB'den yenile
     try{ var a=await dbGet('cari_aliases','order=alias.asc'); if(Array.isArray(a)) cariAliases=a; }catch(e){}
   }
-  renderVadeler();
-  renderVadeBudget();
+  _refreshCariKart(cari_id);
 }
 
 function kaydiReddet(kayit_id, cari_id) {
@@ -404,7 +420,7 @@ function kaydiReddet(kayit_id, cari_id) {
 
 // ---- VADE CRUD (manuel) ----
 
-function vadeEkle(cari_id) {
+async function vadeEkle(cari_id) {
   var tutarEl = document.getElementById('vd-ytutar-'+cari_id);
   var gunEl   = document.getElementById('vd-ygun-'+cari_id);
   if(!tutarEl || !gunEl) return;
@@ -412,16 +428,15 @@ function vadeEkle(cari_id) {
   var gun   = parseInt(gunEl.value, 10);
   if(!tutar || tutar <= 0 || !gun || gun < 1) { alert('Tutar ve vade gün sayısı giriniz.'); return; }
   var vadeTarihi = ldStr(new Date(Date.now() + gun * 86400000));
-  dbPost('cari_vadeler', {
-    cari_id: cari_id, tip: 'borc', tutar: tutar,
-    vade_tarihi: vadeTarihi, odendi: false
-  }).then(function(r) {
-    if(r && r[0]) {
-      cariVadeler.push(r[0]);
+  try {
+    var r = await dbPost('cari_vadeler', [{cari_id:cari_id, tip:'borc', tutar:tutar, vade_tarihi:vadeTarihi, odendi:false}]);
+    if(r && r.ok) {
       tutarEl.value = ''; gunEl.value = '';
-      renderVadeler();
+      // Vadeyi memory'ye ekle — tam listeyi yeniden yükle
+      try{ var vd=await dbGet('cari_vadeler','cari_id=eq.'+cari_id+'&order=vade_tarihi.asc'); if(Array.isArray(vd)) { cariVadeler=cariVadeler.filter(function(v){return v.cari_id!==cari_id;}); cariVadeler=cariVadeler.concat(vd); } }catch(e){}
+      _refreshCariKart(cari_id);
     }
-  });
+  } catch(e) { alert('Vade eklenemedi.'); }
 }
 
 function vadeOdendiAc(id) {
@@ -448,6 +463,8 @@ function vadeOdemeKaydet() {
   var ntEl = document.getElementById('vd-odm-not');
   var odTarih = dtEl ? dtEl.value : today;
   var not     = ntEl ? ntEl.value.trim() : '';
+  var hedefVade = (window.cariVadeler||[]).find(function(v){ return v.id===_vadeOdemeId; });
+  var hedefCariId = hedefVade ? hedefVade.cari_id : null;
   dbPatch('cari_vadeler', 'id', _vadeOdemeId, {
     odendi: true, odeme_tarihi: odTarih, odeme_notu: not||null
   }).then(function() {
@@ -458,14 +475,16 @@ function vadeOdemeKaydet() {
       cariVadeler[idx].odeme_tarihi = odTarih;
     }
     vadeOdemeKapat();
-    renderVadeler();
+    if(hedefCariId) _refreshCariKart(hedefCariId); else renderVadeler();
   });
 }
 
 function vadeSil(id) {
   if(!confirm('Bu vadeyi silmek istediğinize emin misiniz?')) return;
+  var hedefVade = (window.cariVadeler||[]).find(function(v){ return v.id===id; });
+  var hedefCariId = hedefVade ? hedefVade.cari_id : null;
   dbDelete('cari_vadeler', 'id', id).then(function() {
     cariVadeler = (window.cariVadeler||[]).filter(function(v){ return v.id !== id; });
-    renderVadeler();
+    if(hedefCariId) _refreshCariKart(hedefCariId); else renderVadeler();
   });
 }
