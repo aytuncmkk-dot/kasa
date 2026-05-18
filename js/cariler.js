@@ -418,78 +418,152 @@ function jsEsc(s){
   return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
 }
 
-// ---------- FATURALARDAN TOPLU CARİ OLUŞTUR ----------
-async function faturaTopluEsles() {
+// ---------- FATURALARDAN TOPLU CARİ OLUŞTUR (önizlemeli) ----------
+
+var _fatEslesPlan = []; // [{firma, faturaSayisi, cariId, cariAd, skor, yeni}]
+
+function _enIyiCariEslesme(firma) {
+  var best = null, bestSkor = 0;
+  (window.cariler||[]).forEach(function(c) {
+    var s = cariBenzerlik(firma, c.ad);
+    if(s > bestSkor){ bestSkor = s; best = c; }
+  });
+  (window.cariAliases||[]).forEach(function(a) {
+    var s = cariBenzerlik(firma, a.alias);
+    if(s > bestSkor){
+      bestSkor = s;
+      best = (window.cariler||[]).find(function(c){ return c.id===a.cari_id; }) || null;
+    }
+  });
+  return { cari: best, skor: bestSkor };
+}
+
+function faturaTopluEsles() {
   var eslenecek = (window.faturalar||[]).filter(function(f){ return !f.cari_id && f.firma && f.firma.trim(); });
   if(!eslenecek.length){ alert('Tüm faturalar zaten bir cariye bağlı.'); return; }
 
-  if(!confirm(eslenecek.length+' eşleşmemiş fatura taranacak.\nYeni cariler oluşturulacak, faturalar bağlanacak.\nDevam?')) return;
+  // Benzersiz firma → fatura sayısı
+  var firmaGruplari = {};
+  eslenecek.forEach(function(f){
+    var fi = f.firma.trim();
+    firmaGruplari[fi] = (firmaGruplari[fi]||0)+1;
+  });
 
-  // Benzersiz firma isimleri (tekrar sorgu yapmamak için)
-  var firmaMap = {}; // firma → cari_id
+  // Her firma için en iyi eşleşmeyi hesapla
+  _fatEslesPlan = [];
+  Object.keys(firmaGruplari).forEach(function(firma) {
+    var res = _enIyiCariEslesme(firma);
+    var yeni = !res.cari || res.skor < 60;
+    _fatEslesPlan.push({
+      firma:       firma,
+      faturaSayisi: firmaGruplari[firma],
+      cariId:      res.cari ? res.cari.id : null,
+      cariAd:      res.cari ? res.cari.ad : firma,
+      skor:        res.cari ? res.skor : 0,
+      yeni:        yeni
+    });
+  });
 
-  // Mevcut cariler ve alias'lardan hızlı arama yapısı kur
-  function enIyiCari(firma) {
-    var best = null, bestSkor = 0;
-    (window.cariler||[]).forEach(function(c) {
-      var s = cariBenzerlik(firma, c.ad);
-      if(s > bestSkor){ bestSkor = s; best = c; }
-    });
-    (window.cariAliases||[]).forEach(function(a) {
-      var s = cariBenzerlik(firma, a.alias);
-      if(s > bestSkor){
-        bestSkor = s;
-        best = (window.cariler||[]).find(function(c){ return c.id===a.cari_id; }) || null;
-      }
-    });
-    return bestSkor >= 85 ? best : null;
-  }
+  // Skora göre sırala: yüksek skor önce
+  _fatEslesPlan.sort(function(a,b){ return b.skor - a.skor; });
+
+  // Modal tablosunu doldur
+  var tbody = document.getElementById('fat-esles-tbody');
+  if(!tbody) return;
+
+  var html = _fatEslesPlan.map(function(p, idx) {
+    var renk, etiket;
+    if(p.yeni) {
+      renk = '#fef9e7'; etiket = '<span style="color:#92400e">Yeni cari oluşturulacak</span>';
+    } else if(p.skor >= 85) {
+      renk = '#f0fdf4'; etiket = '<span style="color:#065f46">'+htmlEsc(p.cariAd)+'</span>';
+    } else {
+      renk = '#fff7ed'; etiket = '<span style="color:#92400e">'+htmlEsc(p.cariAd)+'</span>';
+    }
+    var checked = p.skor >= 85 ? 'checked' : '';
+    return '<tr style="background:'+renk+';border-bottom:1px solid #e5e7eb" id="fat-esles-tr-'+idx+'">'+
+      '<td style="padding:7px;text-align:center"><input type="checkbox" class="fat-esles-cb" data-idx="'+idx+'" '+checked+' onchange="fatEslesSayacGuncelle()"></td>'+
+      '<td style="padding:7px;font-size:12px;max-width:240px;word-break:break-word">'+htmlEsc(p.firma)+'</td>'+
+      '<td style="padding:7px;text-align:center;color:#6b7280">'+p.faturaSayisi+'</td>'+
+      '<td style="padding:7px;font-size:12px">'+etiket+'</td>'+
+      '<td style="padding:7px;text-align:center;font-weight:600;color:'+(p.skor>=85?'#059669':p.skor>=60?'#d97706':'#9ca3af')+'">'+
+        (p.skor?p.skor+'%':'—')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  tbody.innerHTML = html;
+  fatEslesSayacGuncelle();
+  document.getElementById('fat-esles-modal').classList.add('open');
+}
+
+function fatEslesSayacGuncelle() {
+  var toplam = document.querySelectorAll('.fat-esles-cb').length;
+  var secili = document.querySelectorAll('.fat-esles-cb:checked').length;
+  var el = document.getElementById('fat-esles-sayac');
+  if(el) el.textContent = secili+' / '+toplam+' seçili';
+}
+
+function fatEslesTumSec(durum) {
+  document.querySelectorAll('.fat-esles-cb').forEach(function(cb){ cb.checked = durum; });
+  fatEslesSayacGuncelle();
+}
+
+function fatEslesKapat() {
+  var m = document.getElementById('fat-esles-modal');
+  if(m) m.classList.remove('open');
+}
+
+async function faturaEslesUygula() {
+  var seciliIdxler = [];
+  document.querySelectorAll('.fat-esles-cb:checked').forEach(function(cb){
+    seciliIdxler.push(Number(cb.getAttribute('data-idx')));
+  });
+  if(!seciliIdxler.length){ alert('Hiçbir satır seçili değil.'); return; }
+
+  fatEslesKapat();
 
   var esToplam = 0, yeniSayisi = 0, hataSayisi = 0;
+  var firmaMap = {}; // firma → cari_id (önbellek)
 
-  for(var i = 0; i < eslenecek.length; i++) {
-    var f = eslenecek[i];
-    var firma = f.firma.trim();
-
+  for(var i = 0; i < seciliIdxler.length; i++) {
+    var p = _fatEslesPlan[seciliIdxler[i]];
     try {
-      var cariId;
+      var cariId = p.cariId;
 
-      if(firmaMap[firma] !== undefined) {
-        cariId = firmaMap[firma];
-      } else {
-        var eslesme = enIyiCari(firma);
-        if(eslesme) {
-          cariId = eslesme.id;
-          // Alias yoksa ekle
-          var aliasVar = (window.cariAliases||[]).some(function(a){ return a.cari_id===cariId && a.alias===firma; });
-          if(!aliasVar && firma !== eslesme.ad) {
-            var ar = await dbPost('cari_aliases',[{cari_id:cariId, alias:firma, onaylandi:true, kaynak:'otomatik'}]);
-            if(ar && ar[0]) cariAliases.push(ar[0]);
-          }
-        } else {
-          // Yeni cari oluştur
-          var cr = await dbPost('cariler',[{ad:firma, aktif:true}]);
-          if(cr && cr[0]) {
-            cariler.push(cr[0]);
-            cariId = cr[0].id;
-            yeniSayisi++;
-            var ar2 = await dbPost('cari_aliases',[{cari_id:cariId, alias:firma, onaylandi:true, kaynak:'otomatik'}]);
-            if(ar2 && ar2[0]) cariAliases.push(ar2[0]);
-          }
+      if(p.yeni) {
+        // Yeni cari oluştur
+        var cr = await dbPost('cariler',[{ad:p.firma, aktif:true}]);
+        if(cr && cr[0]) {
+          cariler.push(cr[0]);
+          cariId = cr[0].id;
+          yeniSayisi++;
+          await dbPost('cari_aliases',[{cari_id:cariId, alias:p.firma, onaylandi:true, kaynak:'otomatik'}]);
         }
-        firmaMap[firma] = cariId || null;
+      } else {
+        // Alias yoksa ekle
+        var aliasVar = (window.cariAliases||[]).some(function(a){ return a.cari_id===cariId && a.alias===p.firma; });
+        if(!aliasVar && p.firma !== p.cariAd) {
+          var ar = await dbPost('cari_aliases',[{cari_id:cariId, alias:p.firma, onaylandi:true, kaynak:'otomatik'}]);
+          if(ar && ar[0]) cariAliases.push(ar[0]);
+        }
       }
 
       if(cariId) {
-        await dbPatch('faturalar','id',f.id,{cari_id:cariId});
-        f.cari_id = cariId;
-        esToplam++;
+        firmaMap[p.firma] = cariId;
+        // Bu firmaya ait tüm faturalara cari_id ata
+        var hedefFaturalar = (window.faturalar||[]).filter(function(f){
+          return !f.cari_id && f.firma && f.firma.trim()===p.firma;
+        });
+        for(var j = 0; j < hedefFaturalar.length; j++) {
+          await dbPatch('faturalar','id',hedefFaturalar[j].id,{cari_id:cariId});
+          hedefFaturalar[j].cari_id = cariId;
+          esToplam++;
+        }
       }
-    } catch(e) {
-      hataSayisi++;
-    }
+    } catch(e) { hataSayisi++; }
   }
 
+  await carilerYukle();
   doldurCariDropdownlari();
   renderCariler();
   renderEslesmemisFirmalar();

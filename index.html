@@ -914,6 +914,39 @@
   </div>
 </div>
 
+<!-- Modal: Fatura Toplu Eşleştirme Önizlemesi -->
+<div id="fat-esles-modal" class="modal-bg" onclick="if(event.target===this)fatEslesKapat()">
+  <div class="modal" style="max-width:760px;max-height:85vh;display:flex;flex-direction:column">
+    <div class="modal-title" style="flex-shrink:0">Fatura Eşleştirme Önizlemesi</div>
+    <p style="font-size:13px;color:#6b7280;margin:0 0 12px 0;flex-shrink:0">
+      Her satırı inceleyin. Yanlış önerilen satırın işaretini kaldırın. Onayladıklarınız uygulanır.
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0">
+      <button onclick="fatEslesTumSec(true)" class="btn" style="font-size:12px;padding:4px 10px">Tümünü Seç</button>
+      <button onclick="fatEslesTumSec(false)" class="btn" style="font-size:12px;padding:4px 10px">Hiçbirini Seçme</button>
+      <span id="fat-esles-sayac" style="font-size:12px;color:#6b7280;align-self:center;margin-left:auto"></span>
+    </div>
+    <div style="overflow-y:auto;flex:1;border:1px solid #e5e7eb;border-radius:8px">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:#f9fafb;position:sticky;top:0">
+            <th style="padding:8px;text-align:center;width:36px;border-bottom:1px solid #e5e7eb"></th>
+            <th style="padding:8px;text-align:left;border-bottom:1px solid #e5e7eb">Faturadaki İsim</th>
+            <th style="padding:8px;text-align:center;width:60px;border-bottom:1px solid #e5e7eb">Fatura</th>
+            <th style="padding:8px;text-align:left;border-bottom:1px solid #e5e7eb">Eşleşecek Cari</th>
+            <th style="padding:8px;text-align:center;width:60px;border-bottom:1px solid #e5e7eb">Skor</th>
+          </tr>
+        </thead>
+        <tbody id="fat-esles-tbody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-shrink:0">
+      <button class="btn" onclick="fatEslesKapat()">İptal</button>
+      <button class="btn btn-p" onclick="faturaEslesUygula()">Seçilenleri Uygula</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Ödendi İşaretle -->
 <div id="vd-odm-modal" class="modal-bg" onclick="if(event.target===this)vadeOdemeKapat()">
   <div class="modal">
