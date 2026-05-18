@@ -418,6 +418,84 @@ function jsEsc(s){
   return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
 }
 
+// ---------- FATURALARDAN TOPLU CARİ OLUŞTUR ----------
+async function faturaTopluEsles() {
+  var eslenecek = (window.faturalar||[]).filter(function(f){ return !f.cari_id && f.firma && f.firma.trim(); });
+  if(!eslenecek.length){ alert('Tüm faturalar zaten bir cariye bağlı.'); return; }
+
+  if(!confirm(eslenecek.length+' eşleşmemiş fatura taranacak.\nYeni cariler oluşturulacak, faturalar bağlanacak.\nDevam?')) return;
+
+  // Benzersiz firma isimleri (tekrar sorgu yapmamak için)
+  var firmaMap = {}; // firma → cari_id
+
+  // Mevcut cariler ve alias'lardan hızlı arama yapısı kur
+  function enIyiCari(firma) {
+    var best = null, bestSkor = 0;
+    (window.cariler||[]).forEach(function(c) {
+      var s = cariBenzerlik(firma, c.ad);
+      if(s > bestSkor){ bestSkor = s; best = c; }
+    });
+    (window.cariAliases||[]).forEach(function(a) {
+      var s = cariBenzerlik(firma, a.alias);
+      if(s > bestSkor){
+        bestSkor = s;
+        best = (window.cariler||[]).find(function(c){ return c.id===a.cari_id; }) || null;
+      }
+    });
+    return bestSkor >= 85 ? best : null;
+  }
+
+  var esToplam = 0, yeniSayisi = 0, hataSayisi = 0;
+
+  for(var i = 0; i < eslenecek.length; i++) {
+    var f = eslenecek[i];
+    var firma = f.firma.trim();
+
+    try {
+      var cariId;
+
+      if(firmaMap[firma] !== undefined) {
+        cariId = firmaMap[firma];
+      } else {
+        var eslesme = enIyiCari(firma);
+        if(eslesme) {
+          cariId = eslesme.id;
+          // Alias yoksa ekle
+          var aliasVar = (window.cariAliases||[]).some(function(a){ return a.cari_id===cariId && a.alias===firma; });
+          if(!aliasVar && firma !== eslesme.ad) {
+            var ar = await dbPost('cari_aliases',[{cari_id:cariId, alias:firma, onaylandi:true, kaynak:'otomatik'}]);
+            if(ar && ar[0]) cariAliases.push(ar[0]);
+          }
+        } else {
+          // Yeni cari oluştur
+          var cr = await dbPost('cariler',[{ad:firma, aktif:true}]);
+          if(cr && cr[0]) {
+            cariler.push(cr[0]);
+            cariId = cr[0].id;
+            yeniSayisi++;
+            var ar2 = await dbPost('cari_aliases',[{cari_id:cariId, alias:firma, onaylandi:true, kaynak:'otomatik'}]);
+            if(ar2 && ar2[0]) cariAliases.push(ar2[0]);
+          }
+        }
+        firmaMap[firma] = cariId || null;
+      }
+
+      if(cariId) {
+        await dbPatch('faturalar','id',f.id,{cari_id:cariId});
+        f.cari_id = cariId;
+        esToplam++;
+      }
+    } catch(e) {
+      hataSayisi++;
+    }
+  }
+
+  doldurCariDropdownlari();
+  renderCariler();
+  renderEslesmemisFirmalar();
+  alert(esToplam+' fatura eşleştirildi.\n'+yeniSayisi+' yeni cari oluşturuldu.'+(hataSayisi?' '+hataSayisi+' hata.':''));
+}
+
 // ---------- AÇILIŞ ----------
 async function cariSekmeAc(){
   await carilerYukle();
