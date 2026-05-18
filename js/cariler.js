@@ -111,6 +111,7 @@ function eslesmemisFirmalar(){
     if(fi) hamFirmalar[fi] = (hamFirmalar[fi]||0) + 1;
   });
   (window.kayitlar||[]).forEach(function(k){
+    if(k.tur === 'dagitim') return; // ortak ödemeleri cari değil
     var fi = (k.firma || '').trim();
     if(fi) hamFirmalar[fi] = (hamFirmalar[fi]||0) + 1;
   });
