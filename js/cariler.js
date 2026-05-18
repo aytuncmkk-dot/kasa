@@ -103,16 +103,22 @@ function cariBenzerlik(a, b){
 }
 
 // ---------- EŞLEŞMEMİŞ FATURA FİRMALARINI BUL ----------
-// Faturalardaki tüm benzersiz firma isimlerini, aliases'da olmayanları döner
+// Fatura ve kayıtlardaki tüm benzersiz firma isimlerini, aliases'da olmayanları döner
 function eslesmemisFirmalar(){
-  if(!window.faturalar || !faturalar.length) return [];
   var hamFirmalar = {};
-  faturalar.forEach(function(f){
+  (window.faturalar||[]).forEach(function(f){
     var fi = (f.firma || '').trim();
     if(fi) hamFirmalar[fi] = (hamFirmalar[fi]||0) + 1;
   });
+  (window.kayitlar||[]).forEach(function(k){
+    var fi = (k.firma || '').trim();
+    if(fi) hamFirmalar[fi] = (hamFirmalar[fi]||0) + 1;
+  });
+  if(!Object.keys(hamFirmalar).length) return [];
   var atanmisAliaslar = {};
   cariAliases.forEach(function(a){ atanmisAliaslar[a.alias] = 1; });
+  // Cariler kendi adlarıyla da eşleşir, onları da atla
+  (window.cariler||[]).forEach(function(c){ atanmisAliaslar[c.ad] = 1; });
   var sonuc = [];
   Object.keys(hamFirmalar).forEach(function(firma){
     if(!atanmisAliaslar[firma]){
