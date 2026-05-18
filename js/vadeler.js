@@ -317,7 +317,6 @@ function _vadeBolumu(cari_id) {
 function vadeTakipAc() {
   _vadeTakipCariSelectDoldur();
   document.getElementById('vd-tak-tutar').value = '';
-  document.getElementById('vd-tak-tarih').value = today;
   document.getElementById('vd-tak-fatno').value = '';
   document.getElementById('vd-tak-acik').value  = '';
   document.getElementById('vd-takip-modal').classList.add('open');
@@ -345,13 +344,11 @@ function _vadeTakipCariSelectDoldur() {
 async function vadeTakipKaydet() {
   var cari_id = Number(document.getElementById('vd-tak-cari').value);
   var tutar   = parseFloat(document.getElementById('vd-tak-tutar').value);
-  var tarih   = document.getElementById('vd-tak-tarih').value;
   var fatno   = document.getElementById('vd-tak-fatno').value.trim();
   var acik    = document.getElementById('vd-tak-acik').value.trim();
   if(!cari_id)           { alert('Lütfen bir cari seçin.'); return; }
-  if(!tarih)             { alert('Tarih zorunludur.'); return; }
   if(isNaN(tutar)||tutar<=0) { alert('Geçerli bir tutar girin.'); return; }
-  var yeni = {cari_id:cari_id, tarih:tarih, tip:'borc', tutar:tutar, belge_no:fatno||null, aciklama:acik||null};
+  var yeni = {cari_id:cari_id, tarih:today, tip:'borc', tutar:tutar, belge_no:fatno||null, aciklama:acik||null};
   var r = await dbPost('cari_hareketler', yeni);
   if(!r||!r.ok) { alert('Kayıt hatası!'); return; }
   await _cariVerileriYenile();
@@ -367,10 +364,9 @@ function cariHareketAc(cari_id, tip) {
   _chCariId = cari_id;
   _chTip    = tip;
   document.getElementById('ch-baslik').textContent = tip==='borc' ? 'Borç Ekle' : 'Ödeme Ekle';
-  document.getElementById('ch-tutar').value  = '';
-  document.getElementById('ch-tarih').value  = today;
-  document.getElementById('ch-belge').value  = '';
-  document.getElementById('ch-acik').value   = '';
+  document.getElementById('ch-tutar').value = '';
+  document.getElementById('ch-belge').value = '';
+  document.getElementById('ch-acik').value  = '';
   document.getElementById('ch-modal').classList.add('open');
 }
 
@@ -381,12 +377,10 @@ function cariHareketKapat() {
 
 async function cariHareketKaydet() {
   var tutar = parseFloat(document.getElementById('ch-tutar').value);
-  var tarih = document.getElementById('ch-tarih').value;
   var belge = document.getElementById('ch-belge').value.trim();
   var acik  = document.getElementById('ch-acik').value.trim();
-  if(!tarih)             { alert('Tarih zorunludur.'); return; }
   if(isNaN(tutar)||tutar<=0) { alert('Geçerli bir tutar girin.'); return; }
-  var yeni = {cari_id:_chCariId, tarih:tarih, tip:_chTip, tutar:tutar, belge_no:belge||null, aciklama:acik||null};
+  var yeni = {cari_id:_chCariId, tarih:today, tip:_chTip, tutar:tutar, belge_no:belge||null, aciklama:acik||null};
   var r = await dbPost('cari_hareketler', yeni);
   if(!r||!r.ok) { alert('Kayıt hatası!'); return; }
   await _cariVerileriYenile();
