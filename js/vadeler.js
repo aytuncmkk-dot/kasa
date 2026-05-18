@@ -410,8 +410,8 @@ function _onerilenKayitlar(cari_id, fatList) {
 async function kaydiCarieBagla(kayit_id, cari_id) {
   var kayit = (window.kayitlar||[]).find(function(k){ return k.id===kayit_id; });
   if(kayit && kayit.firma && typeof aliasAtaSessiz==='function') {
+    // aliasAtaSessiz zaten cariAliases'e push ediyor — tam DB yüklemesi gereksiz
     await aliasAtaSessiz(kayit.firma, cari_id);
-    try{ var a=await dbGet('cari_aliases','order=alias.asc'); if(Array.isArray(a)) cariAliases=a; }catch(e){}
   }
   _refreshCariKart(cari_id);
 }
