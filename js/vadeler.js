@@ -303,7 +303,7 @@ function _vadeBolumu(cari_id) {
     '<div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:6px">Yeni Vade Ekle</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">'+
     '<div class="field"><label>Tutar (TL) *</label><input type="number" id="vd-yt-'+cari_id+'" placeholder="0.00" min="0" step="0.01" style="width:100%"></div>'+
-    '<div class="field"><label>Vade Tarihi *</label><input type="date" id="vd-ytarih-'+cari_id+'" style="width:100%"></div>'+
+    '<div class="field"><label>Vade (Gün) *</label><input type="number" id="vd-ygun-'+cari_id+'" placeholder="30" min="1" step="1" style="width:100%"></div>'+
     '<div class="field"><label>Fatura No</label><input type="text" id="vd-yfat-'+cari_id+'" style="width:100%"></div>'+
     '<div class="field"><label>Açıklama</label><input type="text" id="vd-yacik-'+cari_id+'" style="width:100%"></div>'+
     '</div>'+
@@ -417,11 +417,14 @@ async function _cariVerileriYenile() {
 
 async function vadeEkle(cari_id) {
   var tutar = parseFloat(document.getElementById('vd-yt-'+cari_id).value);
-  var tarih = document.getElementById('vd-ytarih-'+cari_id).value;
+  var gun   = parseInt(document.getElementById('vd-ygun-'+cari_id).value);
   var fatno = document.getElementById('vd-yfat-'+cari_id).value.trim();
   var acik  = document.getElementById('vd-yacik-'+cari_id).value.trim();
-  if(!tarih)             { alert('Vade tarihi zorunludur.'); return; }
+  if(isNaN(gun)||gun<1)  { alert('Kaç gün olduğunu girin (örn: 30).'); return; }
   if(isNaN(tutar)||tutar<=0) { alert('Geçerli bir tutar girin.'); return; }
+  var vadeD = new Date(today+'T00:00:00');
+  vadeD.setDate(vadeD.getDate()+gun);
+  var tarih = ldStr(vadeD);
   var yeni = {cari_id:cari_id, tutar:tutar, vade_tarihi:tarih, fatura_no:fatno||null, aciklama:acik||null};
   var r = await dbPost('cari_vadeler', yeni);
   if(!r||!r.ok) { alert('Kayıt hatası!'); return; }
