@@ -12,6 +12,7 @@ async function yukle(){
     stokHareketleri = await dbGetAll('stok_hareketler','select=*&order=tarih.desc,id.desc');
     var katList  = await dbGet('kategoriler','select=*&order=tur.asc,ad.asc');
     ortaklar     = await dbGet('ortaklar','select=*&order=hisse_yuzdesi.desc');
+    cariVadeler  = await dbGetAll('cari_vadeler','select=*&order=vade_tarihi.asc');
     gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
     giderKatlar   = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
     dagitimKatlar = katList.filter(function(x){return x.tur==='dagitim';}).map(function(x){return {id:x.id,ad:x.ad};});
@@ -19,6 +20,7 @@ async function yukle(){
     katSikligiSirala();
     setBag(true);
     hepsiniYenile();
+    if(typeof renderVadeUyarilari === 'function') renderVadeUyarilari();
   }catch(e){
     setBag(false);
     console.error(e);
@@ -74,6 +76,7 @@ function switchTab(t){
   if(t==='gunluksatis'){ if(typeof gunlukSatisAc==='function') gunlukSatisAc(); }
   if(t==='inceleme'){ if(typeof incelemeSekmeAc==='function') incelemeSekmeAc(); }
   if(t==='eslestirme'){ if(typeof eslestirmeAc==='function') eslestirmeAc(); }
+  if(t==='vadeler')  { if(typeof vadeSecmeAc==='function')  vadeSecmeAc(); }
   if(t==='ozelrapor'){if(typeof ozelRaporKatGuncelle==='function')ozelRaporKatGuncelle();if(typeof renderOzelRapor==='function')renderOzelRapor();}
   if(t==='vergi'){if(typeof vergiSekmeAc==='function')vergiSekmeAc();}
 }

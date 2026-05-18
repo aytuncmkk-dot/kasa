@@ -51,6 +51,9 @@
   <span style="color:#666;font-size:11px;margin-left:auto">Tüm ekranlar bu aralığa göre filtrelenir • Form tarihi = başlangıç</span>
 </div>
 
+<!-- VADE UYARI BANNER -->
+<div id="vade-uyari-banner" style="display:none;margin-bottom:8px"></div>
+
 <!-- ÖZET PANEL -->
 <div class="ozet-panel">
   <!-- Kar akış satırı: Gelir − İşletme Gideri = Net Kar − Ortaklara Ödenen = Kasada Kalan -->
@@ -86,6 +89,7 @@
       <button class="tab active" onclick="switchTab('kasa')">Veri Girişi</button>
       <button class="tab" onclick="switchTab('fatura')">Fatura Girişi</button>
       <button class="tab" onclick="switchTab('cariler')">Cariler</button>
+      <button class="tab" onclick="switchTab('vadeler')">Vadeler</button>
       <button class="tab" onclick="switchTab('gunluksatis')">Günlük Satış Raporu</button>
       <button class="tab" onclick="switchTab('inceleme')">İnceleme</button>
       <button class="tab" onclick="switchTab('eslestirme')">Adisyon Eşleştirme</button>
@@ -689,6 +693,7 @@
 <script src="js/kasa.js"></script>
 <script src="js/fatura.js"></script>
 <script src="js/cariler.js"></script>
+<script src="js/vadeler.js"></script>
 <script src="js/inceleme.js"></script>
 <script src="js/gunluksatis.js"></script>
 <script src="js/yedekfon.js"></script>
@@ -768,6 +773,7 @@
           <th>Takma Adlar</th>
           <th style="text-align:right">Fatura Adedi</th>
           <th style="text-align:right">Toplam Tutar</th>
+          <th style="text-align:right">Bekleyen Vade</th>
           <th>İşlem</th>
         </tr>
       </thead>
@@ -787,6 +793,114 @@
     .btn-sm{padding:3px 8px;font-size:12px;cursor:pointer}
     .btn-primary{background:#3498db;color:#fff;border:none;border-radius:4px}
   </style>
+</div>
+
+<!-- =============== VADELİ ÖDEMELER =============== -->
+<div id="pg-vadeler" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <h2 style="margin:0">Vadeli Ödemeler</h2>
+    <button class="btn btn-p" onclick="vadeTakipAc()">+ Cari Takibe Al</button>
+  </div>
+
+  <!-- BÜTÇE ÖZETİ -->
+  <div id="vd-budget"></div>
+
+  <!-- CARİ BAZLI LİSTE -->
+  <div id="vd-cariler-listesi"></div>
+  <div id="vd-empty" class="empty" style="display:none">Takip edilen cari yok. "Cari Takibe Al" ile başlayın.</div>
+
+  <style>
+    #pg-vadeler .field label{display:block;font-size:11px;color:#6b7280;margin-bottom:3px;font-weight:500}
+    #pg-vadeler .field input,#pg-vadeler .field select{padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;width:100%;box-sizing:border-box}
+    #pg-vadeler .field input:focus,#pg-vadeler .field select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+  </style>
+</div>
+
+<!-- Modal: Cari Takibe Al -->
+<div id="vd-takip-modal" class="modal-bg" onclick="if(event.target===this)vadeTakipKapat()">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">Cari Takibe Al</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="field" style="grid-column:span 2">
+        <label>Cari *</label>
+        <select id="vd-tak-cari" style="width:100%"><option value="">— Cari seçin —</option></select>
+      </div>
+      <div class="field">
+        <label>Tutar (TL) *</label>
+        <input type="number" id="vd-tak-tutar" placeholder="0.00" min="0" step="0.01" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Vade Tarihi *</label>
+        <input type="date" id="vd-tak-tarih" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Fatura No</label>
+        <input type="text" id="vd-tak-fatno" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Açıklama</label>
+        <input type="text" id="vd-tak-acik" style="width:100%">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="vadeTakipKapat()">İptal</button>
+      <button class="btn btn-p" onclick="vadeTakipKaydet()">Takibe Al & Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Vade Düzenle -->
+<div id="vd-duz-modal" class="modal-bg" onclick="if(event.target===this)vadeDuzKapat()">
+  <div class="modal">
+    <div class="modal-title">Vade Düzenle</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="field" style="grid-column:span 2">
+        <label>Cari</label>
+        <select id="vd-duz-cari" style="width:100%"><option value="">— Cari seçin —</option></select>
+      </div>
+      <div class="field">
+        <label>Tutar (TL)</label>
+        <input type="number" id="vd-duz-tutar" min="0" step="0.01" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Vade Tarihi</label>
+        <input type="date" id="vd-duz-tarih" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Fatura No</label>
+        <input type="text" id="vd-duz-fatura-no" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Açıklama</label>
+        <input type="text" id="vd-duz-aciklama" style="width:100%">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="vadeDuzKapat()">İptal</button>
+      <button class="btn btn-p" onclick="vadeDuzKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ödendi İşaretle -->
+<div id="vd-odm-modal" class="modal-bg" onclick="if(event.target===this)vadeOdemeKapat()">
+  <div class="modal">
+    <div class="modal-title">Ödeme Kaydet</div>
+    <div style="margin-bottom:12px">
+      <div class="field" style="margin-bottom:10px">
+        <label>Ödeme Tarihi *</label>
+        <input type="date" id="vd-odm-tarih" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Not</label>
+        <input type="text" id="vd-odm-not" placeholder="İsteğe bağlı ödeme notu" style="width:100%">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="vadeOdemeKapat()">İptal</button>
+      <button class="btn btn-g" onclick="vadeOdemeKaydet()">Ödendi Olarak İşaretle</button>
+    </div>
+  </div>
 </div>
 
 <!-- =============== ADİSYON EŞLEŞTİRME =============== -->

@@ -289,6 +289,15 @@ function renderCariler(){
         });
       });
     }
+    var vadeSayi = 0, vadeToplam = 0;
+    if(window.cariVadeler) {
+      cariVadeler.forEach(function(v){
+        if(v.cari_id === c.id && !v.odendi){ vadeSayi++; vadeToplam += Number(v.tutar); }
+      });
+    }
+    var vadeBadge = vadeSayi > 0
+      ? '<span style="color:#dc2626;font-weight:600">'+vadeSayi+' · '+(window.para?para(vadeToplam):vadeToplam.toFixed(2))+'</span>'
+      : '<span style="color:#9ca3af">—</span>';
     return '<tr>'+
       '<td><strong>'+htmlEsc(c.ad)+'</strong>'+
         (c.telefon?'<br><small>'+htmlEsc(c.telefon)+'</small>':'')+'</td>'+
@@ -296,6 +305,7 @@ function renderCariler(){
       '<td>'+(aliasListe||'<em style="color:#888">—</em>')+'</td>'+
       '<td style="text-align:right">'+faturaSayi+'</td>'+
       '<td style="text-align:right">'+(window.para?para(faturaTop):faturaTop.toFixed(2))+'</td>'+
+      '<td style="text-align:right">'+vadeBadge+'</td>'+
       '<td>'+
         '<button onclick="cariDuzenle('+c.id+')" class="btn-sm">✏️</button> '+
         '<button onclick="cariSil('+c.id+')" class="btn-sm" style="color:red">🗑</button>'+
