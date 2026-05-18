@@ -244,13 +244,16 @@ async function giderKaydet(){
   if(isNaN(tutar)||tutar<=0)hatalar.push('Tutar');
   if(hatalar.length>0){alert('Zorunlu alanlar eksik:\n- '+hatalar.join('\n- '));return;}
   var kayitTur=(dagitimKatlar&&dagitimKatlar.some(function(k){return k.ad===kat;})) ? 'dagitim' : 'gider';
-  var r=await dbPost('kayitlar',[{tarih:tarih,tur:kayitTur,kat:kat,odeme:odeme,firma:firma,aciklama:aciklama,tutar:tutar,kisi_sayisi:0,fatura_var:false}]);
-  try{ await auditLog('EKLE','kayitlar',null,null,{tarih:tarih,tur:kayitTur,kat:kat,tutar:tutar,firma:firma,aciklama:aciklama},'Gider/Dagitim kaydı'); }catch(e){}
+  var cariEl=document.getElementById('gi-cari');
+  var cariId=(cariEl&&kayitTur==='gider') ? (Number(cariEl.value)||null) : null;
+  var r=await dbPost('kayitlar',[{tarih:tarih,tur:kayitTur,kat:kat,odeme:odeme,firma:firma,aciklama:aciklama,tutar:tutar,kisi_sayisi:0,fatura_var:false,cari_id:cariId}]);
+  try{ await auditLog('EKLE','kayitlar',null,null,{tarih:tarih,tur:kayitTur,kat:kat,tutar:tutar,firma:firma,aciklama:aciklama,cari_id:cariId},'Gider/Dagitim kaydı'); }catch(e){}
   if(!r.ok){alert('Kayıt hatası: '+r.status);return;}
   document.getElementById('gi-firma').value='';
   document.getElementById('gi-aciklama').value='';
   document.getElementById('gi-tutar').value='';
   document.getElementById('gi-kat').value='';
+  if(cariEl) cariEl.value='';
   await yukle();
   renderKasa();
   document.getElementById('gi-kat').focus();
@@ -370,6 +373,26 @@ function filtreTemizle(){
   document.getElementById('f-bas').value='';
   document.getElementById('f-bit').value='';
   renderKasa();
+}
+
+function giCariSecildi(){
+  var sel=document.getElementById('gi-cari');
+  var firmaEl=document.getElementById('gi-firma');
+  if(!sel||!firmaEl) return;
+  var id=Number(sel.value);
+  if(!id) return;
+  var c=window.cariler&&cariler.find(function(x){return x.id===id;});
+  if(c&&!firmaEl.value) firmaEl.value=c.ad;
+}
+
+function fatCariSecildi(){
+  var sel=document.getElementById('fat-cari');
+  var firmaEl=document.getElementById('fat-firma');
+  if(!sel||!firmaEl) return;
+  var id=Number(sel.value);
+  if(!id) return;
+  var c=window.cariler&&cariler.find(function(x){return x.id===id;});
+  if(c&&!firmaEl.value) firmaEl.value=c.ad;
 }
 
 function giderKatSec(k){

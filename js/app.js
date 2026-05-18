@@ -49,12 +49,25 @@ async function otomatikDagitimMigrasyonu(){
 
 function hepsiniYenile(){
   doldurKatListeleri();
+  doldurCariDropdownlari();
   updateFirmaList();
   renderOzet();
   renderKasa();
   renderFaturalar();
   renderFon();
   renderKarDagilim();
+}
+
+function doldurCariDropdownlari(){
+  var opts='<option value="">— Cari seç (opsiyonel) —</option>'+
+    (window.cariler||[]).slice()
+      .sort(function(a,b){return a.ad.localeCompare(b.ad,'tr');})
+      .map(function(c){return '<option value="'+c.id+'">'+htmlEsc(c.ad)+'</option>';})
+      .join('');
+  ['gi-cari','fat-cari'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.innerHTML=opts;
+  });
 }
 
 function switchTab(t){

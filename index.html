@@ -217,6 +217,12 @@
           <input type="text" id="gi-firma" placeholder="Opsiyonel..." tabindex="11" list="firma-list" autocomplete="off"
             onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('gi-tutar').focus();}">
         </div>
+        <div class="field" id="gi-cari-wrap">
+          <label>Cari Bağla</label>
+          <select id="gi-cari" tabindex="11" onchange="giCariSecildi()" style="width:100%">
+            <option value="">— Cari seç (opsiyonel) —</option>
+          </select>
+        </div>
         <div class="field" id="gi-ortak-wrap" style="display:none">
           <label>Ortak <span class="req">*</span></label>
           <select id="gi-ortak" onchange="document.getElementById('gi-firma').value=this.value" tabindex="11">
@@ -296,6 +302,12 @@
         <div class="field">
           <label>Firma <span class="req">*</span></label>
           <input type="text" id="fat-firma" placeholder="Firma adı..." list="firma-list">
+        </div>
+        <div class="field">
+          <label>Cari Bağla</label>
+          <select id="fat-cari" onchange="fatCariSecildi()" style="width:100%">
+            <option value="">— Cari seç (opsiyonel) —</option>
+          </select>
         </div>
         <div class="field">
           <label>Fatura No</label>
