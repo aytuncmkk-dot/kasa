@@ -453,28 +453,22 @@ function _enIyiCariEslesme(firma) {
 }
 
 function faturaTopluEsles() {
-  var eslenecek = (window.faturalar||[]).filter(function(f){ return !f.cari_id && f.firma && f.firma.trim(); });
-  if(!eslenecek.length){ alert('Tüm faturalar zaten bir cariye bağlı.'); return; }
-
-  // Benzersiz firma → fatura sayısı
-  var firmaGruplari = {};
-  eslenecek.forEach(function(f){
-    var fi = f.firma.trim();
-    firmaGruplari[fi] = (firmaGruplari[fi]||0)+1;
-  });
+  // eslesmemisFirmalar() alias-tabanlı; cari_id kolonu gerektirmez
+  var eslenecek = eslesmemisFirmalar(); // [{firma, sayi}]
+  if(!eslenecek.length){ alert('Tüm firmalar zaten bir cariye bağlı.'); return; }
 
   // Her firma için en iyi eşleşmeyi hesapla
   _fatEslesPlan = [];
-  Object.keys(firmaGruplari).forEach(function(firma) {
-    var res = _enIyiCariEslesme(firma);
+  eslenecek.forEach(function(item) {
+    var res = _enIyiCariEslesme(item.firma);
     var yeni = !res.cari || res.skor < 60;
     _fatEslesPlan.push({
-      firma:       firma,
-      faturaSayisi: firmaGruplari[firma],
-      cariId:      res.cari ? res.cari.id : null,
-      cariAd:      res.cari ? res.cari.ad : firma,
-      skor:        res.cari ? res.skor : 0,
-      yeni:        yeni
+      firma:        item.firma,
+      faturaSayisi: item.sayi,
+      cariId:       res.cari ? res.cari.id : null,
+      cariAd:       res.cari ? res.cari.ad : item.firma,
+      skor:         res.cari ? res.skor : 0,
+      yeni:         yeni
     });
   });
 
@@ -537,7 +531,6 @@ async function faturaEslesUygula() {
   fatEslesKapat();
 
   var esToplam = 0, yeniSayisi = 0, hataSayisi = 0;
-  var firmaMap = {}; // firma → cari_id (önbellek)
 
   for(var i = 0; i < seciliIdxler.length; i++) {
     var p = _fatEslesPlan[seciliIdxler[i]];
@@ -545,43 +538,37 @@ async function faturaEslesUygula() {
       var cariId = p.cariId;
 
       if(p.yeni) {
-        // Yeni cari oluştur
+        // Yeni cari oluştur, ID'yi DB'den çek (return=minimal olduğundan)
         var cr = await dbPost('cariler',[{ad:p.firma, aktif:true}]);
-        if(cr && cr[0]) {
-          cariler.push(cr[0]);
-          cariId = cr[0].id;
-          yeniSayisi++;
-          await dbPost('cari_aliases',[{cari_id:cariId, alias:p.firma, onaylandi:true, kaynak:'otomatik'}]);
-        }
-      } else {
-        // Alias yoksa ekle
-        var aliasVar = (window.cariAliases||[]).some(function(a){ return a.cari_id===cariId && a.alias===p.firma; });
-        if(!aliasVar && p.firma !== p.cariAd) {
-          var ar = await dbPost('cari_aliases',[{cari_id:cariId, alias:p.firma, onaylandi:true, kaynak:'otomatik'}]);
-          if(ar && ar[0]) cariAliases.push(ar[0]);
+        if(cr && cr.ok) {
+          var yeniler = await dbGet('cariler','ad=eq.'+encodeURIComponent(p.firma)+'&order=id.desc&limit=1');
+          if(Array.isArray(yeniler) && yeniler.length) {
+            cariler.push(yeniler[0]);
+            cariId = yeniler[0].id;
+            yeniSayisi++;
+          }
         }
       }
 
       if(cariId) {
-        firmaMap[p.firma] = cariId;
-        // Bu firmaya ait tüm faturalara cari_id ata
-        var hedefFaturalar = (window.faturalar||[]).filter(function(f){
-          return !f.cari_id && f.firma && f.firma.trim()===p.firma;
+        // Alias ekle — in-memory'ye de push et
+        var aliasVar = (window.cariAliases||[]).some(function(a){
+          return a.cari_id===cariId && a.alias===p.firma;
         });
-        for(var j = 0; j < hedefFaturalar.length; j++) {
-          await dbPatch('faturalar','id',hedefFaturalar[j].id,{cari_id:cariId});
-          hedefFaturalar[j].cari_id = cariId;
-          esToplam++;
+        if(!aliasVar) {
+          var ar = await dbPost('cari_aliases',[{cari_id:cariId, alias:p.firma, onaylandi:true, kaynak:'otomatik'}]);
+          if(ar && ar.ok) cariAliases.push({cari_id:cariId, alias:p.firma, onaylandi:true, kaynak:'otomatik'});
         }
+        esToplam += p.faturaSayisi;
       }
-    } catch(e) { hataSayisi++; }
+    } catch(e) { hataSayisi++; console.error('fatEsles hata:', p.firma, e); }
   }
 
-  await carilerYukle();
+  await carilerYukle(); // cariAliases'ı DB'den tazele
   doldurCariDropdownlari();
   renderCariler();
   renderEslesmemisFirmalar();
-  alert(esToplam+' fatura eşleştirildi.\n'+yeniSayisi+' yeni cari oluşturuldu.'+(hataSayisi?' '+hataSayisi+' hata.':''));
+  alert(esToplam+' kaydın firması eşleştirildi.\n'+yeniSayisi+' yeni cari oluşturuldu.'+(hataSayisi?' '+hataSayisi+' hata.':''));
 }
 
 // ---------- AÇILIŞ ----------
