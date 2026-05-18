@@ -222,22 +222,25 @@ function _cariKart(cari_id) {
   var toplamFatura  = fatList.reduce(function(s,f){ return s+Number(f.tutar||0); }, 0);
   var toplamOdeme   = odList.reduce(function(s,k){ return s+Number(k.tutar||0); }, 0);
   var bakiye        = toplamFatura - toplamOdeme;
+  var oneriler      = _onerilenKayitlar(cari_id, fatList);
 
-  // Önerilen eşleşmemiş kayıtlar
-  var oneriler = _onerilenKayitlar(cari_id, fatList);
-
-  var html = '<div style="border:1px solid #e5e7eb;border-radius:10px;margin-bottom:16px;overflow:hidden">';
-
-  // --- Başlık ---
-  html += '<div style="background:#f9fafb;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb">';
-  html += '<span style="font-weight:600;font-size:15px">'+htmlEsc(cadi)+'</span>';
-  html += '<div style="display:flex;align-items:center;gap:12px">';
-  // Bakiye badge
+  // Veri varsa kapalı başla, yoksa açık
+  var veriVar = fatList.length || odList.length || oneriler.length;
   var bakiyeRenk = bakiye > 0 ? '#dc2626' : (bakiye < 0 ? '#059669' : '#6b7280');
-  html += '<span style="font-size:13px;font-weight:700;color:'+bakiyeRenk+'">'+
-    (bakiye>0?'Borç: ':'Alacak: ')+para(Math.abs(bakiye))+'</span>';
-  html += '<button onclick="vdCariKaldir('+cari_id+')" style="font-size:12px;color:#9ca3af;background:none;border:1px solid #e5e7eb;border-radius:4px;padding:3px 10px;cursor:pointer">Takipten Çıkar</button>';
-  html += '</div></div>';
+
+  var html = '<details '+(veriVar?'':'open')+' style="border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px;overflow:hidden">';
+
+  // --- Summary (her zaman görünen başlık) ---
+  html += '<summary style="background:#f9fafb;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;border-bottom:1px solid #e5e7eb" onclick="this.parentElement.open&&event.stopPropagation&&null">';
+  html += '<span style="font-weight:600;font-size:14px">'+htmlEsc(cadi)+'</span>';
+  html += '<div style="display:flex;align-items:center;gap:10px" onclick="event.stopPropagation()">';
+  if(veriVar) {
+    html += '<span style="font-size:12px;font-weight:700;color:'+bakiyeRenk+'">'+
+      (bakiye>0?'Borç ':'')+(bakiye<0?'Alacak ':'')+para(Math.abs(bakiye))+'</span>';
+    html += '<span style="font-size:11px;color:#9ca3af">'+fatList.length+' fatura · '+odList.length+' ödeme</span>';
+  }
+  html += '<button onclick="event.stopPropagation();vdCariKaldir('+cari_id+')" style="font-size:11px;color:#9ca3af;background:none;border:1px solid #e5e7eb;border-radius:4px;padding:2px 8px;cursor:pointer">Çıkar</button>';
+  html += '</div></summary>';
 
   html += '<div style="padding:12px 16px">';
 
@@ -312,7 +315,7 @@ function _cariKart(cari_id) {
   html += '<button onclick="vadeEkle('+cari_id+')" style="padding:7px 14px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-weight:500">+ Manuel Vade</button>';
   html += '</div>';
 
-  html += '</div></div>';
+  html += '</div></details>';
   return html;
 }
 
