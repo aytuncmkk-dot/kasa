@@ -13,7 +13,7 @@ async function yukle(){
     var katList  = await dbGet('kategoriler','select=*&order=tur.asc,ad.asc');
     ortaklar     = await dbGet('ortaklar','select=*&order=hisse_yuzdesi.desc');
     cariVadeler    = await dbGetAll('cari_vadeler','select=*&order=vade_tarihi.asc');
-    cariHareketler = await dbGetAll('cari_hareketler','select=*&order=tarih.desc,id.desc');
+    try { cariHareketler = await dbGetAll('cari_hareketler','select=*&order=tarih.desc,id.desc'); } catch(e){ cariHareketler = []; }
     var cariList   = await dbGet('cariler','aktif=eq.true&order=ad.asc');
     cariler        = Array.isArray(cariList) ? cariList : [];
     gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
