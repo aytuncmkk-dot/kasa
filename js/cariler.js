@@ -248,6 +248,20 @@ async function aliasKaldir(aliasId){
   }catch(e){ alert('Hata: '+e.message); }
 }
 
+// Sessiz alias ekleme — hata/uyarı göstermez, zaten varsa atlar
+async function aliasAtaSessiz(firma, cariId) {
+  if(!firma || !cariId) return;
+  var firmaUp = firma.toUpperCase().trim();
+  var varMi = (window.cariAliases||[]).some(function(a){
+    return a.cari_id===Number(cariId) && a.alias && a.alias.toUpperCase().trim()===firmaUp;
+  });
+  if(varMi) return;
+  try{
+    var r = await dbPost('cari_aliases',[{cari_id:cariId, alias:firma, onaylandi:true, kaynak:'kayit'}]);
+    if(r && r.ok) cariAliases.push({cari_id:cariId, alias:firma, onaylandi:true, kaynak:'kayit'});
+  }catch(e){}
+}
+
 // Yeni cari + ilk alias (tek adımda)
 async function cariOlusturVeAta(hamIsim){
   var ad = prompt('Yeni cari adı:', hamIsim);

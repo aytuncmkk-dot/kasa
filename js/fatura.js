@@ -16,9 +16,10 @@ async function faturaKaydet(){
   var kdvTutar=parseFloat(document.getElementById('fat-kdv').value)||0;
   var cariEl=document.getElementById('fat-cari');
   var cariId=cariEl ? (Number(cariEl.value)||null) : null;
-  var yeni={tarih:tarih,firma:firma,fatura_no:document.getElementById('fat-no').value.trim(),vade:document.getElementById('fat-vade').value,kat:kat,aciklama:document.getElementById('fat-aciklama').value.trim(),tutar:tutar,kdv_tutar:kdvTutar,durum:'bekliyor',cari_id:cariId};
+  var yeni={tarih:tarih,firma:firma,fatura_no:document.getElementById('fat-no').value.trim(),vade:document.getElementById('fat-vade').value,kat:kat,aciklama:document.getElementById('fat-aciklama').value.trim(),tutar:tutar,kdv_tutar:kdvTutar,durum:'bekliyor'};
   var r=await dbPost('faturalar',[yeni]);
   if(!r.ok){alert('Fatura kayıt hatası: '+r.status);return;}
+  if(cariId && firma && typeof aliasAtaSessiz==='function') try{ await aliasAtaSessiz(firma, cariId); }catch(e){}
   try{ await auditLog('EKLE','faturalar',null,null,yeni,'Fatura kaydı'); }catch(e){}
   faturalar.unshift(yeni);
   ['fat-firma','fat-no','fat-vade','fat-aciklama','fat-tutar','fat-kdv'].forEach(function(id){document.getElementById(id).value='';});

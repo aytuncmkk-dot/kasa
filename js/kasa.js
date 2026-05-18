@@ -246,9 +246,10 @@ async function giderKaydet(){
   var kayitTur=(dagitimKatlar&&dagitimKatlar.some(function(k){return k.ad===kat;})) ? 'dagitim' : 'gider';
   var cariEl=document.getElementById('gi-cari');
   var cariId=(cariEl&&kayitTur==='gider') ? (Number(cariEl.value)||null) : null;
-  var r=await dbPost('kayitlar',[{tarih:tarih,tur:kayitTur,kat:kat,odeme:odeme,firma:firma,aciklama:aciklama,tutar:tutar,kisi_sayisi:0,fatura_var:false,cari_id:cariId}]);
-  try{ await auditLog('EKLE','kayitlar',null,null,{tarih:tarih,tur:kayitTur,kat:kat,tutar:tutar,firma:firma,aciklama:aciklama,cari_id:cariId},'Gider/Dagitim kaydı'); }catch(e){}
+  var r=await dbPost('kayitlar',[{tarih:tarih,tur:kayitTur,kat:kat,odeme:odeme,firma:firma,aciklama:aciklama,tutar:tutar,kisi_sayisi:0,fatura_var:false}]);
+  try{ await auditLog('EKLE','kayitlar',null,null,{tarih:tarih,tur:kayitTur,kat:kat,tutar:tutar,firma:firma,aciklama:aciklama},'Gider/Dagitim kaydı'); }catch(e){}
   if(!r.ok){alert('Kayıt hatası: '+r.status);return;}
+  if(cariId && firma && typeof aliasAtaSessiz==='function') try{ await aliasAtaSessiz(firma, cariId); }catch(e){}
   document.getElementById('gi-firma').value='';
   document.getElementById('gi-aciklama').value='';
   document.getElementById('gi-tutar').value='';

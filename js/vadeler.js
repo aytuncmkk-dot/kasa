@@ -113,9 +113,13 @@ function renderVadeBudget() {
   if(!el) return;
   var bugun = new Date(today+'T00:00:00');
 
-  // Sadece takip listesindeki carilerin faturalarından hesapla
+  // Takip listesindeki carilerin alias firma isimlerini topla
+  var _takipFirmaSet = {};
+  _vdTakipListesi.forEach(function(cid){
+    _cariIsimleri(cid).forEach(function(fn){ _takipFirmaSet[fn] = true; });
+  });
   var takipFaturalar = (window.faturalar||[]).filter(function(f){
-    return f.cari_id && _vdTakipListesi.indexOf(f.cari_id)!==-1 && f.durum!=='odendi';
+    return f.firma && _takipFirmaSet[f.firma.toUpperCase().trim()] && f.durum!=='odendi';
   });
 
   function topla(gun) {
@@ -160,13 +164,20 @@ function renderVadeBudget() {
 function renderVadeUyarilari() {
   var el = document.getElementById('vade-uyari-banner');
   if(!el) return;
+  _vdTakipYukle();
+  var _trackFirmaSet = {};
+  _vdTakipListesi.forEach(function(cid){
+    _cariIsimleri(cid).forEach(function(fn){ _trackFirmaSet[fn] = true; });
+  });
   var gecikmis = (window.faturalar||[]).filter(function(f){
-    if(f.durum==='odendi' || !f.cari_id) return false;
+    if(f.durum==='odendi') return false;
+    if(!f.firma || !_trackFirmaSet[f.firma.toUpperCase().trim()]) return false;
     var vt = f.vade || f.vade_tarihi;
     return vt && _vadeKalanGun(vt) < 0;
   });
   var buHafta = (window.faturalar||[]).filter(function(f){
-    if(f.durum==='odendi' || !f.cari_id) return false;
+    if(f.durum==='odendi') return false;
+    if(!f.firma || !_trackFirmaSet[f.firma.toUpperCase().trim()]) return false;
     var vt = f.vade || f.vade_tarihi;
     if(!vt) return false;
     var k = _vadeKalanGun(vt);
@@ -209,13 +220,15 @@ function renderVadeler() {
 function _cariKart(cari_id) {
   var cadi = _vadeCariAdi(cari_id);
 
-  // cari_id ile doğrudan bağlı faturalar
-  var fatList = (window.faturalar||[]).filter(function(f){ return f.cari_id===cari_id; });
+  // Alias bazlı eşleşme — cari_id kolonu gerektirmez
+  var _firmaSet = _cariIsimleri(cari_id); // UPPERCASE firma isimleri dizisi
+  var fatList = (window.faturalar||[]).filter(function(f){
+    return f.firma && _firmaSet.indexOf(f.firma.toUpperCase().trim()) !== -1;
+  });
   fatList.sort(function(a,b){ return (a.vade||a.tarih) > (b.vade||b.tarih) ? 1 : -1; });
 
-  // cari_id ile doğrudan bağlı gider kayıtları (ödemeler)
   var odList = (window.kayitlar||[]).filter(function(k){
-    return k.cari_id===cari_id && k.tur==='gider';
+    return k.tur==='gider' && k.firma && _firmaSet.indexOf(k.firma.toUpperCase().trim()) !== -1;
   });
   odList.sort(function(a,b){ return a.tarih > b.tarih ? 1 : -1; });
 
@@ -347,33 +360,37 @@ function _onerilenKayitlar(cari_id, fatList) {
   }
 
   return (window.kayitlar||[]).filter(function(k) {
-    if(k.cari_id)           return false; // zaten bağlı
     if(k.tur !== 'gider')   return false;
     if(dismissed[k.id])     return false;
     if(!k.firma)            return false;
 
     var firma = k.firma.toUpperCase().trim();
 
-    // 1. Alias tam eşleşmesi
-    if(aliases.indexOf(firma) !== -1) return true;
+    // Herhangi bir cariye alias ile bağlıysa atla
+    var eslenmisMi = (window.cariAliases||[]).some(function(a){
+      return a.alias && a.alias.toUpperCase().trim()===firma;
+    });
+    if(eslenmisMi) return false;
 
-    // 2. Cari isminden kelime içeriyorsa + tarih aralığında
+    // Cari isminden kelime içeriyorsa + tarih aralığında öner
     var kelimeEsles = kelimeler.some(function(w){
       return firma.indexOf(w.toUpperCase()) !== -1;
     });
     if(!kelimeEsles) return false;
     if(minTarih && maxTarih) return k.tarih >= minTarih && k.tarih <= maxTarih;
     return true;
-  }).slice(0, 20); // en fazla 20 öneri
+  }).slice(0, 20);
 }
 
 // ---- KAYIT BAĞLAMA ----
 
 async function kaydiCarieBagla(kayit_id, cari_id) {
-  await dbPatch('kayitlar', 'id', kayit_id, {cari_id: cari_id});
-  var idx = -1;
-  (window.kayitlar||[]).forEach(function(k,i){ if(k.id===kayit_id) idx=i; });
-  if(idx !== -1) kayitlar[idx].cari_id = cari_id;
+  var kayit = (window.kayitlar||[]).find(function(k){ return k.id===kayit_id; });
+  if(kayit && kayit.firma && typeof aliasAtaSessiz==='function') {
+    await aliasAtaSessiz(kayit.firma, cari_id);
+    // Alias listesini DB'den yenile
+    try{ var a=await dbGet('cari_aliases','order=alias.asc'); if(Array.isArray(a)) cariAliases=a; }catch(e){}
+  }
   renderVadeler();
   renderVadeBudget();
 }
