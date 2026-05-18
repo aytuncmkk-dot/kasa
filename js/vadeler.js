@@ -25,7 +25,35 @@ function _vdTakipKaydet() {
 function _vadeCariAdi(cari_id) {
   if(!window.cariler) return 'Cari #'+cari_id;
   var c = cariler.find(function(x){ return x.id===cari_id; });
-  return c ? c.ad : 'Cari #'+cari_id;
+  if(!c) return 'Cari #'+cari_id;
+  // Fatura kaynaklı resmi isim varsa onu tercih et
+  if(window.cariAliases) {
+    var resmiAliaslar = cariAliases.filter(function(a){
+      return a.cari_id===cari_id && a.alias && a.alias.trim() !== c.ad.trim();
+    });
+    if(resmiAliaslar.length) {
+      // otomatik (fatura bulk match) > fuzzy > manuel > kayit
+      var oncelik = ['otomatik','fuzzy','manuel','kayit'];
+      for(var oi=0; oi<oncelik.length; oi++) {
+        var grup = resmiAliaslar.filter(function(a){ return a.kaynak===oncelik[oi]; });
+        if(grup.length) return grup.sort(function(a,b){ return b.alias.length-a.alias.length; })[0].alias;
+      }
+    }
+  }
+  return c.ad;
+}
+
+async function cariAdDuzenle(cari_id) {
+  var mevcutAd = _vadeCariAdi(cari_id);
+  var yeniAd = prompt('Cari adını düzenle:', mevcutAd);
+  if(!yeniAd || !yeniAd.trim() || yeniAd.trim()===mevcutAd) return;
+  yeniAd = yeniAd.trim();
+  var r = await dbPatch('cariler','id',cari_id,{ad:yeniAd});
+  if(r && r.ok) {
+    var c = (window.cariler||[]).find(function(x){ return x.id===cari_id; });
+    if(c) c.ad = yeniAd;
+    _refreshCariKart(cari_id);
+  }
 }
 
 function _vadeKalanGun(vade_tarihi) {
@@ -268,7 +296,12 @@ function _cariKart(cari_id) {
 
   // --- Summary (başlık satırı) ---
   html += '<summary style="background:#f9fafb;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;border-bottom:1px solid #e5e7eb">';
+  html += '<div style="display:flex;align-items:center;gap:6px">';
   html += '<span style="font-weight:600;font-size:14px">'+htmlEsc(cadi)+'</span>';
+  var cariObj = (window.cariler||[]).find(function(x){return x.id===cari_id;});
+  if(cariObj && cariObj.ad !== cadi) html += '<span style="font-size:11px;color:#9ca3af">('+htmlEsc(cariObj.ad)+')</span>';
+  html += '<button onclick="event.stopPropagation();cariAdDuzenle('+cari_id+')" title="Cari adını düzenle" style="font-size:12px;background:none;border:none;color:#9ca3af;cursor:pointer;padding:0 2px;line-height:1">✏️</button>';
+  html += '</div>';
   html += '<div style="display:flex;align-items:center;gap:10px" onclick="event.stopPropagation()">';
   if(fatList.length || odList.length) {
     html += '<span style="font-size:12px;font-weight:700;color:'+bakiyeRenk+'">'+
