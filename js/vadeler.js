@@ -225,12 +225,17 @@ function _refreshCariKart(cari_id) {
   if(!el) { renderVadeler(); return; }
   var wasOpen = el.open;
   var scrollY = window.scrollY;
+  // Focus kaybı scroll-to-top tetikler — önce blur et
+  if(document.activeElement && el.contains(document.activeElement)) {
+    document.activeElement.blur();
+  }
   var tmpDiv = document.createElement('div');
   tmpDiv.innerHTML = _cariKart(Number(cari_id));
   var newEl = tmpDiv.firstElementChild;
   if(wasOpen) newEl.setAttribute('open', '');
   el.parentNode.replaceChild(newEl, el);
-  window.scrollTo(0, scrollY);
+  // rAF: browser reflow tamamlanınca scroll restore et
+  requestAnimationFrame(function(){ window.scrollTo(0, scrollY); });
   renderVadeBudget();
 }
 
