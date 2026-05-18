@@ -12,9 +12,10 @@ async function yukle(){
     stokHareketleri = await dbGetAll('stok_hareketler','select=*&order=tarih.desc,id.desc');
     var katList  = await dbGet('kategoriler','select=*&order=tur.asc,ad.asc');
     ortaklar     = await dbGet('ortaklar','select=*&order=hisse_yuzdesi.desc');
-    cariVadeler  = await dbGetAll('cari_vadeler','select=*&order=vade_tarihi.asc');
-    var cariList = await dbGet('cariler','aktif=eq.true&order=ad.asc');
-    cariler      = Array.isArray(cariList) ? cariList : [];
+    cariVadeler    = await dbGetAll('cari_vadeler','select=*&order=vade_tarihi.asc');
+    cariHareketler = await dbGetAll('cari_hareketler','select=*&order=tarih.desc,id.desc');
+    var cariList   = await dbGet('cariler','aktif=eq.true&order=ad.asc');
+    cariler        = Array.isArray(cariList) ? cariList : [];
     gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
     giderKatlar   = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
     dagitimKatlar = katList.filter(function(x){return x.tur==='dagitim';}).map(function(x){return {id:x.id,ad:x.ad};});
