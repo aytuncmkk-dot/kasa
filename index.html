@@ -802,17 +802,20 @@
   <!-- VADE ÖZETİ -->
   <div id="vd-budget"></div>
 
-  <!-- CARİ SEÇİCİ -->
-  <div style="margin-bottom:16px;max-width:400px">
-    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Cari Seç</label>
-    <select id="vd-cari-sec" onchange="vdCariSecildi()" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff">
-      <option value="">— Cari seçin —</option>
-    </select>
+  <!-- CARİ TAKİBE AL -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;max-width:520px;align-items:flex-end">
+    <div style="flex:1">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Cari Ekle</label>
+      <select id="vd-cari-sec" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;background:#fff">
+        <option value="">— Cari seçin —</option>
+      </select>
+    </div>
+    <button onclick="vdCariEkle()" style="padding:9px 18px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:500;white-space:nowrap">Takibe Al</button>
   </div>
 
-  <!-- SEÇİLİ CARİ DETAY -->
+  <!-- TAKİP LİSTESİ -->
   <div id="vd-cariler-listesi"></div>
-  <div id="vd-empty" class="empty" style="display:block">Yukarıdan bir cari seçin.</div>
+  <div id="vd-empty" class="empty" style="display:block">Yukarıdan cari seçerek takibe alın.</div>
 
   <style>
     #pg-vadeler .field label{display:block;font-size:11px;color:#6b7280;margin-bottom:3px;font-weight:500}

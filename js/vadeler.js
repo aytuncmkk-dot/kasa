@@ -1,11 +1,23 @@
 // ============================================================
-// CARİ HESAP — Cari seçilince kayitlar+faturalar otomatik gelir
+// CARİ HESAP — Takip listesi localStorage'da kalır
 // Bağımlılık: db.js, utils.js, config.js
 // ============================================================
 
-var _vadeDuzId   = null;
-var _vadeOdemeId = null;
-var _vdSeciliCari = null;
+var _vdTakipListesi = [];   // cari_id array — kalıcı
+var _vadeOdemeId    = null;
+
+// ---- LOCALSTORAGE ----
+
+function _vdTakipYukle() {
+  try {
+    var raw = localStorage.getItem('kasa_vd_takip');
+    _vdTakipListesi = raw ? JSON.parse(raw) : [];
+  } catch(e) { _vdTakipListesi = []; }
+}
+
+function _vdTakipKaydet() {
+  localStorage.setItem('kasa_vd_takip', JSON.stringify(_vdTakipListesi));
+}
 
 // ---- YARDIMCILAR ----
 
@@ -29,13 +41,12 @@ function _vadeRenk(kalan, odendi) {
 }
 
 function _vadeKalanMetin(kalan, odendi) {
-  if(odendi)      return '—';
+  if(odendi)      return 'Ödendi';
   if(kalan < 0)   return Math.abs(kalan)+' gün geçti';
   if(kalan === 0) return 'Bugün!';
   return kalan+' gün kaldı';
 }
 
-// Cari için eşleşen tüm firma isimleri
 function _cariIsimleri(cari_id) {
   var set = {};
   if(window.cariler) {
@@ -50,14 +61,6 @@ function _cariIsimleri(cari_id) {
   return Object.keys(set);
 }
 
-function _cariKayitlar(cari_id) {
-  var isimleri = _cariIsimleri(cari_id);
-  if(!isimleri.length) return [];
-  return (window.kayitlar||[]).filter(function(k){
-    return k.firma && isimleri.indexOf(k.firma.toUpperCase().trim())!==-1;
-  });
-}
-
 function _cariFaturalar(cari_id) {
   var isimleri = _cariIsimleri(cari_id);
   if(!isimleri.length) return [];
@@ -69,14 +72,10 @@ function _cariFaturalar(cari_id) {
 // ---- SEKME AÇILIŞI ----
 
 function vadeSecmeAc() {
+  _vdTakipYukle();
   _vdCariDropdownDoldur();
   renderVadeBudget();
-  // Önceden seçili cari varsa koru
-  if(_vdSeciliCari) {
-    var el = document.getElementById('vd-cari-sec');
-    if(el) el.value = _vdSeciliCari;
-    renderVadeler();
-  }
+  renderVadeler();
 }
 
 function _vdCariDropdownDoldur() {
@@ -89,331 +88,277 @@ function _vdCariDropdownDoldur() {
     .map(function(c){ return '<option value="'+c.id+'">'+htmlEsc(c.ad)+'</option>'; })
     .join('');
   el.innerHTML = bos+opts;
-  if(_vdSeciliCari) el.value = _vdSeciliCari;
 }
 
-function vdCariSecildi() {
+// ---- TAKİP LISTESI YÖNETİMİ ----
+
+function vdCariEkle() {
   var el = document.getElementById('vd-cari-sec');
-  _vdSeciliCari = el ? (Number(el.value)||null) : null;
+  var id = el ? Number(el.value) : 0;
+  if(!id) return;
+  if(_vdTakipListesi.indexOf(id) === -1) {
+    _vdTakipListesi.push(id);
+    _vdTakipKaydet();
+  }
+  if(el) el.value = '';
   renderVadeler();
+  renderVadeBudget();
 }
 
-// ---- VADE BUDGET (tüm vadeler özeti) ----
+function vdCariKaldir(cari_id) {
+  _vdTakipListesi = _vdTakipListesi.filter(function(x){ return x !== cari_id; });
+  _vdTakipKaydet();
+  renderVadeler();
+  renderVadeBudget();
+}
+
+// ---- BUDGET (genel özet) ----
 
 function renderVadeBudget() {
   var el = document.getElementById('vd-budget');
   if(!el) return;
   var bugun = new Date(today+'T00:00:00');
 
+  var tumVadeler = (window.cariVadeler||[]).filter(function(v){ return !v.odendi; });
+  var fatVadeler = (window.faturalar||[]).filter(function(f){ return f.vade_tarihi; });
+
   function topla(gun) {
-    return (window.cariVadeler||[]).filter(function(v) {
-      if(v.odendi) return false;
-      var vt = new Date(v.vade_tarihi+'T00:00:00');
-      return vt <= new Date(bugun.getTime() + gun*86400000);
-    });
+    var limit = new Date(bugun.getTime() + gun * 86400000);
+    var vSum = tumVadeler.filter(function(v){
+      return new Date(v.vade_tarihi+'T00:00:00') <= limit;
+    }).reduce(function(s,v){ return s+Number(v.tutar); }, 0);
+    var fSum = fatVadeler.filter(function(f){
+      return new Date(f.vade_tarihi+'T00:00:00') <= limit;
+    }).reduce(function(s,f){ return s+Number(f.tutar||0); }, 0);
+    return vSum + fSum;
   }
 
+  var gecVad = tumVadeler.filter(function(v){ return _vadeKalanGun(v.vade_tarihi) < 0; });
+  var gecFat = fatVadeler.filter(function(f){ return _vadeKalanGun(f.vade_tarihi) < 0; });
+  var gecToplam = gecVad.reduce(function(s,v){ return s+Number(v.tutar); }, 0) +
+                  gecFat.reduce(function(s,f){ return s+Number(f.tutar||0); }, 0);
+  var gecSay = gecVad.length + gecFat.length;
+
+  var cards = '';
+  if(gecSay) {
+    cards += '<div class="ok" style="flex:1;min-width:140px;border-top:3px solid #dc2626;background:#fef2f2">'+
+      '<div class="ok-label" style="color:#991b1b">GECİKMİŞ</div>'+
+      '<div class="ok-val" style="color:#dc2626">'+para(gecToplam)+'</div>'+
+      '<div style="font-size:11px;color:#991b1b;margin-top:3px">'+gecSay+' ödeme</div>'+
+    '</div>';
+  }
   function kart(baslik, gun, renk) {
-    var liste  = topla(gun);
-    var toplam = liste.reduce(function(s,v){ return s+Number(v.tutar); }, 0);
-    if(!liste.length) return '';
-    return '<div class="ok" style="flex:1;min-width:120px;border-top:3px solid '+renk+'">'+
+    var t = topla(gun);
+    if(!t) return '';
+    return '<div class="ok" style="flex:1;min-width:140px;border-top:3px solid '+renk+'">'+
       '<div class="ok-label">'+baslik+'</div>'+
-      '<div class="ok-val rc">'+para(toplam)+'</div>'+
-      '<div style="font-size:11px;color:#6b7280;margin-top:3px">'+liste.length+' vade</div>'+
+      '<div class="ok-val rc">'+para(t)+'</div>'+
     '</div>';
   }
+  cards += kart('30 Gün Vade', 30, '#f59e0b') + kart('60 Gün Vade', 60, '#3b82f6') + kart('90 Gün Vade', 90, '#6b7280');
 
-  var gecikmis = (window.cariVadeler||[]).filter(function(v){
-    return !v.odendi && _vadeKalanGun(v.vade_tarihi) < 0;
-  });
-  var gecikmisDeg = gecikmis.reduce(function(s,v){ return s+Number(v.tutar); }, 0);
-  var gecHTML = gecikmis.length
-    ? '<div class="ok" style="flex:1;min-width:120px;border-top:3px solid #dc2626;background:#fef2f2">'+
-        '<div class="ok-label" style="color:#991b1b">GECİKMİŞ</div>'+
-        '<div class="ok-val" style="color:#dc2626">'+para(gecikmisDeg)+'</div>'+
-        '<div style="font-size:11px;color:#991b1b;margin-top:3px">'+gecikmis.length+' ödeme</div>'+
-      '</div>'
-    : '';
-
-  var html = gecHTML + kart('30 Gün', 30, '#f59e0b') + kart('60 Gün', 60, '#3b82f6') + kart('90 Gün', 90, '#6b7280');
-  el.style.display = html ? 'block' : 'none';
-  el.innerHTML = html
-    ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'+html+'</div>'
-    : '';
-}
-
-// ---- SEÇİLİ CARİ DETAY ----
-
-function renderVadeler() {
-  var el  = document.getElementById('vd-cariler-listesi');
-  var emp = document.getElementById('vd-empty');
-  if(!el) return;
-
-  if(!_vdSeciliCari) {
-    el.innerHTML = '';
-    if(emp){ emp.style.display='block'; emp.textContent='Yukarıdan bir cari seçin.'; }
-    return;
-  }
-  if(emp) emp.style.display = 'none';
-
-  el.innerHTML = _hesapBolumu(_vdSeciliCari) +
-    '<div style="border-top:1px solid #e5e7eb;margin:16px 0"></div>' +
-    _vadeBolumu(_vdSeciliCari);
-}
-
-// ---- HESAP BÖLÜMü ----
-
-function _hesapBolumu(cari_id) {
-  var kayitlar_c  = _cariKayitlar(cari_id);
-  var faturalar_c = _cariFaturalar(cari_id);
-
-  var gelir = kayitlar_c.filter(function(k){ return k.tur==='gelir'; })
-    .reduce(function(s,k){ return s+Number(k.tutar); }, 0);
-  var gider = kayitlar_c.filter(function(k){ return k.tur==='gider'; })
-    .reduce(function(s,k){ return s+Number(k.tutar); }, 0);
-  var fatToplam   = faturalar_c.reduce(function(s,f){ return s+Number(f.tutar); }, 0);
-  var fatBekleyen = faturalar_c.filter(function(f){ return !f.odendi_mi; })
-    .reduce(function(s,f){ return s+Number(f.tutar); }, 0);
-
-  var ozet = '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">';
-  if(gider) ozet +=
-    '<div style="flex:1;min-width:110px;background:#fef2f2;border-radius:8px;padding:10px 14px">'+
-      '<div style="font-size:11px;color:#991b1b;font-weight:600;margin-bottom:2px">TOPLAM ÖDEME</div>'+
-      '<div style="font-size:18px;font-weight:700;color:#dc2626">'+para(gider)+'</div>'+
-      '<div style="font-size:10px;color:#9ca3af">'+kayitlar_c.filter(function(k){return k.tur==='gider';}).length+' kayıt</div>'+
-    '</div>';
-  if(gelir) ozet +=
-    '<div style="flex:1;min-width:110px;background:#f0fdf4;border-radius:8px;padding:10px 14px">'+
-      '<div style="font-size:11px;color:#065f46;font-weight:600;margin-bottom:2px">TOPLAM TAHSİLAT</div>'+
-      '<div style="font-size:18px;font-weight:700;color:#059669">'+para(gelir)+'</div>'+
-      '<div style="font-size:10px;color:#9ca3af">'+kayitlar_c.filter(function(k){return k.tur==='gelir';}).length+' kayıt</div>'+
-    '</div>';
-  if(faturalar_c.length) ozet +=
-    '<div style="flex:1;min-width:110px;background:#eff6ff;border-radius:8px;padding:10px 14px">'+
-      '<div style="font-size:11px;color:#1e40af;font-weight:600;margin-bottom:2px">FATURA TOPLAM</div>'+
-      '<div style="font-size:18px;font-weight:700;color:#1d4ed8">'+para(fatToplam)+'</div>'+
-      '<div style="font-size:10px;color:'+(fatBekleyen>0?'#dc2626':'#9ca3af')+'">'+(fatBekleyen>0?para(fatBekleyen)+' bekliyor':faturalar_c.length+' fatura')+'</div>'+
-    '</div>';
-  ozet += '</div>';
-
-  if(!kayitlar_c.length && !faturalar_c.length) {
-    ozet = '<div style="color:#9ca3af;font-size:13px;padding:12px 0">Bu cari için kayıt bulunamadı.</div>';
-  }
-
-  // Kayıt tablosu (tamamı, tarih sıralı)
-  var sirali = kayitlar_c.slice().sort(function(a,b){
-    return b.tarih<a.tarih?-1:b.tarih>a.tarih?1:0;
-  });
-
-  var satirlar = sirali.map(function(k){
-    var renk = k.tur==='gelir'?'#059669':'#dc2626';
-    var isaret = k.tur==='gelir'?'+':'-';
-    return '<tr>'+
-      '<td style="font-size:12px;white-space:nowrap">'+fmtT(k.tarih)+'</td>'+
-      '<td style="font-size:12px">'+htmlEsc(k.kat||'—')+'</td>'+
-      '<td style="font-size:12px;color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(k.aciklama?htmlEsc(k.aciklama):'—')+'</td>'+
-      '<td style="text-align:right;font-weight:600;color:'+renk+';white-space:nowrap">'+isaret+' '+para(k.tutar)+'</td>'+
-    '</tr>';
-  }).join('');
-
-  var tablo = sirali.length
-    ? '<div style="overflow-x:auto">'+
-        '<table class="table" style="width:100%;font-size:12px">'+
-        '<thead><tr><th>Tarih</th><th>Kategori</th><th>Açıklama</th><th style="text-align:right">Tutar</th></tr></thead>'+
-        '<tbody>'+satirlar+'</tbody>'+
-        '</table>'+
-      '</div>'
-    : '';
-
-  return '<div>'+
-    '<div style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Hesap Özeti</div>'+
-    ozet+tablo+
-  '</div>';
-}
-
-// ---- VADE BÖLÜMÜ ----
-
-function _vadeBolumu(cari_id) {
-  var vadeler = (window.cariVadeler||[]).filter(function(v){ return v.cari_id===cari_id; });
-  var sirali  = vadeler.slice().sort(function(a,b){
-    if(a.odendi!==b.odendi) return a.odendi?1:-1;
-    return a.vade_tarihi<b.vade_tarihi?-1:a.vade_tarihi>b.vade_tarihi?1:0;
-  });
-
-  var satirlar = sirali.map(function(v) {
-    var kalan = _vadeKalanGun(v.vade_tarihi);
-    var renk  = _vadeRenk(kalan, v.odendi);
-    return '<tr style="'+(renk.bg?'background:'+renk.bg:'')+'">'+
-      '<td style="font-size:12px;white-space:nowrap">'+fmtT(v.vade_tarihi)+'</td>'+
-      '<td style="text-align:right;font-weight:500;color:'+(v.odendi?'#9ca3af':'#1a1a1a')+'">'+para(v.tutar)+'</td>'+
-      '<td style="color:'+renk.text+';font-size:12px;font-weight:500;white-space:nowrap">'+_vadeKalanMetin(kalan, v.odendi)+'</td>'+
-      '<td style="color:#888;font-size:12px">'+(v.fatura_no||'—')+'</td>'+
-      '<td style="color:#888;font-size:12px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(v.aciklama||'—')+'</td>'+
-      '<td>'+
-        (v.odendi
-          ? '<span style="background:#E1F5EE;color:#0F6E56;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:600">✓ Ödendi</span>'
-          : '<button onclick="vadeOdendiAc('+v.id+')" class="btn btn-g" style="font-size:11px;padding:2px 7px">Ödendi</button>')+
-      '</td>'+
-      '<td style="white-space:nowrap">'+
-        '<button onclick="vadeDuzenle('+v.id+')" style="background:none;border:none;cursor:pointer;color:#185FA5;font-size:12px;padding:2px 4px">✏️</button>'+
-        (!v.odendi?'<button onclick="vadeSil('+v.id+')" style="background:none;border:none;cursor:pointer;color:#D85A30;font-size:12px;padding:2px 4px">🗑️</button>':'')+
-      '</td>'+
-    '</tr>';
-  }).join('');
-
-  var tablo = sirali.length
-    ? '<div style="overflow-x:auto;margin-bottom:12px">'+
-        '<table class="table" style="width:100%;min-width:440px;font-size:12px">'+
-        '<thead><tr><th>Vade Tarihi</th><th style="text-align:right">Tutar</th><th>Durum</th><th>Fatura No</th><th>Açıklama</th><th>Ödeme</th><th></th></tr></thead>'+
-        '<tbody>'+satirlar+'</tbody>'+
-        '</table>'+
-      '</div>'
-    : '<div style="color:#9ca3af;font-size:12px;margin-bottom:12px">Bu cari için vade kaydı yok.</div>';
-
-  return '<div>'+
-    '<div style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Vade Takibi</div>'+
-    tablo+
-    '<div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:10px">'+
-    '<div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:6px">Yeni Vade Ekle</div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">'+
-    '<div class="field"><label>Tutar (TL) *</label><input type="number" id="vd-yt-'+cari_id+'" placeholder="0.00" min="0" step="0.01" style="width:100%"></div>'+
-    '<div class="field"><label>Vade (Gün) *</label><input type="number" id="vd-ygun-'+cari_id+'" placeholder="30" min="1" style="width:100%"></div>'+
-    '<div class="field"><label>Fatura No</label><input type="text" id="vd-yfat-'+cari_id+'" style="width:100%"></div>'+
-    '<div class="field"><label>Açıklama</label><input type="text" id="vd-yacik-'+cari_id+'" style="width:100%"></div>'+
-    '</div>'+
-    '<button class="btn btn-p" onclick="vadeEkle('+cari_id+')" style="margin-top:8px;font-size:12px">Vade Ekle</button>'+
-    '</div>'+
-  '</div>';
-}
-
-// ---- VADE EKLE ----
-
-async function vadeEkle(cari_id) {
-  var tutar = parseFloat(document.getElementById('vd-yt-'+cari_id).value);
-  var gun   = parseInt(document.getElementById('vd-ygun-'+cari_id).value);
-  var fatno = document.getElementById('vd-yfat-'+cari_id).value.trim();
-  var acik  = document.getElementById('vd-yacik-'+cari_id).value.trim();
-  if(isNaN(gun)||gun<1)      { alert('Kaç gün olduğunu girin (örn: 30).'); return; }
-  if(isNaN(tutar)||tutar<=0) { alert('Geçerli bir tutar girin.'); return; }
-  var vadeD = new Date(today+'T00:00:00');
-  vadeD.setDate(vadeD.getDate()+gun);
-  var tarih = ldStr(vadeD);
-  var r = await dbPost('cari_vadeler', {cari_id:cari_id, tutar:tutar, vade_tarihi:tarih, fatura_no:fatno||null, aciklama:acik||null});
-  if(!r||!r.ok){ alert('Kayıt hatası!'); return; }
-  cariVadeler = await dbGetAll('cari_vadeler','select=*&order=vade_tarihi.asc');
-  renderVadeBudget();
-  renderVadeler();
-  renderVadeUyarilari();
-  if(typeof renderCariler==='function') renderCariler();
+  if(!cards) { el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display = 'block';
+  el.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'+cards+'</div>';
 }
 
 // ---- UYARI BANNER ----
 
 function renderVadeUyarilari() {
   var el = document.getElementById('vade-uyari-banner');
-  if(!el||!window.cariVadeler) return;
-  var gecikmis = cariVadeler.filter(function(v){ return !v.odendi && _vadeKalanGun(v.vade_tarihi)<0; });
-  var buHafta  = cariVadeler.filter(function(v){ var k=_vadeKalanGun(v.vade_tarihi); return !v.odendi&&k>=0&&k<=7; });
+  if(!el) return;
+  var gecikmis = (window.cariVadeler||[]).filter(function(v){
+    return !v.odendi && _vadeKalanGun(v.vade_tarihi) < 0;
+  });
+  var buHafta = (window.cariVadeler||[]).filter(function(v){
+    var k = _vadeKalanGun(v.vade_tarihi);
+    return !v.odendi && k >= 0 && k <= 7;
+  });
   var html = '';
   if(gecikmis.length) {
-    var gTop = gecikmis.reduce(function(s,v){ return s+Number(v.tutar); }, 0);
-    html += '<div class="uyari" style="margin-bottom:6px;cursor:pointer" onclick="switchTab(\'vadeler\')">'+
-      '⚠️ <strong>'+gecikmis.length+' ödemede '+para(gTop)+' gecikmiş vade var.</strong> '+
-      '<span style="text-decoration:underline;font-size:11px">Cari Hesap → </span></div>';
+    html += '<div class="uyari" style="margin-bottom:6px">'+gecikmis.length+' gecikmiş vade — Toplam: '+para(gecikmis.reduce(function(s,v){ return s+Number(v.tutar); },0))+'</div>';
   }
   if(buHafta.length) {
-    var hTop = buHafta.reduce(function(s,v){ return s+Number(v.tutar); }, 0);
-    html += '<div class="bilgi" style="margin-bottom:6px;cursor:pointer" onclick="switchTab(\'vadeler\')">'+
-      '🔔 Bu hafta <strong>'+buHafta.length+' vade</strong>: '+para(hTop)+
-      '<span style="text-decoration:underline;font-size:11px"> Detay → </span></div>';
+    html += '<div class="bilgi">Bu hafta '+buHafta.length+' vade geliyor — Toplam: '+para(buHafta.reduce(function(s,v){ return s+Number(v.tutar); },0))+'</div>';
   }
-  el.style.display = html?'block':'none';
+  el.style.display = html ? 'block' : 'none';
   el.innerHTML = html;
 }
 
-// ---- VADE DÜZENLE / SİL / ÖDENDİ ----
+// ---- ANA RENDER ----
 
-function _vadeDuzCariSelectDoldur() {
-  if(!window.cariler) return;
-  var bos  = '<option value="">— Cari seçin —</option>';
-  var opts = cariler.slice().sort(function(a,b){ return a.ad.localeCompare(b.ad,'tr'); })
-    .map(function(c){ return '<option value="'+c.id+'">'+htmlEsc(c.ad)+'</option>'; }).join('');
-  var el = document.getElementById('vd-duz-cari');
-  if(el) el.innerHTML = bos+opts;
+function renderVadeler() {
+  var el = document.getElementById('vd-cariler-listesi');
+  var em = document.getElementById('vd-empty');
+  if(!el) return;
+
+  if(!_vdTakipListesi.length) {
+    el.innerHTML = '';
+    if(em) { em.style.display='block'; em.textContent='Yukarıdan cari seçerek takibe alın.'; }
+    return;
+  }
+  if(em) em.style.display = 'none';
+
+  var html = '';
+  _vdTakipListesi.forEach(function(cari_id) {
+    html += _cariKart(Number(cari_id));
+  });
+  el.innerHTML = html;
 }
 
-function vadeDuzenle(id) {
-  var v = cariVadeler.find(function(x){ return x.id===id; });
-  if(!v) return;
-  _vadeDuzId = id;
-  _vadeDuzCariSelectDoldur();
-  document.getElementById('vd-duz-cari').value      = v.cari_id;
-  document.getElementById('vd-duz-tutar').value     = v.tutar;
-  document.getElementById('vd-duz-tarih').value     = v.vade_tarihi;
-  document.getElementById('vd-duz-fatura-no').value = v.fatura_no||'';
-  document.getElementById('vd-duz-aciklama').value  = v.aciklama||'';
-  document.getElementById('vd-duz-modal').classList.add('open');
+function _cariKart(cari_id) {
+  var cadi = _vadeCariAdi(cari_id);
+
+  // cari_vadeler (en yakın → geç, ödenenler sona)
+  var vadeler = (window.cariVadeler||[]).filter(function(v){ return v.cari_id===cari_id; });
+  vadeler.sort(function(a,b){
+    if(a.odendi !== b.odendi) return a.odendi ? 1 : -1;
+    return a.vade_tarihi > b.vade_tarihi ? 1 : -1;
+  });
+
+  // faturalar with vade_tarihi
+  var fatVadeler = _cariFaturalar(cari_id).filter(function(f){ return f.vade_tarihi; });
+  fatVadeler.sort(function(a,b){ return a.vade_tarihi > b.vade_tarihi ? 1 : -1; });
+
+  var html = '<div style="border:1px solid #e5e7eb;border-radius:10px;margin-bottom:14px;overflow:hidden">';
+
+  // Header
+  html += '<div style="background:#f9fafb;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb">';
+  html += '<span style="font-weight:600;font-size:15px">'+htmlEsc(cadi)+'</span>';
+  html += '<button onclick="vdCariKaldir('+cari_id+')" style="font-size:12px;color:#9ca3af;background:none;border:1px solid #e5e7eb;border-radius:4px;padding:3px 10px;cursor:pointer">Takipten Çıkar</button>';
+  html += '</div>';
+
+  html += '<div style="padding:12px 16px">';
+
+  // Fatura vadeleri
+  if(fatVadeler.length) {
+    html += '<div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Fatura Vadeleri</div>';
+    fatVadeler.forEach(function(f) {
+      var kalan = _vadeKalanGun(f.vade_tarihi);
+      var r = _vadeRenk(kalan, false);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;margin-bottom:3px;background:'+(r.bg||'#f9fafb')+'">';
+      html += '<span style="font-size:13px;color:'+r.text+'">'+fmtT(f.vade_tarihi);
+      if(f.belge_no) html += ' <span style="font-size:11px;color:#9ca3af">'+htmlEsc(f.belge_no)+'</span>';
+      html += '</span>';
+      html += '<div style="text-align:right">';
+      html += '<span style="font-size:13px;font-weight:600;color:'+r.text+'">'+para(f.tutar||0)+'</span>';
+      html += ' <span style="font-size:11px;color:'+r.text+'">'+_vadeKalanMetin(kalan, false)+'</span>';
+      html += '</div></div>';
+    });
+  }
+
+  // Manuel vadeler
+  if(vadeler.length) {
+    if(fatVadeler.length) html += '<div style="border-top:1px solid #f3f4f6;margin:10px 0 8px 0"></div>';
+    html += '<div style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Manuel Vadeler</div>';
+    vadeler.forEach(function(v) {
+      var kalan = _vadeKalanGun(v.vade_tarihi);
+      var r = _vadeRenk(kalan, v.odendi);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;margin-bottom:3px;background:'+(r.bg||'#f9fafb')+'">';
+      html += '<span style="font-size:13px;color:'+r.text+'">'+fmtT(v.vade_tarihi);
+      if(v.aciklama) html += ' <span style="font-size:11px;color:#9ca3af">'+htmlEsc(v.aciklama)+'</span>';
+      html += '</span>';
+      html += '<div style="display:flex;align-items:center;gap:8px">';
+      html += '<span style="font-size:13px;font-weight:600;color:'+r.text+'">'+para(v.tutar)+'</span>';
+      html += '<span style="font-size:11px;color:'+r.text+'">'+_vadeKalanMetin(kalan, v.odendi)+'</span>';
+      if(!v.odendi) html += '<button onclick="vadeOdendiAc('+v.id+')" style="font-size:11px;padding:2px 7px;background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;border-radius:4px;cursor:pointer">Ödendi</button>';
+      html += '<button onclick="vadeSil('+v.id+')" style="font-size:11px;padding:2px 6px;background:none;color:#dc2626;border:1px solid #fca5a5;border-radius:4px;cursor:pointer">×</button>';
+      html += '</div></div>';
+    });
+  }
+
+  if(!fatVadeler.length && !vadeler.length) {
+    html += '<div style="text-align:center;color:#9ca3af;font-size:13px;padding:12px 0">Vade kaydı yok</div>';
+  }
+
+  // Yeni vade ekle
+  html += '<div style="border-top:1px solid #f3f4f6;margin-top:10px;padding-top:10px;display:flex;gap:8px;align-items:flex-end">';
+  html += '<div class="field" style="flex:1"><label>Tutar (₺)</label><input type="number" id="vd-ytutar-'+cari_id+'" placeholder="0.00" step="0.01" min="0"></div>';
+  html += '<div class="field" style="flex:1"><label>Vade (gün)</label><input type="number" id="vd-ygun-'+cari_id+'" placeholder="30" min="1" max="365"></div>';
+  html += '<button onclick="vadeEkle('+cari_id+')" style="padding:7px 14px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-weight:500">+ Vade Ekle</button>';
+  html += '</div>';
+
+  html += '</div></div>';
+  return html;
 }
 
-function vadeDuzKapat() {
-  document.getElementById('vd-duz-modal').classList.remove('open');
-  _vadeDuzId = null;
+// ---- VADE CRUD ----
+
+function vadeEkle(cari_id) {
+  var tutarEl = document.getElementById('vd-ytutar-'+cari_id);
+  var gunEl   = document.getElementById('vd-ygun-'+cari_id);
+  if(!tutarEl || !gunEl) return;
+  var tutar = parseFloat(tutarEl.value);
+  var gun   = parseInt(gunEl.value, 10);
+  if(!tutar || tutar <= 0 || !gun || gun < 1) { alert('Tutar ve vade gün sayısı giriniz.'); return; }
+  var vadeTarihi = ldStr(new Date(Date.now() + gun * 86400000));
+  dbPost('cari_vadeler', {
+    cari_id: cari_id,
+    tip: 'borc',
+    tutar: tutar,
+    vade_tarihi: vadeTarihi,
+    odendi: false
+  }).then(function(r) {
+    if(r && r[0]) {
+      cariVadeler.push(r[0]);
+      tutarEl.value = '';
+      gunEl.value   = '';
+      renderVadeler();
+      renderVadeBudget();
+      renderVadeUyarilari();
+    }
+  });
 }
 
-async function vadeDuzKaydet() {
-  if(!_vadeDuzId) return;
-  var cari_id  = Number(document.getElementById('vd-duz-cari').value);
-  var tutar    = parseFloat(document.getElementById('vd-duz-tutar').value);
-  var tarih    = document.getElementById('vd-duz-tarih').value;
-  var fat_no   = document.getElementById('vd-duz-fatura-no').value.trim();
-  var aciklama = document.getElementById('vd-duz-aciklama').value.trim();
-  if(!cari_id||!tarih||isNaN(tutar)||tutar<=0){ alert('Zorunlu alanlar eksik.'); return; }
-  var gunc = {cari_id:cari_id, tutar:tutar, vade_tarihi:tarih, fatura_no:fat_no||null, aciklama:aciklama||null};
-  var r = await dbPatch('cari_vadeler','id',_vadeDuzId,gunc);
-  if(!r||!r.ok){ alert('Güncelleme hatası!'); return; }
-  var idx = cariVadeler.findIndex(function(x){ return x.id===_vadeDuzId; });
-  if(idx>=0) Object.assign(cariVadeler[idx], gunc);
-  vadeDuzKapat();
-  renderVadeBudget();
-  renderVadeler();
-  renderVadeUyarilari();
-}
-
-async function vadeSil(id) {
+function vadeSil(id) {
   if(!confirm('Bu vadeyi silmek istediğinize emin misiniz?')) return;
-  var r = await dbDelete('cari_vadeler','id',id);
-  if(!r||!r.ok){ alert('Silme hatası!'); return; }
-  cariVadeler = cariVadeler.filter(function(v){ return v.id!==id; });
-  renderVadeBudget();
-  renderVadeler();
-  renderVadeUyarilari();
+  dbDelete('cari_vadeler', 'id', id).then(function() {
+    cariVadeler = cariVadeler.filter(function(v){ return v.id !== id; });
+    renderVadeler();
+    renderVadeBudget();
+    renderVadeUyarilari();
+  });
 }
 
 function vadeOdendiAc(id) {
   _vadeOdemeId = id;
-  document.getElementById('vd-odm-tarih').value = today;
-  document.getElementById('vd-odm-not').value   = '';
-  document.getElementById('vd-odm-modal').classList.add('open');
+  var modal = document.getElementById('vd-odm-modal');
+  if(modal) {
+    var dtEl = document.getElementById('vd-odm-tarih');
+    if(dtEl) dtEl.value = today;
+    var ntEl = document.getElementById('vd-odm-not');
+    if(ntEl) ntEl.value = '';
+    modal.classList.add('open');
+  }
 }
 
 function vadeOdemeKapat() {
-  document.getElementById('vd-odm-modal').classList.remove('open');
+  var modal = document.getElementById('vd-odm-modal');
+  if(modal) modal.classList.remove('open');
   _vadeOdemeId = null;
 }
 
-async function vadeOdemeKaydet() {
+function vadeOdemeKaydet() {
   if(!_vadeOdemeId) return;
-  var tarih = document.getElementById('vd-odm-tarih').value;
-  var not   = document.getElementById('vd-odm-not').value.trim();
-  if(!tarih){ alert('Ödeme tarihi zorunludur.'); return; }
-  var gunc = {odendi:true, odeme_tarihi:tarih, odeme_notu:not||null};
-  var r = await dbPatch('cari_vadeler','id',_vadeOdemeId,gunc);
-  if(!r||!r.ok){ alert('Güncelleme hatası!'); return; }
-  var idx = cariVadeler.findIndex(function(x){ return x.id===_vadeOdemeId; });
-  if(idx>=0) Object.assign(cariVadeler[idx], gunc);
-  vadeOdemeKapat();
-  renderVadeBudget();
-  renderVadeler();
-  renderVadeUyarilari();
+  var dtEl = document.getElementById('vd-odm-tarih');
+  var ntEl = document.getElementById('vd-odm-not');
+  var odTarih = dtEl ? dtEl.value : today;
+  var not     = ntEl ? ntEl.value.trim() : '';
+  dbPatch('cari_vadeler', 'id', _vadeOdemeId, {
+    odendi: true,
+    odeme_tarihi: odTarih,
+    odeme_notu: not || null
+  }).then(function() {
+    var idx = -1;
+    cariVadeler.forEach(function(v,i){ if(v.id===_vadeOdemeId) idx=i; });
+    if(idx !== -1) {
+      cariVadeler[idx].odendi = true;
+      cariVadeler[idx].odeme_tarihi = odTarih;
+      cariVadeler[idx].odeme_notu = not || null;
+    }
+    vadeOdemeKapat();
+    renderVadeler();
+    renderVadeBudget();
+    renderVadeUyarilari();
+  });
 }
