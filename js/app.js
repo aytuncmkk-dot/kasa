@@ -16,6 +16,8 @@ async function yukle(){
     try { cariHareketler = await dbGetAll('cari_hareketler','select=*&order=tarih.desc,id.desc'); } catch(e){ cariHareketler = []; }
     var cariList   = await dbGet('cariler','aktif=eq.true&order=ad.asc');
     cariler        = Array.isArray(cariList) ? cariList : [];
+    var aliasList  = await dbGet('cari_aliases','select=*');
+    cariAliases    = Array.isArray(aliasList) ? aliasList : [];
     gelirKatlar   = katList.filter(function(x){return x.tur==='gelir';}).map(function(x){return {id:x.id,ad:x.ad};});
     giderKatlar   = katList.filter(function(x){return x.tur==='gider';}).map(function(x){return {id:x.id,ad:x.ad};});
     dagitimKatlar = katList.filter(function(x){return x.tur==='dagitim';}).map(function(x){return {id:x.id,ad:x.ad};});
