@@ -22,9 +22,9 @@ function _fatBaslangicKaydet(tarih) {
 }
 
 function _fatEslBagli(fatura_id) {
-  return (window.borcOdemeler||[]).filter(function(e){
-    return Number(e.fatura_id) === Number(fatura_id) && e.onaylandi !== false;
-  });
+  var f = (window.faturalar||[]).find(function(x){ return Number(x.id) === Number(fatura_id); });
+  if(!f || !f.odeme_kayit_id) return [];
+  return [{ id: fatura_id, fatura_id: fatura_id, kayit_id: f.odeme_kayit_id, odeme_tutari: f.tutar }];
 }
 
 function _fatKalan(fatura_id, fatura_tutar) {
@@ -169,36 +169,24 @@ function _gunFarki(t1, t2) {
 // ---- CRUD ----
 
 async function fatEslBagla(fatura_id, kayit_id, odeme_tutari, kaynak) {
-  kaynak = kaynak || 'manuel';
-  var data = {
-    fatura_id: fatura_id,
-    kayit_id:  kayit_id,
-    odeme_tutari: odeme_tutari,
-    onaylandi: true,
-    kaynak: kaynak
-  };
   try {
-    var r = await dbPost('fatura_odeme_eslestirme', data);
+    var r = await dbPatch('faturalar', 'id', fatura_id, { odeme_kayit_id: kayit_id, odendi_mi: true });
     if(r && r.ok) {
-      var fresh = await dbGet('fatura_odeme_eslestirme',
-        'fatura_id=eq.'+fatura_id+'&kayit_id=eq.'+kayit_id+'&order=id.desc&limit=1');
-      if(Array.isArray(fresh) && fresh.length) {
-        borcOdemeler.push(fresh[0]);
-      } else {
-        borcOdemeler.push(Object.assign({ id: Date.now() }, data));
-      }
+      var f = (window.faturalar||[]).find(function(x){ return Number(x.id) === Number(fatura_id); });
+      if(f) { f.odeme_kayit_id = kayit_id; f.odendi_mi = true; }
       return true;
     }
     return false;
   } catch(e) { console.error('fatEslBagla hata:', e); return false; }
 }
 
-async function fatEslCoz(esl_id) {
-  if(!confirm('Bu eşleştirmeyi kaldırmak istiyor musunuz?')) return;
+async function fatEslCoz(fatura_id) {
+  if(!confirm('Bu eşleştirmeyi kaldırmak istiyor musunuz?')) return false;
   try {
-    var r = await dbDelete('fatura_odeme_eslestirme', 'id', esl_id);
+    var r = await dbPatch('faturalar', 'id', fatura_id, { odeme_kayit_id: null, odendi_mi: false });
     if(r && r.ok) {
-      borcOdemeler = (window.borcOdemeler||[]).filter(function(e){ return e.id !== esl_id; });
+      var f = (window.faturalar||[]).find(function(x){ return Number(x.id) === Number(fatura_id); });
+      if(f) { f.odeme_kayit_id = null; f.odendi_mi = false; }
       return true;
     }
     return false;
@@ -207,21 +195,11 @@ async function fatEslCoz(esl_id) {
 
 // ---- MODAL: FATURA ÖDEME BAĞLAMA ----
 
-async function fatEslModalAc(fatura_id, cari_id) {
+function fatEslModalAc(fatura_id, cari_id) {
   _fatEslModalFaturaId = fatura_id;
   _fatEslModalCariId   = cari_id;
   var m = document.getElementById('fat-esl-modal');
   if(m) m.classList.add('open');
-  // DB'den bu faturanın bağlantılarını tazele (in-memory stale olabilir)
-  try {
-    var fresh = await dbGet('fatura_odeme_eslestirme', 'fatura_id=eq.'+fatura_id+'&select=*');
-    if(Array.isArray(fresh)) {
-      borcOdemeler = (window.borcOdemeler||[]).filter(function(e){
-        return Number(e.fatura_id) !== Number(fatura_id);
-      });
-      borcOdemeler = borcOdemeler.concat(fresh);
-    }
-  } catch(e) { console.error('borcOdemeler sync hata:', e); }
   _fatEslModalDoldur();
 }
 
@@ -305,11 +283,11 @@ function _fatEslModalDoldur() {
       var k = o.kayit;
       var renk = o.skor >= 60 ? '#059669' : (o.skor >= 35 ? '#d97706' : '#9ca3af');
 
-      // Bu ödeme başka faturalara ne kadar bağlandı?
-      var digerBagli = (window.borcOdemeler||[]).filter(function(e){
-        return Number(e.kayit_id) === Number(k.id) && Number(e.fatura_id) !== Number(fatura_id);
+      // Bu ödeme başka faturaya bağlı mı?
+      var digerFat = (window.faturalar||[]).find(function(fat){
+        return Number(fat.odeme_kayit_id) === Number(k.id) && Number(fat.id) !== Number(fatura_id);
       });
-      var digerToplam = digerBagli.reduce(function(s,e){ return s+Number(e.odeme_tutari||e.tutar||0); }, 0);
+      var digerToplam = digerFat ? Number(digerFat.tutar||0) : 0;
       var kullanilabilir = Number(k.tutar) - digerToplam;
 
       oneriHtml += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f9fafb;border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid #e5e7eb">';
@@ -346,10 +324,8 @@ function _fatEslModalDoldur() {
   var giderler = (window.kayitlar||[]).filter(function(k){
     if(k.tur !== 'gider') return false;
     if(k.tarih < _addDays(fatura.tarih || _fatBaslangic, -30)) return false;
-    var baglimi = (window.borcOdemeler||[]).some(function(e){
-      return Number(e.fatura_id)===fatura_id && Number(e.kayit_id)===k.id;
-    });
-    if(baglimi) return false;
+    // Bu faturaya zaten bağlıysa çıkar
+    if(fatura.odeme_kayit_id && Number(fatura.odeme_kayit_id) === Number(k.id)) return false;
     return true;
   }).sort(function(a,b){ return b.tarih > a.tarih ? 1 : -1; });
 
@@ -440,7 +416,7 @@ async function fatEslOnaylaSecililer() {
   _refreshCariKart(cari_id);
   renderHaftalikOzet();
   if(basarili) _fatModalMesaj(basarili + ' ödeme bağlandı.', 'ok');
-  else if(hata) _fatModalMesaj('Kayıtlar zaten bağlı.', 'uyari');
+  else if(hata) _fatModalMesaj('Bağlama başarısız — tekrar deneyin.', 'uyari');
 }
 
 async function fatEslCozVeYenile(esl_id, fatura_id, cari_id) {

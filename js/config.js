@@ -28,7 +28,6 @@ var SB_H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'B
 // State (uygulama verisi)
 var kayitlar = [], faturalar = [], fonHareketler = [];
 var stoklar = [], stokHareketleri = [], avansHareketler = [], cariVadeler = [], cariHareketler = [];
-var borcOdemeler = [];  // fatura ↔ ödeme eşleştirme (borc_odemeler tablosu)
 var gelirKatlar = [], giderKatlar = [], dagitimKatlar = [], ortaklar = [];
 var odemeSatirlari = [];
 var _duzId = null;
