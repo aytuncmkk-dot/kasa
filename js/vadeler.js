@@ -254,17 +254,18 @@ function renderVadeler() {
   var em = document.getElementById('vd-empty');
   if(!el) return;
 
-  var baslangic = (typeof _fatBaslangic !== 'undefined') ? _fatBaslangic : '2026-01-01';
+  var baslangic = (typeof _fatBaslangic !== 'undefined') ? _fatBaslangic : '2026-03-01';
 
-  // Fatura tarih aralığında faturası olan tüm cari id'leri bul
+  // Her cari için: tarih aralığında en az 1 fatura var mı?
+  // _cariIsimleri kullan — hem cari.ad hem alias eşleşmesi yapar
   var fatCariSet = {};
-  (window.faturalar||[]).forEach(function(f){
-    if(!f.firma || !f.tarih || f.tarih < baslangic) return;
-    // Bu firmayı hangi cari karşılıyor?
-    if(typeof _firmaCariId === 'function') {
-      var cid = _firmaCariId(f.firma.trim());
-      if(cid) fatCariSet[cid] = true;
-    }
+  (window.cariler||[]).forEach(function(c){
+    var isimler = _cariIsimleri(c.id);
+    var var_ = (window.faturalar||[]).some(function(f){
+      return f.firma && f.tarih && f.tarih >= baslangic &&
+             isimler.indexOf(f.firma.toUpperCase().trim()) !== -1;
+    });
+    if(var_) fatCariSet[c.id] = true;
   });
 
   // Takip listesindeki carileri de ekle (faturasız olabilir)
@@ -274,23 +275,25 @@ function renderVadeler() {
 
   if(!cariIds.length) {
     el.innerHTML = '';
-    if(em) { em.style.display='block'; em.textContent=baslangic+' tarihinden itibaren fatura bulunamadı.'; }
+    if(em) { em.style.display='block'; em.textContent=baslangic+' tarihinden itibaren eşleşen fatura bulunamadı.'; }
     return;
   }
   if(em) em.style.display = 'none';
 
   // Açık bakiyeye göre büyükten küçüğe sırala
   cariIds.sort(function(a, b){
-    var fatA = (window.faturalar||[]).filter(function(f){
-      var fn = _cariIsimleri(a);
-      return f.firma && fn.indexOf(f.firma.toUpperCase().trim()) !== -1 && f.tarih >= baslangic;
-    });
-    var fatB = (window.faturalar||[]).filter(function(f){
-      var fn = _cariIsimleri(b);
-      return f.firma && fn.indexOf(f.firma.toUpperCase().trim()) !== -1 && f.tarih >= baslangic;
-    });
-    var borA = fatA.reduce(function(s,f){ return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):0); }, 0);
-    var borB = fatB.reduce(function(s,f){ return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):0); }, 0);
+    var isimA = _cariIsimleri(a);
+    var isimB = _cariIsimleri(b);
+    var borA = (window.faturalar||[]).reduce(function(s,f){
+      if(!f.firma || !f.tarih || f.tarih < baslangic) return s;
+      if(isimA.indexOf(f.firma.toUpperCase().trim()) === -1) return s;
+      return s + (typeof _fatKalan==='function' ? _fatKalan(f.id,f.tutar) : 0);
+    }, 0);
+    var borB = (window.faturalar||[]).reduce(function(s,f){
+      if(!f.firma || !f.tarih || f.tarih < baslangic) return s;
+      if(isimB.indexOf(f.firma.toUpperCase().trim()) === -1) return s;
+      return s + (typeof _fatKalan==='function' ? _fatKalan(f.id,f.tutar) : 0);
+    }, 0);
     return borB - borA;
   });
 

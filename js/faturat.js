@@ -3,8 +3,12 @@
 // Bağımlılık: db.js, utils.js, config.js, cariler.js
 // ============================================================
 
-// Tarih filtresi — localStorage'dan başlat
-var _fatBaslangic = localStorage.getItem('kasa_fat_baslangic') || '2026-03-01';
+// Tarih filtresi — localStorage'dan başlat, gelecek tarih ise Mart'a sıfırla
+var _fatBaslangic = (function(){
+  var v = localStorage.getItem('kasa_fat_baslangic') || '2026-03-01';
+  if(v > '2026-04-30') { v = '2026-03-01'; localStorage.setItem('kasa_fat_baslangic', v); }
+  return v;
+}());
 
 // Modal durumu
 var _fatEslModalFaturaId = null;
