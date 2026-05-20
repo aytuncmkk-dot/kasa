@@ -4,6 +4,7 @@
 // ============================================================
 
 var _vdTakipListesi = [];   // localStorage'dan gelen cari_id array
+var _vdBlacklist    = [];   // Kullanıcı "Çıkar" ile gizlediği cari id'leri
 var _vadeOdemeId    = null;
 var _vadeDuzId      = null;
 var _cariHareketCariId = null;
@@ -17,10 +18,18 @@ function _vdTakipYukle() {
     var raw = localStorage.getItem('kasa_vd_takip');
     _vdTakipListesi = raw ? JSON.parse(raw) : [];
   } catch(e) { _vdTakipListesi = []; }
+  try {
+    var bl = localStorage.getItem('kasa_vd_blacklist');
+    _vdBlacklist = bl ? JSON.parse(bl) : [];
+  } catch(e) { _vdBlacklist = []; }
 }
 
 function _vdTakipKaydet() {
   localStorage.setItem('kasa_vd_takip', JSON.stringify(_vdTakipListesi));
+}
+
+function _vdBlacklistKaydet() {
+  localStorage.setItem('kasa_vd_blacklist', JSON.stringify(_vdBlacklist));
 }
 
 // ---- YARDIMCILAR ----
@@ -125,6 +134,9 @@ function vdCariEkle() {
   var el = document.getElementById('vd-cari-sec');
   var id = el ? Number(el.value) : 0;
   if(!id) return;
+  // Blacklist'ten çıkar (kullanıcı geri ekliyorsa)
+  _vdBlacklist = _vdBlacklist.filter(function(x){ return x !== id; });
+  _vdBlacklistKaydet();
   if(_vdTakipListesi.indexOf(id) === -1) {
     _vdTakipListesi.push(id);
     _vdTakipKaydet();
@@ -139,6 +151,10 @@ function vdCariEkle() {
 function vdCariKaldir(cari_id) {
   _vdTakipListesi = _vdTakipListesi.filter(function(x){ return x !== cari_id; });
   _vdTakipKaydet();
+  if(_vdBlacklist.indexOf(Number(cari_id)) === -1) {
+    _vdBlacklist.push(Number(cari_id));
+    _vdBlacklistKaydet();
+  }
   var scrollY = window.scrollY;
   renderVadeler();
   renderVadeBudget();
@@ -259,6 +275,7 @@ function renderVadeler() {
   // Tüm firmaların ad setini bir kez oluştur: firma_upper → cari_id (null = eşleşmez)
   var firmaCariMap = {};  // firma_upper → cari_id|null
   (window.cariler||[]).forEach(function(c){
+    if(_vdBlacklist.indexOf(Number(c.id)) !== -1) return; // kullanıcı gizledi
     var isimler = _cariIsimleri(c.id);
     isimler.forEach(function(n){ firmaCariMap[n] = c.id; });
   });
@@ -369,7 +386,7 @@ function _cariKart(cari_id) {
   var fatList = (window.faturalar||[]).filter(function(f){
     if(!f.firma) return false;
     if(firmaSet.indexOf(f.firma.toUpperCase().trim()) === -1) return false;
-    if(f.tarih && f.tarih < (typeof _fatBaslangic!=='undefined'?_fatBaslangic:'2026-01-01')) return false;
+    if(f.tarih && f.tarih < (typeof _fatBaslangic!=='undefined'?_fatBaslangic:'2026-03-01')) return false;
     return true;
   });
 
@@ -519,7 +536,7 @@ async function vadeEkle(cari_id) {
   if(!tutarEl || !gunEl) return;
   var tutar = parseFloat(tutarEl.value);
   var gun   = parseInt(gunEl.value, 10);
-  if(!tutar || tutar <= 0 || !gun || gun < 1) { alert('Tutar ve vade gün sayısı giriniz.'); return; }
+  if(!tutar || tutar <= 0 || !gun || gun < 1) return;
   var vadeTarihi = ldStr(new Date(Date.now() + gun * 86400000));
   try {
     var r = await dbPost('cari_vadeler', [{cari_id:cari_id, tip:'borc', tutar:tutar, vade_tarihi:vadeTarihi, odendi:false}]);
@@ -529,7 +546,7 @@ async function vadeEkle(cari_id) {
       try{ var vd=await dbGet('cari_vadeler','cari_id=eq.'+cari_id+'&order=vade_tarihi.asc'); if(Array.isArray(vd)) { cariVadeler=cariVadeler.filter(function(v){return v.cari_id!==cari_id;}); cariVadeler=cariVadeler.concat(vd); } }catch(e){}
       _refreshCariKart(cari_id);
     }
-  } catch(e) { alert('Vade eklenemedi.'); }
+  } catch(e) { console.error('vadeEkle:', e); }
 }
 
 function vadeOdendiAc(id) {

@@ -306,7 +306,7 @@ function _fatEslModalDoldur() {
       var digerToplam = digerBagli.reduce(function(s,e){ return s+Number(e.odeme_tutari||e.tutar||0); }, 0);
       var kullanilabilir = Number(k.tutar) - digerToplam;
 
-      oneriHtml += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f9fafb;border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid #e5e7eb" onclick="_fatGuncelleToplam()">';
+      oneriHtml += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f9fafb;border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid #e5e7eb">';
       oneriHtml += '<input type="checkbox" class="fat-esl-oneri-cb" data-idx="'+i+'" data-kullanilabilir="'+kullanilabilir.toFixed(2)+'" style="margin-top:3px" onchange="_fatGuncelleToplam()">';
       oneriHtml += '<div style="flex:1">';
       oneriHtml += '<div style="font-size:13px;font-weight:500">'+fmtT(k.tarih)+' — '+htmlEsc(k.firma||k.aciklama||'—')+'</div>';
@@ -358,6 +358,9 @@ function _fatEslModalDoldur() {
   manuelHtml += '</div></div>';
 
   el.innerHTML = bagliHtml + oneriHtml + manuelHtml;
+
+  // Modal açılışta canlı toplamı ilk kez çiz
+  _fatGuncelleToplam();
 
   // Tarih input'u otomatik tutar doldur
   var sel = document.getElementById('fat-esl-manuel-kayit');
