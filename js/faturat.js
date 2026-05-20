@@ -211,12 +211,22 @@ async function fatEslCoz(esl_id) {
 
 // ---- MODAL: FATURA ÖDEME BAĞLAMA ----
 
-function fatEslModalAc(fatura_id, cari_id) {
+async function fatEslModalAc(fatura_id, cari_id) {
   _fatEslModalFaturaId = fatura_id;
   _fatEslModalCariId   = cari_id;
-  _fatEslModalDoldur();
   var m = document.getElementById('fat-esl-modal');
   if(m) m.classList.add('open');
+  // DB'den bu faturanın bağlantılarını tazele (in-memory stale olabilir)
+  try {
+    var fresh = await dbGet('borc_odemeler', 'fatura_id=eq.'+fatura_id+'&select=*');
+    if(Array.isArray(fresh)) {
+      borcOdemeler = (window.borcOdemeler||[]).filter(function(e){
+        return Number(e.fatura_id) !== Number(fatura_id);
+      });
+      borcOdemeler = borcOdemeler.concat(fresh);
+    }
+  } catch(e) { console.error('borcOdemeler sync hata:', e); }
+  _fatEslModalDoldur();
 }
 
 function _fatGuncelleToplam() {
