@@ -254,16 +254,49 @@ function renderVadeler() {
   var em = document.getElementById('vd-empty');
   if(!el) return;
 
-  if(!_vdTakipListesi.length) {
+  var baslangic = (typeof _fatBaslangic !== 'undefined') ? _fatBaslangic : '2026-01-01';
+
+  // Fatura tarih aralığında faturası olan tüm cari id'leri bul
+  var fatCariSet = {};
+  (window.faturalar||[]).forEach(function(f){
+    if(!f.firma || !f.tarih || f.tarih < baslangic) return;
+    // Bu firmayı hangi cari karşılıyor?
+    if(typeof _firmaCariId === 'function') {
+      var cid = _firmaCariId(f.firma.trim());
+      if(cid) fatCariSet[cid] = true;
+    }
+  });
+
+  // Takip listesindeki carileri de ekle (faturasız olabilir)
+  (_vdTakipListesi||[]).forEach(function(cid){ fatCariSet[Number(cid)] = true; });
+
+  var cariIds = Object.keys(fatCariSet).map(Number);
+
+  if(!cariIds.length) {
     el.innerHTML = '';
-    if(em) { em.style.display='block'; em.textContent='Yukarıdan cari seçerek takibe alın.'; }
+    if(em) { em.style.display='block'; em.textContent=baslangic+' tarihinden itibaren fatura bulunamadı.'; }
     return;
   }
   if(em) em.style.display = 'none';
 
+  // Açık bakiyeye göre büyükten küçüğe sırala
+  cariIds.sort(function(a, b){
+    var fatA = (window.faturalar||[]).filter(function(f){
+      var fn = _cariIsimleri(a);
+      return f.firma && fn.indexOf(f.firma.toUpperCase().trim()) !== -1 && f.tarih >= baslangic;
+    });
+    var fatB = (window.faturalar||[]).filter(function(f){
+      var fn = _cariIsimleri(b);
+      return f.firma && fn.indexOf(f.firma.toUpperCase().trim()) !== -1 && f.tarih >= baslangic;
+    });
+    var borA = fatA.reduce(function(s,f){ return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):0); }, 0);
+    var borB = fatB.reduce(function(s,f){ return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):0); }, 0);
+    return borB - borA;
+  });
+
   var html = '';
-  _vdTakipListesi.forEach(function(cari_id) {
-    html += _cariKart(Number(cari_id));
+  cariIds.forEach(function(cari_id) {
+    html += _cariKart(cari_id);
   });
   el.innerHTML = html;
 }
