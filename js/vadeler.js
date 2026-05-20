@@ -256,51 +256,85 @@ function renderVadeler() {
 
   var baslangic = (typeof _fatBaslangic !== 'undefined') ? _fatBaslangic : '2026-03-01';
 
-  // Her cari için: tarih aralığında en az 1 fatura var mı?
-  // _cariIsimleri kullan — hem cari.ad hem alias eşleşmesi yapar
-  var fatCariSet = {};
+  // Tüm firmaların ad setini bir kez oluştur: firma_upper → cari_id (null = eşleşmez)
+  var firmaCariMap = {};  // firma_upper → cari_id|null
   (window.cariler||[]).forEach(function(c){
     var isimler = _cariIsimleri(c.id);
-    var var_ = (window.faturalar||[]).some(function(f){
-      return f.firma && f.tarih && f.tarih >= baslangic &&
-             isimler.indexOf(f.firma.toUpperCase().trim()) !== -1;
-    });
-    if(var_) fatCariSet[c.id] = true;
+    isimler.forEach(function(n){ firmaCariMap[n] = c.id; });
   });
 
-  // Takip listesindeki carileri de ekle (faturasız olabilir)
+  // Tarih aralığındaki tüm faturaları tara
+  var fatCariSet = {};           // cari_id → true  (eşleşen)
+  var orphanFirmaSet = {};       // firma_upper → [fatura, ...]  (eşleşmeyen)
+
+  (window.faturalar||[]).forEach(function(f){
+    if(!f.firma || !f.tarih || f.tarih < baslangic) return;
+    var up = f.firma.toUpperCase().trim();
+    var cid = firmaCariMap[up];
+    if(cid) {
+      fatCariSet[cid] = true;
+    } else {
+      if(!orphanFirmaSet[up]) orphanFirmaSet[up] = [];
+      orphanFirmaSet[up].push(f);
+    }
+  });
+
+  // Takip listesindeki carileri de ekle
   (_vdTakipListesi||[]).forEach(function(cid){ fatCariSet[Number(cid)] = true; });
 
   var cariIds = Object.keys(fatCariSet).map(Number);
 
-  if(!cariIds.length) {
+  if(!cariIds.length && !Object.keys(orphanFirmaSet).length) {
     el.innerHTML = '';
-    if(em) { em.style.display='block'; em.textContent=baslangic+' tarihinden itibaren eşleşen fatura bulunamadı.'; }
+    if(em) { em.style.display='block'; em.textContent=baslangic+' tarihinden itibaren fatura bulunamadı.'; }
     return;
   }
   if(em) em.style.display = 'none';
 
-  // Açık bakiyeye göre büyükten küçüğe sırala
+  // Cari kartları — açık bakiyeye göre büyükten küçüğe
   cariIds.sort(function(a, b){
-    var isimA = _cariIsimleri(a);
-    var isimB = _cariIsimleri(b);
+    var isimA = _cariIsimleri(a), isimB = _cariIsimleri(b);
     var borA = (window.faturalar||[]).reduce(function(s,f){
-      if(!f.firma || !f.tarih || f.tarih < baslangic) return s;
-      if(isimA.indexOf(f.firma.toUpperCase().trim()) === -1) return s;
-      return s + (typeof _fatKalan==='function' ? _fatKalan(f.id,f.tutar) : 0);
+      if(!f.firma||!f.tarih||f.tarih<baslangic) return s;
+      if(isimA.indexOf(f.firma.toUpperCase().trim())===-1) return s;
+      return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):0);
     }, 0);
     var borB = (window.faturalar||[]).reduce(function(s,f){
-      if(!f.firma || !f.tarih || f.tarih < baslangic) return s;
-      if(isimB.indexOf(f.firma.toUpperCase().trim()) === -1) return s;
-      return s + (typeof _fatKalan==='function' ? _fatKalan(f.id,f.tutar) : 0);
+      if(!f.firma||!f.tarih||f.tarih<baslangic) return s;
+      if(isimB.indexOf(f.firma.toUpperCase().trim())===-1) return s;
+      return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):0);
     }, 0);
     return borB - borA;
   });
 
   var html = '';
-  cariIds.forEach(function(cari_id) {
-    html += _cariKart(cari_id);
+  cariIds.forEach(function(cari_id){ html += _cariKart(cari_id); });
+
+  // Eşleşmeyen firma kartları — cari tanımı yok, sadece fatura listesi
+  Object.keys(orphanFirmaSet).sort().forEach(function(firma_up){
+    var fatlar = orphanFirmaSet[firma_up].sort(function(a,b){ return a.tarih>b.tarih?1:-1; });
+    var topAcik = fatlar.reduce(function(s,f){
+      return s+(typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):Number(f.tutar));
+    }, 0);
+    html += '<details style="border:1px solid #fde68a;border-radius:10px;margin-bottom:10px;overflow:hidden">';
+    html += '<summary style="background:#fefce8;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;border-bottom:1px solid #fde68a">';
+    html += '<span style="font-weight:600;font-size:14px;color:#92400e">'+htmlEsc(fatlar[0].firma)+'</span>';
+    html += '<div style="display:flex;gap:10px;align-items:center">';
+    if(topAcik>0.01) html += '<span style="font-size:13px;font-weight:700;color:#dc2626">Açık '+para(topAcik)+'</span>';
+    html += '<span style="font-size:11px;color:#9ca3af">'+fatlar.length+' fatura · cari eşleşmedi</span>';
+    html += '</div></summary>';
+    html += '<div style="padding:10px 14px">';
+    fatlar.forEach(function(f){
+      var kalan = typeof _fatKalan==='function'?_fatKalan(f.id,f.tutar):Number(f.tutar);
+      var renk = kalan>0.01?'#dc2626':'#059669';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:13px">';
+      html += '<span style="color:#6b7280">'+fmtT(f.tarih)+(f.fatura_no?' · '+htmlEsc(f.fatura_no):'')+'</span>';
+      html += '<span style="font-weight:600;color:'+renk+'">'+para(kalan)+'</span>';
+      html += '</div>';
+    });
+    html += '</div></details>';
   });
+
   el.innerHTML = html;
 }
 
