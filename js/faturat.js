@@ -514,7 +514,7 @@ function renderFaturaBolumu(cari_id) {
     html += '<div style="flex:1">';
     html += '<span style="font-size:13px;color:'+renk+'">'+fmtT(f.tarih)+'</span>';
     if(f.fatura_no) html += ' <span style="font-size:11px;color:#9ca3af">'+htmlEsc(f.fatura_no)+'</span>';
-    if(vt) html += ' <span style="font-size:11px;color:'+renk+';margin-left:6px">Vade: '+fmtT(vt)+(kalan_gun!==null?' ('+( kalan_gun<0?Math.abs(kalan_gun)+' gün geçti':kalan_gun===0?'Bugün!':kalan_gun+' gün')+')')+'</span>';
+    if(vt) html += ' <span style="font-size:11px;color:'+renk+';margin-left:6px">Vade: '+fmtT(vt)+(kalan_gun!==null?' ('+( kalan_gun<0?Math.abs(kalan_gun)+' gün geçti':kalan_gun===0?'Bugün!':kalan_gun+' gün')+')':'')+'</span>';
     if(durum === 'kismi') html += ' <span style="font-size:11px;background:#fef9e7;color:#92400e;padding:1px 6px;border-radius:10px;margin-left:4px">Kısmi</span>';
     if(durum === 'tam')   html += ' <span style="font-size:11px;background:#f0fdf4;color:#059669;padding:1px 6px;border-radius:10px;margin-left:4px">✓ Ödendi</span>';
     html += '</div>';
