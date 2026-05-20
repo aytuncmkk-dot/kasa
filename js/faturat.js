@@ -208,6 +208,18 @@ function fatEslModalAc(fatura_id, cari_id) {
   if(m) m.classList.add('open');
 }
 
+function _fatModalMesaj(metin, tip) {
+  var el = document.getElementById('fat-esl-modal-icerik');
+  if(!el) return;
+  var renk = tip === 'ok' ? '#059669' : '#d97706';
+  var bg   = tip === 'ok' ? '#f0fdf4' : '#fefce8';
+  var div  = document.createElement('div');
+  div.style.cssText = 'padding:8px 12px;border-radius:6px;font-size:13px;margin-bottom:8px;background:'+bg+';color:'+renk;
+  div.textContent = metin;
+  el.insertBefore(div, el.firstChild);
+  setTimeout(function(){ if(div.parentNode) div.parentNode.removeChild(div); }, 3000);
+}
+
 function fatEslModalKapat() {
   _fatEslModalFaturaId = null;
   _fatEslModalCariId   = null;
@@ -340,14 +352,14 @@ async function _fatEslManuelEkle() {
   var tutarEl = document.getElementById('fat-esl-manuel-tutar');
   var kayit_id = sel ? Number(sel.value) : 0;
   var tutar    = tutarEl ? parseFloat(tutarEl.value) : 0;
-  if(!kayit_id || !tutar || tutar <= 0) { alert('Kayıt ve tutar seçin.'); return; }
+  if(!kayit_id || !tutar || tutar <= 0) { _fatModalMesaj('Kayıt ve tutar seçin.', 'uyari'); return; }
   var ok = await fatEslBagla(_fatEslModalFaturaId, kayit_id, tutar, 'manuel');
   if(ok) {
     _fatEslModalDoldur();
     _refreshCariKart(_fatEslModalCariId);
     renderHaftalikOzet();
   } else {
-    alert('Bu kayıt zaten bağlı olabilir veya kayıt hatası oluştu.');
+    _fatModalMesaj('Bu kayıt zaten bağlı olabilir.', 'uyari');
   }
 }
 
@@ -359,9 +371,9 @@ async function fatEslOnaylaSecililer() {
 
   var oneriler = _fatOnerileriHesapla(fatura);
   var cblar    = document.querySelectorAll('.fat-esl-oneri-cb:checked');
-  if(!cblar.length) { alert('Hiçbir öneri seçilmedi.'); return; }
+  if(!cblar.length) { _fatModalMesaj('Hiçbir öneri seçilmedi.', 'uyari'); return; }
 
-  var hata = 0;
+  var hata = 0, basarili = 0;
   for(var i = 0; i < cblar.length; i++) {
     var idx    = Number(cblar[i].getAttribute('data-idx'));
     var kayit  = oneriler[idx] ? oneriler[idx].kayit : null;
@@ -369,13 +381,14 @@ async function fatEslOnaylaSecililer() {
     var tutarEl = document.getElementById('fat-esl-tutar-'+idx);
     var tutar   = tutarEl ? parseFloat(tutarEl.value) : Number(kayit.tutar);
     var ok = await fatEslBagla(fatura_id, kayit.id, tutar, 'oneri');
-    if(!ok) hata++;
+    if(ok) basarili++; else hata++;
   }
 
-  if(hata) alert(hata + ' kayıt bağlanamadı (zaten bağlı olabilir).');
   _fatEslModalDoldur();
   _refreshCariKart(cari_id);
   renderHaftalikOzet();
+  if(basarili) _fatModalMesaj(basarili + ' ödeme bağlandı.', 'ok');
+  else if(hata) _fatModalMesaj('Kayıtlar zaten bağlı.', 'uyari');
 }
 
 async function fatEslCozVeYenile(esl_id, fatura_id, cari_id) {
