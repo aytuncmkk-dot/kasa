@@ -219,6 +219,28 @@ function fatEslModalAc(fatura_id, cari_id) {
   if(m) m.classList.add('open');
 }
 
+function _fatGuncelleToplam() {
+  var el = document.getElementById('fat-esl-secim-toplam');
+  if(!el) return;
+  var cblar = document.querySelectorAll('.fat-esl-oneri-cb:checked');
+  var toplam = 0;
+  for(var i = 0; i < cblar.length; i++) {
+    var idx = Number(cblar[i].getAttribute('data-idx'));
+    var tEl = document.getElementById('fat-esl-tutar-'+idx);
+    toplam += tEl ? parseFloat(tEl.value)||0 : 0;
+  }
+  var kalan = _fatKalan(_fatEslModalFaturaId,
+    ((window.faturalar||[]).find(function(f){ return f.id===_fatEslModalFaturaId; })||{}).tutar||0);
+  var fark = kalan - toplam;
+  var renk = Math.abs(fark) < 1 ? '#059669' : (fark > 0 ? '#d97706' : '#dc2626');
+  var durum = Math.abs(fark) < 1 ? 'Tam kapanıyor ✓' :
+              fark > 0 ? para(fark)+' eksik kalır' :
+                         para(Math.abs(fark))+' fazla';
+  el.style.background = Math.abs(fark) < 1 ? '#f0fdf4' : '#f9fafb';
+  el.style.color = renk;
+  el.innerHTML = 'Seçili ödeme: <strong>'+para(toplam)+'</strong>'+(cblar.length ? ' · <span style="color:'+renk+'">'+durum+'</span>' : '');
+}
+
 function _fatModalMesaj(metin, tip) {
   var el = document.getElementById('fat-esl-modal-icerik');
   if(!el) return;
@@ -276,22 +298,32 @@ function _fatEslModalDoldur() {
     oneriler.forEach(function(o, i) {
       var k = o.kayit;
       var renk = o.skor >= 60 ? '#059669' : (o.skor >= 35 ? '#d97706' : '#9ca3af');
-      var tatli = '';
-      if(kalan > 0 && Math.abs(Number(k.tutar) - kalan) < 1) tatli = ' (kalanı kapatır)';
-      oneriHtml += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f9fafb;border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid #e5e7eb">';
-      oneriHtml += '<input type="checkbox" class="fat-esl-oneri-cb" data-idx="'+i+'" style="margin-top:2px">';
+
+      // Bu ödeme başka faturalara ne kadar bağlandı?
+      var digerBagli = (window.borcOdemeler||[]).filter(function(e){
+        return Number(e.kayit_id) === Number(k.id) && Number(e.fatura_id) !== Number(fatura_id);
+      });
+      var digerToplam = digerBagli.reduce(function(s,e){ return s+Number(e.odeme_tutari||e.tutar||0); }, 0);
+      var kullanilabilir = Number(k.tutar) - digerToplam;
+
+      oneriHtml += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#f9fafb;border-radius:6px;margin-bottom:4px;cursor:pointer;border:1px solid #e5e7eb" onclick="_fatGuncelleToplam()">';
+      oneriHtml += '<input type="checkbox" class="fat-esl-oneri-cb" data-idx="'+i+'" data-kullanilabilir="'+kullanilabilir.toFixed(2)+'" style="margin-top:3px" onchange="_fatGuncelleToplam()">';
       oneriHtml += '<div style="flex:1">';
       oneriHtml += '<div style="font-size:13px;font-weight:500">'+fmtT(k.tarih)+' — '+htmlEsc(k.firma||k.aciklama||'—')+'</div>';
       if(k.aciklama && k.firma !== k.aciklama)
         oneriHtml += '<div style="font-size:11px;color:#6b7280">'+htmlEsc(k.aciklama)+'</div>';
-      oneriHtml += '<div style="font-size:11px;color:'+renk+'">%'+o.skor+' eşleşme'+tatli+'</div>';
+      oneriHtml += '<div style="font-size:11px;color:'+renk+'">%'+o.skor+' eşleşme</div>';
+      if(digerToplam > 0.01)
+        oneriHtml += '<div style="font-size:11px;color:#d97706;margin-top:2px">⚠ '+para(digerToplam)+' başka faturaya bağlı · Kalan: <strong>'+para(kullanilabilir)+'</strong></div>';
       oneriHtml += '</div>';
       oneriHtml += '<div style="text-align:right">';
-      oneriHtml += '<div style="font-weight:600">'+para(k.tutar)+'</div>';
-      oneriHtml += '<input type="number" id="fat-esl-tutar-'+i+'" value="'+Number(k.tutar).toFixed(2)+'" step="0.01" min="0.01" style="width:90px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;margin-top:4px">';
+      oneriHtml += '<div style="font-size:12px;color:#9ca3af">toplam '+para(k.tutar)+'</div>';
+      oneriHtml += '<input type="number" id="fat-esl-tutar-'+i+'" value="'+Math.max(0,kullanilabilir).toFixed(2)+'" step="0.01" min="0.01" style="width:100px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;font-weight:600;margin-top:4px" onchange="_fatGuncelleToplam()">';
       oneriHtml += '</div>';
       oneriHtml += '</label>';
     });
+    // Canlı toplam göstergesi
+    oneriHtml += '<div id="fat-esl-secim-toplam" style="padding:8px 12px;border-radius:6px;font-size:13px;background:#f3f4f6;color:#6b7280;margin-top:4px">Seçili ödeme: <strong>TL 0,00</strong></div>';
   } else {
     oneriHtml += '<div style="color:#9ca3af;font-size:13px;padding:8px 0">Otomatik öneri bulunamadı — aşağıdan manuel seçin.</div>';
   }
