@@ -96,34 +96,42 @@ function _fatOnerileriHesapla(fatura) {
     var kTutar = Number(k.tutar || 0);
 
     // 1. Firma / alias eşleşmesi
+    var firmaSkoru = 0;
     if(fatFirma && kFirma === fatFirma) {
-      skor += 20;
+      firmaSkoru = 20;
     } else if(fatCariId) {
       var kCariId = _firmaCariId(kFirma);
-      if(kCariId && kCariId === fatCariId) skor += 15;
+      if(kCariId && kCariId === fatCariId) firmaSkoru = 15;
     }
-    if(fatFirma && fatFirma.length >= 4) {
-      var token = fatFirma.split(/\s+/)[0];
-      if(token.length >= 4 && kAcik.indexOf(token) !== -1) skor += 8;
+    // İlk anlamlı token açıklamada geçiyor mu?
+    if(firmaSkoru === 0 && fatFirma && fatFirma.length >= 4) {
+      var tokens = fatFirma.split(/\s+/).filter(function(t){ return t.length >= 4; });
+      for(var ti = 0; ti < tokens.length; ti++) {
+        if(kAcik.indexOf(tokens[ti]) !== -1) { firmaSkoru = 8; break; }
+      }
     }
+    skor += firmaSkoru;
 
     // 2. Fatura numarası açıklamada geçiyor mu?
-    if(fatNo && kAcik.indexOf(fatNo) !== -1) skor += 50;
+    var fatNoSkoru = 0;
+    if(fatNo && kAcik.indexOf(fatNo) !== -1) { fatNoSkoru = 50; skor += fatNoSkoru; }
 
     // 3. Tutar eşleşmesi
+    var tutarSkoru = 0;
     if(Math.abs(kTutar - fatTutar) < 1) {
-      skor += 40;
+      tutarSkoru = 40;
     } else if(fatTutar > 0 && Math.abs(kTutar - fatTutar) / fatTutar < 0.05) {
-      skor += 20;
+      tutarSkoru = 20;
     } else if(fatTutar > 0 && Math.abs(kTutar - fatTutar) / fatTutar < 0.15) {
-      skor += 8;
+      tutarSkoru = 8;
     }
+    skor += tutarSkoru;
 
     // 4. Kalan tutarla eşleşme (kısmi ödeme)
     var kalan = _fatKalan(fatura_id, fatTutar);
     if(kalan > 0 && Math.abs(kTutar - kalan) < 1) skor += 30;
 
-    // 5. Tarih yakınlığı (ödeme faturadan sonra, 60 gün içinde idealse)
+    // 5. Tarih yakınlığı (ödeme faturadan sonra, 60 gün içinde)
     if(k.tarih >= fatTarih) {
       var gun = _gunFarki(fatTarih, k.tarih);
       if(gun <= 14) skor += 12;
@@ -133,11 +141,14 @@ function _fatOnerileriHesapla(fatura) {
     // 6. "Fat" / "fatura" gibi anahtar kelimeler
     if(/\bfat\b|\bfatura\b/i.test(kAcik)) skor += 5;
 
+    // Firma hiç eşleşmiyorsa: fatura no veya tam tutar olmadan gösterme
+    if(firmaSkoru === 0 && fatNoSkoru === 0 && tutarSkoru < 40) skor = 0;
+
     return { kayit: k, skor: skor };
   });
 
   return oneriler
-    .filter(function(o){ return o.skor >= 15; })
+    .filter(function(o){ return o.skor >= 20; })
     .sort(function(a,b){ return b.skor - a.skor; })
     .slice(0, 8);
 }
