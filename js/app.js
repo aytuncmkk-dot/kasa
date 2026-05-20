@@ -14,7 +14,7 @@ async function yukle(){
     ortaklar     = await dbGet('ortaklar','select=*&order=hisse_yuzdesi.desc');
     try { cariVadeler = await dbGetAll('cari_vadeler','select=*&order=vade_tarihi.asc'); } catch(e){ cariVadeler = []; }
     try { cariHareketler = await dbGetAll('cari_hareketler','select=*&order=tarih.desc,id.desc'); } catch(e){ cariHareketler = []; }
-    try { borcOdemeler = await dbGetAll('borc_odemeler','select=*&order=created_at.desc'); } catch(e){ borcOdemeler = []; }
+    try { borcOdemeler = await dbGetAll('fatura_odeme_eslestirme','select=*&order=created_at.desc'); } catch(e){ borcOdemeler = []; }
     var cariList   = await dbGet('cariler','aktif=eq.true&order=ad.asc');
     cariler        = Array.isArray(cariList) ? cariList : [];
     var aliasList  = await dbGet('cari_aliases','select=*');

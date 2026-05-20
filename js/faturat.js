@@ -170,21 +170,17 @@ function _gunFarki(t1, t2) {
 
 async function fatEslBagla(fatura_id, kayit_id, odeme_tutari, kaynak) {
   kaynak = kaynak || 'manuel';
-  var fatura  = (window.faturalar||[]).find(function(f){ return f.id===fatura_id; });
-  var cari_id = fatura ? _firmaCariId((fatura.firma||'').trim()) : null;
   var data = {
     fatura_id: fatura_id,
     kayit_id:  kayit_id,
     odeme_tutari: odeme_tutari,
     onaylandi: true,
-    kaynak: kaynak,
-    cari_id: cari_id || null
+    kaynak: kaynak
   };
   try {
-    var r = await dbPost('borc_odemeler', [data]);
+    var r = await dbPost('fatura_odeme_eslestirme', data);
     if(r && r.ok) {
-      // In-memory güncelle
-      var fresh = await dbGet('borc_odemeler',
+      var fresh = await dbGet('fatura_odeme_eslestirme',
         'fatura_id=eq.'+fatura_id+'&kayit_id=eq.'+kayit_id+'&order=id.desc&limit=1');
       if(Array.isArray(fresh) && fresh.length) {
         borcOdemeler.push(fresh[0]);
@@ -200,7 +196,7 @@ async function fatEslBagla(fatura_id, kayit_id, odeme_tutari, kaynak) {
 async function fatEslCoz(esl_id) {
   if(!confirm('Bu eşleştirmeyi kaldırmak istiyor musunuz?')) return;
   try {
-    var r = await dbDelete('borc_odemeler', 'id', esl_id);
+    var r = await dbDelete('fatura_odeme_eslestirme', 'id', esl_id);
     if(r && r.ok) {
       borcOdemeler = (window.borcOdemeler||[]).filter(function(e){ return e.id !== esl_id; });
       return true;
@@ -218,7 +214,7 @@ async function fatEslModalAc(fatura_id, cari_id) {
   if(m) m.classList.add('open');
   // DB'den bu faturanın bağlantılarını tazele (in-memory stale olabilir)
   try {
-    var fresh = await dbGet('borc_odemeler', 'fatura_id=eq.'+fatura_id+'&select=*');
+    var fresh = await dbGet('fatura_odeme_eslestirme', 'fatura_id=eq.'+fatura_id+'&select=*');
     if(Array.isArray(fresh)) {
       borcOdemeler = (window.borcOdemeler||[]).filter(function(e){
         return Number(e.fatura_id) !== Number(fatura_id);
