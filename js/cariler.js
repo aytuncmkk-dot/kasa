@@ -117,12 +117,12 @@ function eslesmemisFirmalar(){
   });
   if(!Object.keys(hamFirmalar).length) return [];
   var atanmisAliaslar = {};
-  cariAliases.forEach(function(a){ atanmisAliaslar[a.alias] = 1; });
+  cariAliases.forEach(function(a){ if(a.alias) atanmisAliaslar[a.alias.toUpperCase().trim()] = 1; });
   // Cariler kendi adlarıyla da eşleşir, onları da atla
-  (window.cariler||[]).forEach(function(c){ atanmisAliaslar[c.ad] = 1; });
+  (window.cariler||[]).forEach(function(c){ if(c.ad) atanmisAliaslar[c.ad.toUpperCase().trim()] = 1; });
   var sonuc = [];
   Object.keys(hamFirmalar).forEach(function(firma){
-    if(!atanmisAliaslar[firma]){
+    if(!atanmisAliaslar[firma.toUpperCase().trim()]){
       sonuc.push({ firma: firma, sayi: hamFirmalar[firma] });
     }
   });
@@ -538,14 +538,23 @@ async function faturaEslesUygula() {
       var cariId = p.cariId;
 
       if(p.yeni) {
-        // Yeni cari oluştur, ID'yi DB'den çek (return=minimal olduğundan)
-        var cr = await dbPost('cariler',[{ad:p.firma, aktif:true}]);
-        if(cr && cr.ok) {
-          var yeniler = await dbGet('cariler','ad=eq.'+encodeURIComponent(p.firma)+'&order=id.desc&limit=1');
-          if(Array.isArray(yeniler) && yeniler.length) {
-            cariler.push(yeniler[0]);
-            cariId = yeniler[0].id;
-            yeniSayisi++;
+        // Yeni cari oluştur — önce aynı ad zaten var mı kontrol et
+        var mevcutCari = (window.cariler||[]).find(function(c){
+          return c.ad.toUpperCase().trim() === p.firma.toUpperCase().trim();
+        });
+        if(mevcutCari) {
+          cariId = mevcutCari.id;
+        } else {
+          var cr = await dbPost('cariler',[{ad:p.firma, aktif:true}]);
+          if(cr && cr.ok) {
+            // En son eklenen kaydı doğru bulmak için: mevcut max id + 1 sonrasını al
+            var maxId = (window.cariler||[]).reduce(function(m,c){ return Math.max(m,c.id); }, 0);
+            var yeniler = await dbGet('cariler','id=gt.'+maxId+'&order=id.asc&limit=1');
+            if(Array.isArray(yeniler) && yeniler.length) {
+              cariler.push(yeniler[0]);
+              cariId = yeniler[0].id;
+              yeniSayisi++;
+            }
           }
         }
       }

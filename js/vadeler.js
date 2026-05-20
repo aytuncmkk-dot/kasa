@@ -5,6 +5,9 @@
 
 var _vdTakipListesi = [];   // localStorage'dan gelen cari_id array
 var _vadeOdemeId    = null;
+var _vadeDuzId      = null;
+var _cariHareketCariId = null;
+var _cariHareketTip    = null;
 var _vdDismissed    = {};   // {cari_id: {kayit_id: true}} — oturumda reddedilenler
 
 // ---- LOCALSTORAGE ----
@@ -24,7 +27,7 @@ function _vdTakipKaydet() {
 
 function _vadeCariAdi(cari_id) {
   if(!window.cariler) return 'Cari #'+cari_id;
-  var c = cariler.find(function(x){ return x.id===cari_id; });
+  var c = cariler.find(function(x){ return Number(x.id)===Number(cari_id); });
   if(!c) return 'Cari #'+cari_id;
   // Fatura kaynaklı resmi isim varsa onu tercih et
   if(window.cariAliases) {
@@ -32,8 +35,8 @@ function _vadeCariAdi(cari_id) {
       return a.cari_id===cari_id && a.alias && a.alias.trim() !== c.ad.trim();
     });
     if(resmiAliaslar.length) {
-      // otomatik (fatura bulk match) > fuzzy > manuel > kayit
-      var oncelik = ['otomatik','fuzzy','manuel','kayit'];
+      // manuel (kullanıcı ataması) > otomatik > fuzzy > kayit
+      var oncelik = ['manuel','otomatik','fuzzy','kayit'];
       for(var oi=0; oi<oncelik.length; oi++) {
         var grup = resmiAliaslar.filter(function(a){ return a.kaynak===oncelik[oi]; });
         if(grup.length) return grup.sort(function(a,b){ return b.alias.length-a.alias.length; })[0].alias;
@@ -154,26 +157,40 @@ function renderVadeBudget() {
     return f.firma && _takipFirmaSet[f.firma.toUpperCase().trim()] && f.durum!=='odendi';
   });
 
+  // cariVadeler (manuel vadeler) de dahil et
+  var takipManuelVadeler = (window.cariVadeler||[]).filter(function(v){
+    return _vdTakipListesi.indexOf(Number(v.cari_id)) !== -1 && !v.odendi;
+  });
+
   function topla(gun) {
     var limit = new Date(bugun.getTime() + gun*86400000);
-    return takipFaturalar.filter(function(f){
+    var fatTop = takipFaturalar.filter(function(f){
       var vt = f.vade || f.vade_tarihi;
       return vt && new Date(vt+'T00:00:00') <= limit;
     }).reduce(function(s,f){ return s+Number(f.tutar||0); }, 0);
+    var mvTop = takipManuelVadeler.filter(function(v){
+      return v.vade_tarihi && new Date(v.vade_tarihi+'T00:00:00') <= limit;
+    }).reduce(function(s,v){ return s+Number(v.tutar||0); }, 0);
+    return fatTop + mvTop;
   }
 
   var gecFat = takipFaturalar.filter(function(f){
     var vt = f.vade || f.vade_tarihi;
     return vt && _vadeKalanGun(vt) < 0;
   });
-  var gecToplam = gecFat.reduce(function(s,f){ return s+Number(f.tutar||0); }, 0);
+  var gecMV = takipManuelVadeler.filter(function(v){
+    return v.vade_tarihi && _vadeKalanGun(v.vade_tarihi) < 0;
+  });
+  var gecToplam = gecFat.reduce(function(s,f){ return s+Number(f.tutar||0); }, 0) +
+                  gecMV.reduce(function(s,v){ return s+Number(v.tutar||0); }, 0);
 
   var cards = '';
-  if(gecFat.length) {
+  var gecToplamSayi = gecFat.length + gecMV.length;
+  if(gecToplamSayi) {
     cards += '<div class="ok" style="flex:1;min-width:140px;border-top:3px solid #dc2626;background:#fef2f2">'+
       '<div class="ok-label" style="color:#991b1b">GECİKMİŞ</div>'+
       '<div class="ok-val" style="color:#dc2626">'+para(gecToplam)+'</div>'+
-      '<div style="font-size:11px;color:#991b1b;margin-top:3px">'+gecFat.length+' fatura</div>'+
+      '<div style="font-size:11px;color:#991b1b;margin-top:3px">'+gecToplamSayi+' kayıt</div>'+
     '</div>';
   }
   function kart(baslik, gun, renk) {
@@ -357,6 +374,34 @@ function _cariKart(cari_id) {
     html += '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:8px 0">Bağlı ödeme yok — gider kaydı girerken bu cariyi seçin</div>';
   }
 
+  // --- Manuel Vadeler (cari_vadeler tablosu) ---
+  var manuelVadeler = (window.cariVadeler||[]).filter(function(v){ return Number(v.cari_id)===cari_id; });
+  if(manuelVadeler.length) {
+    var mvOdenmemis = manuelVadeler.filter(function(v){ return !v.odendi; }).reduce(function(s,v){ return s+Number(v.tutar||0); }, 0);
+    html += '<div style="border-top:1px solid #f3f4f6;margin:12px 0 8px 0"></div>';
+    html += '<div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;justify-content:space-between">'+
+      '<span>Manuel Vadeler</span>'+
+      '<span style="color:'+(mvOdenmemis>0?'#dc2626':'#059669')+'">'+para(mvOdenmemis)+'</span></div>';
+    manuelVadeler.slice().sort(function(a,b){ return (a.vade_tarihi||'') > (b.vade_tarihi||'') ? 1 : -1; }).forEach(function(v) {
+      var kalan = v.vade_tarihi ? _vadeKalanGun(v.vade_tarihi) : 0;
+      var r = _vadeRenk(kalan, v.odendi);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;margin-bottom:3px;background:'+(r.bg||'#f9fafb')+'">';
+      html += '<div style="flex:1">';
+      html += '<span style="font-size:13px;color:'+r.text+'">'+(v.vade_tarihi?fmtT(v.vade_tarihi):'—')+'</span>';
+      if(v.fatura_no) html += ' <span style="font-size:11px;color:#9ca3af">'+htmlEsc(v.fatura_no)+'</span>';
+      if(!v.odendi && v.vade_tarihi) html += ' <span style="font-size:11px;color:'+r.text+';margin-left:6px">'+_vadeKalanMetin(kalan,false)+'</span>';
+      if(v.odendi) html += ' <span style="font-size:11px;color:#059669">✓ Ödendi</span>';
+      if(v.aciklama) html += ' <span style="font-size:11px;color:#9ca3af"> — '+htmlEsc(v.aciklama)+'</span>';
+      html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:6px">';
+      html += '<span style="font-size:13px;font-weight:600;color:'+r.text+'">'+para(v.tutar||0)+'</span>';
+      if(!v.odendi) html += '<button onclick="vadeOdendiAc('+v.id+')" style="font-size:11px;padding:2px 7px;background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;border-radius:4px;cursor:pointer">Ödendi</button>';
+      if(!v.odendi) html += '<button onclick="vadeDuzAc('+v.id+')" style="font-size:11px;padding:2px 5px;background:none;color:#6b7280;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer">✏️</button>';
+      html += '<button onclick="vadeSil('+v.id+')" style="font-size:11px;padding:2px 5px;background:none;color:#9ca3af;border:1px solid #e5e7eb;border-radius:4px;cursor:pointer">✕</button>';
+      html += '</div></div>';
+    });
+  }
+
   // --- Önerilen eşleşmemiş kayıtlar ---
   if(oneriler.length) {
     html += '<div style="border-top:1px solid #f3f4f6;margin:12px 0 8px 0"></div>';
@@ -397,7 +442,7 @@ function _onerilenKayitlar(cari_id, fatList) {
   // Cari isminden anlamlı kelimeler (>3 harf, sayısal olmayan)
   var cariObj = window.cariler && cariler.find(function(c){ return c.id===cari_id; });
   var kelimeler = cariObj ? cariObj.ad.split(/\s+/).filter(function(w){
-    return w.length > 3 && !/^\d+$/.test(w);
+    return w.length >= 3 && !/^\d+$/.test(w);
   }) : [];
 
   // Fatura tarih aralığı
@@ -525,4 +570,126 @@ function vadeSil(id) {
     cariVadeler = (window.cariVadeler||[]).filter(function(v){ return v.id !== id; });
     if(hedefCariId) _refreshCariKart(hedefCariId); else renderVadeler();
   });
+}
+
+// ---- TAKİP MODALİ ----
+
+function vadeTakipKapat() {
+  var m = document.getElementById('vd-takip-modal');
+  if(m) m.classList.remove('open');
+}
+
+function vadeTakipKaydet() {
+  var el = document.getElementById('vd-tak-cari');
+  var id = el ? Number(el.value) : 0;
+  if(!id) { alert('Lütfen bir cari seçin.'); return; }
+  if(_vdTakipListesi.indexOf(id) === -1) {
+    _vdTakipListesi.push(id);
+    _vdTakipKaydet();
+  }
+  if(el) el.value = '';
+  vadeTakipKapat();
+  renderVadeler();
+  renderVadeBudget();
+}
+
+// ---- VADE DÜZENLEME MODALİ ----
+
+function vadeDuzAc(id) {
+  _vadeDuzId = id;
+  var v = (window.cariVadeler||[]).find(function(x){ return x.id===id; });
+  if(!v) return;
+  var m = document.getElementById('vd-duz-modal');
+  if(!m) return;
+  var sel = document.getElementById('vd-duz-cari');
+  if(sel) {
+    sel.innerHTML = '<option value="">— Cari seçin —</option>'+
+      (window.cariler||[]).slice().sort(function(a,b){ return a.ad.localeCompare(b.ad,'tr'); })
+      .map(function(c){ return '<option value="'+c.id+'"'+(Number(c.id)===Number(v.cari_id)?' selected':'')+'>'+htmlEsc(c.ad)+'</option>'; }).join('');
+  }
+  var tutarEl = document.getElementById('vd-duz-tutar');
+  if(tutarEl) tutarEl.value = v.tutar||'';
+  var tarihEl = document.getElementById('vd-duz-tarih');
+  if(tarihEl) tarihEl.value = v.vade_tarihi||'';
+  var fatEl = document.getElementById('vd-duz-fatura-no');
+  if(fatEl) fatEl.value = v.fatura_no||'';
+  var acikEl = document.getElementById('vd-duz-aciklama');
+  if(acikEl) acikEl.value = v.aciklama||'';
+  m.classList.add('open');
+}
+
+function vadeDuzKapat() {
+  var m = document.getElementById('vd-duz-modal');
+  if(m) m.classList.remove('open');
+  _vadeDuzId = null;
+}
+
+async function vadeDuzKaydet() {
+  if(!_vadeDuzId) return;
+  var sel    = document.getElementById('vd-duz-cari');
+  var tutarEl= document.getElementById('vd-duz-tutar');
+  var tarihEl= document.getElementById('vd-duz-tarih');
+  var fatEl  = document.getElementById('vd-duz-fatura-no');
+  var acikEl = document.getElementById('vd-duz-aciklama');
+  var cariId = sel ? Number(sel.value) : 0;
+  var tutar  = tutarEl ? parseFloat(tutarEl.value) : 0;
+  var tarih  = tarihEl ? tarihEl.value : '';
+  if(!cariId || !tutar || !tarih) { alert('Cari, tutar ve vade tarihi zorunludur.'); return; }
+  var data = { cari_id: cariId, tutar: tutar, vade_tarihi: tarih };
+  if(fatEl && fatEl.value.trim()) data.fatura_no = fatEl.value.trim();
+  if(acikEl && acikEl.value.trim()) data.aciklama = acikEl.value.trim();
+  try {
+    var r = await dbPatch('cari_vadeler','id',_vadeDuzId,data);
+    if(r && r.ok) {
+      var idx = (window.cariVadeler||[]).findIndex(function(v){ return v.id===_vadeDuzId; });
+      if(idx !== -1) Object.assign(cariVadeler[idx], data);
+      var hedefCariId = cariId;
+      vadeDuzKapat();
+      _refreshCariKart(hedefCariId);
+    } else { alert('Güncelleme hatası.'); }
+  } catch(e) { alert('Hata: '+e.message); }
+}
+
+// ---- CARİ HAREKET MODALİ (borç/ödeme) ----
+
+function cariHareketAc(cari_id, tip) {
+  _cariHareketCariId = cari_id;
+  _cariHareketTip    = tip || 'borc';
+  var m = document.getElementById('ch-modal');
+  if(!m) return;
+  var baslik = document.getElementById('ch-baslik');
+  if(baslik) baslik.textContent = tip === 'odeme' ? 'Ödeme Ekle' : 'Borç Ekle';
+  var tutarEl = document.getElementById('ch-tutar');
+  if(tutarEl) tutarEl.value = '';
+  var belgeEl = document.getElementById('ch-belge');
+  if(belgeEl) belgeEl.value = '';
+  var acikEl  = document.getElementById('ch-acik');
+  if(acikEl)  acikEl.value  = '';
+  m.classList.add('open');
+}
+
+function cariHareketKapat() {
+  var m = document.getElementById('ch-modal');
+  if(m) m.classList.remove('open');
+  _cariHareketCariId = null;
+  _cariHareketTip    = null;
+}
+
+async function cariHareketKaydet() {
+  if(!_cariHareketCariId) return;
+  var tutarEl = document.getElementById('ch-tutar');
+  var belgeEl = document.getElementById('ch-belge');
+  var acikEl  = document.getElementById('ch-acik');
+  var tutar = tutarEl ? parseFloat(tutarEl.value) : 0;
+  if(!tutar || tutar <= 0) { alert('Tutar giriniz.'); return; }
+  var data = { cari_id: _cariHareketCariId, tip: _cariHareketTip, tutar: tutar, tarih: today };
+  if(belgeEl && belgeEl.value.trim()) data.belge_no = belgeEl.value.trim();
+  if(acikEl  && acikEl.value.trim())  data.aciklama = acikEl.value.trim();
+  try {
+    var r = await dbPost('cari_hareketler',[data]);
+    if(r && r.ok) {
+      cariHareketKapat();
+      _refreshCariKart(_cariHareketCariId);
+    } else { alert('Kayıt hatası.'); }
+  } catch(e) { alert('Hata: '+e.message); }
 }
