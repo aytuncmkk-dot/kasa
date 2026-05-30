@@ -19,7 +19,7 @@ git push origin main     # GitHub Pages'e deploy (otomatik)
 
 ```
 utils.js → config.js → db.js → audit.js → auth.js
-→ kasa.js → fatura.js → cariler.js → inceleme.js → gunluksatis.js
+→ kasa.js → fatura.js → cariler.js → vadeler.js → faturat.js → inceleme.js → gunluksatis.js
 → yedekfon.js → rapor.js → ozelrapor.js → kardagilim.js → maliyet.js
 → finans.js → uyumsoft.js → vergi.js → eslestirme.js
 → app.js → init.js
