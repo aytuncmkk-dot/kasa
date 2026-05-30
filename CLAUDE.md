@@ -54,7 +54,7 @@ kayitlar          // Tüm kasa kayıtları (gelir/gider/dagitim)
 faturalar         // Faturalar
 fonHareketler     // Yedek fon hareketleri
 stoklar, stokHareketleri
-avansHareketler   // Ortak avansları — backend tablosu yok, WIP; kardagilim.js'te filtreli
+avansHareketler   // Ortak avansları — backend tablosu var (avans_hareketler), henüz veri yok; kardagilim.js'te filtreli
 ortaklar
 gelirKatlar, giderKatlar, dagitimKatlar
 ```
@@ -63,7 +63,7 @@ gelirKatlar, giderKatlar, dagitimKatlar
 
 `init.js` → `oturumKontrol()` → başarılıysa → `yukle()` (`app.js`)
 
-`yukle()` tüm tabloları çeker, `otomatikDagitimMigrasyonu()` çalıştırır, ardından `hepsiniYenile()` tüm render fonksiyonlarını tetikler.
+`yukle()` tüm tabloları çeker, ardından `hepsiniYenile()` tüm render fonksiyonlarını tetikler.
 
 **Sekme geçişi:** `switchTab('tabname')` → `id="pg-{tabname}"` sayfasını gösterir. Her sekmenin kendi render fonksiyonu vardır ve `switchTab` içinde koşulllu olarak çağrılır.
 
@@ -100,6 +100,5 @@ Google OAuth only. `IZINLI_EMAILS` whitelist `config.js`'te. `ADMIN_EMAILS` yük
 
 ## Bekleyen İşler / WIP
 
-- **`otomatikDagitimMigrasyonu()`** (`app.js`): `tur='gider' AND kat='Ortaklara Ödenen'` kayıtlarını `dagitim`'e taşır. Canlı DB'de bu koşulla satır kalmadığı doğrulandıktan sonra bu fonksiyon ve `yukle()` içindeki çağrısı silinebilir.
-- **`avansHareketler`**: Tanımlı ama backend tablosu yok, boş array olarak kalır. `kardagilim.js` bu durumu tolere eder.
+- **`avansHareketler`**: `avans_hareketler` tablosu DB'de mevcut, henüz veri girilmedi. `kardagilim.js` boş array'i tolere eder.
 - **Stok modülü**: `stokEkle()` / `stokHareket()` placeholder'lar — aktif değil.
