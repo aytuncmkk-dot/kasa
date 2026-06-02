@@ -69,7 +69,7 @@ function renderKarDagilim(){
     var kalanHak=hakEdilen-cekilen-netAvans;
     html+='<div style="background:#fff;border:1px solid #e0e0db;border-radius:10px;padding:12px">';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
-    html+='<div style="font-size:13px;font-weight:700">'+o.ad+'</div>';
+    html+='<div style="font-size:13px;font-weight:700">'+htmlEsc(o.ad)+'</div>';
     html+='<div style="font-size:11px;color:#888;background:#f5f5f3;padding:2px 8px;border-radius:10px">%'+o.hisse_yuzdesi+'</div></div>';
     html+='<div style="background:#E6F1FB;border-radius:7px;padding:8px;margin-bottom:8px">';
     html+='<div style="font-size:10px;color:#0C447C;margin-bottom:2px">HAK EDİŞ <span style="color:#888;font-weight:400">(dağıtılabilir kardan)</span></div>';
@@ -86,7 +86,7 @@ function renderKarDagilim(){
   if(donemOdemeler.length){
     html+='<div class="tw"><table><thead><tr><th>Tarih</th><th>Ortak</th><th style="text-align:right">Tutar</th><th>Açıklama</th></tr></thead><tbody>';
     html+=donemOdemeler.sort(function(a,b){return b.tarih.localeCompare(a.tarih);}).map(function(k){
-      return '<tr><td>'+fmtT(k.tarih)+'</td><td>'+(k.firma||'-')+'</td><td style="text-align:right;color:#1D9E75">'+para(k.tutar)+'</td><td>'+(k.aciklama||'-')+'</td></tr>';
+      return '<tr><td>'+fmtT(k.tarih)+'</td><td>'+htmlEsc(k.firma||'-')+'</td><td style="text-align:right;color:#1D9E75">'+para(k.tutar)+'</td><td>'+htmlEsc(k.aciklama||'-')+'</td></tr>';
     }).join('');
     html+='</tbody></table></div>';
   }

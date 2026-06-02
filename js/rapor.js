@@ -37,7 +37,7 @@ function accordionSatir(uid, baslik, toplam, oran, renk, detaylar){
   var d='';
   detaylar.forEach(function(item){
     d+='<div style="display:flex;justify-content:space-between;padding:6px 14px 6px 36px;border-bottom:1px solid #f0f0ec">'+
-      '<span style="font-size:12px;color:#666">'+item.key+'</span>'+
+      '<span style="font-size:12px;color:#666">'+htmlEsc(item.key)+'</span>'+
       '<div style="display:flex;gap:10px">'+
         '<span style="font-size:11px;color:#aaa">%'+item.pct+'</span>'+
         '<span style="font-size:12px;font-weight:500;color:'+renk+'">'+para(item.val)+'</span>'+
@@ -174,7 +174,7 @@ function renderRapor(){
       var v=dagOrtaklar[ad];
       var oran=totGelir>0?((v/totGelir)*100).toFixed(1):0;
       dagIcerik+='<div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f0f0ec">'+
-        '<span style="font-size:13px;color:#444">'+ad+'</span>'+
+        '<span style="font-size:13px;color:#444">'+htmlEsc(ad)+'</span>'+
         '<div style="display:flex;gap:12px"><span style="font-size:11px;color:#888">%'+oran+'</span>'+
         '<span style="font-weight:500;color:#1e40af">'+para(v)+'</span></div></div>';
     });

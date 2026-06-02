@@ -104,14 +104,14 @@ function incelemeRender(liste){
     html += '<tr class="inc-row '+turSinif+'">'+
       '<td class="inc-tarih-col"><div class="inc-gun">'+gun+'</div><div class="inc-ay">'+ay+'</div></td>'+
       '<td class="inc-aciklama-col">'+
-        '<div class="inc-firma-line">'+(k.firma||'<span class="inc-muted">—</span>')+'</div>'+
+        '<div class="inc-firma-line">'+(k.firma?htmlEsc(k.firma):'<span class="inc-muted">—</span>')+'</div>'+
         '<div class="inc-alt-line">'+
           '<span class="inc-tag inc-tag-'+turTagSinif+'">'+turEtiket+'</span>'+
-          (k.kat?'<span class="inc-sep">·</span><span class="inc-kat">'+k.kat+'</span>':'')+
-          (k.aciklama?'<span class="inc-sep">·</span><span class="inc-desc">'+k.aciklama+'</span>':'')+
+          (k.kat?'<span class="inc-sep">·</span><span class="inc-kat">'+htmlEsc(k.kat)+'</span>':'')+
+          (k.aciklama?'<span class="inc-sep">·</span><span class="inc-desc">'+htmlEsc(k.aciklama)+'</span>':'')+
         '</div>'+
       '</td>'+
-      '<td class="inc-odeme-col"><span class="inc-pill inc-pill-'+odemeKlas(k.odeme)+'">'+(k.odeme||'-')+'</span></td>'+
+      '<td class="inc-odeme-col"><span class="inc-pill inc-pill-'+odemeKlas(k.odeme)+'">'+htmlEsc(k.odeme||'-')+'</span></td>'+
       '<td class="inc-tutar-col '+(isGelir?'inc-pos':isDagitim?'inc-dag':'inc-neg')+'">'+(isGelir?'+':'−')+' '+para(k.tutar)+'</td>'+
       '<td class="inc-islem-col">'+
         '<button class="inc-btn inc-btn-edit" onclick="incelemeDuzenle('+k.id+')" title="Düzenle">✎</button>'+

@@ -74,7 +74,7 @@ function renderFon(){
       '<td>'+fmtT(h.tarih)+'</td>'+
       '<td><span class="badge" style="background:'+(isG?'#E1F5EE':'#FAECE7')+';color:'+(isG?'#0F6E56':'#993C1D')+'">'+(isG?'Giriş':'Çıkış')+'</span></td>'+
       '<td style="text-align:right;font-weight:500;color:'+(isG?'#1D9E75':'#D85A30')+'">'+para(h.tutar)+'</td>'+
-      '<td style="color:#888">'+(h.aciklama||'-')+'</td>'+
+      '<td style="color:#888">'+htmlEsc(h.aciklama||'-')+'</td>'+
       '<td style="text-align:right;color:#185FA5;font-weight:500">'+para(cumBakiye)+'</td>'+
       '<td style="text-align:right;white-space:nowrap">'+
         '<button onclick="fonDuzenle('+h.id+')" style="background:none;border:none;cursor:pointer;color:#185FA5;font-size:12px;padding:2px 6px;border-radius:4px" title="Düzenle">✏️</button>'+

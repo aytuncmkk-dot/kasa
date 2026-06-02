@@ -65,10 +65,10 @@ function renderFaturalar(){
     var vadeGec=bek&&f.vade&&f.vade<today;
     return '<tr>'+
       '<td>'+fmtT(f.tarih)+'</td>'+
-      '<td><strong>'+f.firma+'</strong></td>'+
-      '<td style="color:#888">'+(f.fatura_no||'-')+'</td>'+
-      '<td style="color:#666;font-size:11px">'+(f.kat||'-')+'</td>'+
-      '<td style="color:#888;font-size:11px">'+(f.aciklama||'-')+'</td>'+
+      '<td><strong>'+htmlEsc(f.firma)+'</strong></td>'+
+      '<td style="color:#888">'+htmlEsc(f.fatura_no||'-')+'</td>'+
+      '<td style="color:#666;font-size:11px">'+htmlEsc(f.kat||'-')+'</td>'+
+      '<td style="color:#888;font-size:11px">'+htmlEsc(f.aciklama||'-')+'</td>'+
       '<td style="color:'+(vadeGec?'#D85A30':'#888')+'">'+(f.vade?fmtT(f.vade)+(vadeGec?' (GEÇTİ)':''):'-')+'</td>'+
       '<td><span class="badge" style="background:'+(bek?'#FAECE7':'#E1F5EE')+';color:'+(bek?'#993C1D':'#0F6E56')+'">'+( bek?'Bekliyor':'Ödendi')+'</span></td>'+
       '<td style="text-align:right;font-weight:500;color:#D85A30">'+para(f.tutar)+'</td>'+

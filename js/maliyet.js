@@ -180,7 +180,7 @@ function renderMaliyet() {
         sortedKeys.forEach(function(key) {
           var pct = v > 0 ? ((kayitGruplar[key] / v) * 100).toFixed(0) : 0;
           html += '<div style="display:flex;justify-content:space-between;padding:4px 12px 4px 28px;font-size:11px;color:#777">' +
-            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + key + '</span>' +
+            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + htmlEsc(key) + '</span>' +
             '<div style="display:flex;gap:8px">' +
               '<span style="color:#ccc">%' + pct + '</span>' +
               '<span style="color:' + g.renk + '">' + para(kayitGruplar[key]) + '</span>' +
@@ -235,7 +235,7 @@ function renderMaliyet() {
         sortedKeys.forEach(function(key){
           var pct = v > 0 ? ((kayitGruplar[key]/v)*100).toFixed(0) : 0;
           doHtml += '<div style="display:flex;justify-content:space-between;padding:4px 12px 4px 28px;font-size:11px;color:#777">' +
-            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + key + '</span>' +
+            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">' + htmlEsc(key) + '</span>' +
             '<div style="display:flex;gap:8px"><span style="color:#ccc">%' + pct + '</span>' +
             '<span style="color:' + doRenk + '">' + para(kayitGruplar[key]) + '</span></div>' +
           '</div>';

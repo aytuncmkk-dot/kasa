@@ -125,7 +125,7 @@ function gunlukSatisRender(){
     var gun = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'][new Date(s.tarih).getDay()];
     var dagCell = s.dag > 0
       ? '<div style="font-weight:600;color:#7c3aed">'+para(s.dag)+'</div>'
-        +(s.dagKisiler.length ? '<div style="font-size:10px;color:#9ca3af">'+s.dagKisiler.join(', ')+'</div>' : '')
+        +(s.dagKisiler.length ? '<div style="font-size:10px;color:#9ca3af">'+s.dagKisiler.map(function(n){return htmlEsc(n);}).join(', ')+'</div>' : '')
       : '<span style="color:#d1d5db">—</span>';
     html += '<tr style="border-bottom:1px solid #f3f4f6;cursor:pointer" onclick="gsGunuAc(\''+s.tarih+'\')">'+
       '<td style="padding:10px 12px"><div style="font-weight:600">'+tarihStr+'</div><div style="font-size:11px;color:#6b7280">'+gun+'</div></td>'+

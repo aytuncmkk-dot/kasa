@@ -59,7 +59,7 @@ function renderFinansAnaliz(){
     var topKat=0;ayList.forEach(function(ay){topKat+=(aylar[ay].gider[kat]||0);});
     var ortOran=topGelirTum>0?(topKat/topGelirTum*100).toFixed(1):0;
     var yuksek=parseFloat(ortOran)>15;
-    mal2+="<tr style=\"border-bottom:1px solid #f0f0ec"+(yuksek?";background:#FEF9E7":"")+"\">"+"<td style=\"padding:8px 0;font-weight:"+(yuksek?"600":"400")+"\">"+kat+(yuksek?" ⚠️":"")+"</td>";
+    mal2+="<tr style=\"border-bottom:1px solid #f0f0ec"+(yuksek?";background:#FEF9E7":"")+"\">"+"<td style=\"padding:8px 0;font-weight:"+(yuksek?"600":"400")+"\">"+htmlEsc(kat)+(yuksek?" ⚠️":"")+"</td>";
     ayList.forEach(function(ay){
       var v=aylar[ay].gider[kat]||0;
       var oran=aylar[ay].gelir>0?(v/aylar[ay].gelir*100).toFixed(1):0;

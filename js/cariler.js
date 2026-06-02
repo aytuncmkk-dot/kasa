@@ -423,14 +423,7 @@ async function topluOtoEslestir(){
 }
 
 // ---------- HELPERS ----------
-function htmlEsc(s){
-  if(s==null) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function jsEsc(s){
-  if(s==null) return '';
-  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
-}
+// htmlEsc ve jsEsc utils.js'te tanımlı — burada tekrar tanımlanmaz
 
 // ---------- FATURALARDAN TOPLU CARİ OLUŞTUR (önizlemeli) ----------
 

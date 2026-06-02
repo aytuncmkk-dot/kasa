@@ -308,7 +308,7 @@ async function duzKaydet(){
   var __eskiKayit = kayitlar.find(function(k){return k.id===_duzId;});
   var r=await dbPatch('kayitlar','id',_duzId,gunc);
   var _aciklama = window._duzKaynak === 'denetim' ? 'Kayıt güncellendi (denetim ekranından)' : 'Kayıt güncellendi';
-  try{ await auditYaz('GUNCELLE','kayitlar',_duzId,__eskiKayit,gunc,_aciklama); }catch(e){}
+  try{ await auditLog('GUNCELLE','kayitlar',_duzId,__eskiKayit,gunc,_aciklama); }catch(e){}
   window._duzKaynak = null;
   if(!r.ok){alert('Güncelleme hatası!');return;}
   var idx=kayitlar.findIndex(function(x){return x.id==_duzId;});
@@ -354,10 +354,10 @@ function renderKasa(){
     return '<tr>'+
       '<td style="white-space:nowrap">'+fmtT(k.tarih)+'</td>'+
       '<td><span class="badge" style="background:'+turBg+';color:'+turRenk+'">'+turEtiket+'</span></td>'+
-      '<td style="color:#666;font-size:11px" title="'+(k.kat||'')+'">'+(k.kat||'')+'</td>'+
-      '<td title="'+(k.firma||'')+'">'+(k.firma||'')+'</td>'+
-      '<td><span class="badge '+odmClass+'">'+(k.odeme||'-')+'</span></td>'+
-      '<td style="color:#888;font-size:11px" title="'+(k.aciklama||'')+'">'+(k.aciklama||'')+'</td>'+
+      '<td style="color:#666;font-size:11px" title="'+htmlEsc(k.kat||'')+'">'+htmlEsc(k.kat||'')+'</td>'+
+      '<td title="'+htmlEsc(k.firma||'')+'">'+htmlEsc(k.firma||'')+'</td>'+
+      '<td><span class="badge '+odmClass+'">'+htmlEsc(k.odeme||'-')+'</span></td>'+
+      '<td style="color:#888;font-size:11px" title="'+htmlEsc(k.aciklama||'')+'">'+htmlEsc(k.aciklama||'')+'</td>'+
       '<td style="text-align:center;color:#888">'+(k.kisi_sayisi>0?k.kisi_sayisi:'')+'</td>'+
       '<td style="text-align:right;font-weight:500;color:'+(isGelir?'#1D9E75':isDagitim?'#1e40af':'#D85A30')+'">'+(isGelir?'+ ':'-  ')+para(k.tutar)+'</td>'+
       '<td><button class="edit-btn" onclick="kasaDuzenle('+k.id+')" title="Düzenle">✎</button></td>'+

@@ -29,3 +29,14 @@ function setBag(ok){
   document.getElementById('conn-txt').textContent=ok?'Bağlı':'Bağlantı yok';
 }
 
+// HTML güvenlik yardımcıları — XSS önlemi
+// Tüm modüllerin erişebilmesi için utils.js'te tanımlanır
+function htmlEsc(s){
+  if(s==null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function jsEsc(s){
+  if(s==null) return '';
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+}
+

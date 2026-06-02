@@ -17,7 +17,7 @@ async function denetimKayitAc(kayitId){
 
 async function auditYukle(){
   try{
-    auditLoglar = await dbGet('audit_log', '?order=islem_zamani.desc&limit=1000');
+    auditLoglar = await dbGet('audit_log', 'order=islem_zamani.desc&limit=1000');
   }catch(e){
     console.error('Audit yukleme hatasi:', e);
     auditLoglar = [];
@@ -56,7 +56,7 @@ async function renderDenetim(){
     return;
   }
   try {
-    var logs = await dbGet('audit_log?order=islem_zamani.desc&limit=500');
+    var logs = await dbGet('audit_log', 'order=islem_zamani.desc&limit=500');
     if(!logs || !logs.length){
       document.getElementById('denetim-icerik').innerHTML='<div class="empty">Henuz denetim kaydi yok.</div>';
       return;
@@ -91,10 +91,10 @@ async function renderDenetim(){
       }
       html += '<tr>';
       html += '<td style="font-size:11px;color:#666">'+tStr+(kayitTarih?'<div style="font-size:10px;color:#3b82f6;margin-top:1px">Kayıt: '+kayitTarih+'</div>':'')+'</td>';
-      html += '<td style="font-size:11px">'+l.kullanici_email+'</td>';
-      html += '<td><span style="background:'+islemRenk+';color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600">'+l.islem_tipi+'</span></td>';
-      html += '<td style="font-size:11px;color:#666">'+l.tablo_adi+'</td>';
-      html += '<td style="font-size:12px">'+detay+'</td>';
+      html += '<td style="font-size:11px">'+htmlEsc(l.kullanici_email)+'</td>';
+      html += '<td><span style="background:'+islemRenk+';color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600">'+htmlEsc(l.islem_tipi)+'</span></td>';
+      html += '<td style="font-size:11px;color:#666">'+htmlEsc(l.tablo_adi)+'</td>';
+      html += '<td style="font-size:12px">'+htmlEsc(detay)+'</td>';
       html += '<td style="text-align:center">'+islemBtn+'</td>';
       html += '</tr>';
     });
