@@ -35,9 +35,9 @@ async function yukle(){
 async function otomatikDagitimMigrasyonu(){
   var eskiler=kayitlar.filter(function(k){return k.tur==='gider'&&k.kat==='Ortaklara Ödenen';});
   if(!eskiler.length)return;
-  var H=Object.assign({},getSBH(),{'Prefer':'return=minimal'});
-  await fetch(SB_URL+'/rest/v1/kayitlar?kat=eq.'+encodeURIComponent('Ortaklara Ödenen')+'&tur=eq.gider',{method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})});
-  await fetch(SB_URL+'/rest/v1/kategoriler?ad=eq.'+encodeURIComponent('Ortaklara Ödenen'),{method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})});
+  var EK={'Prefer':'return=minimal'};
+  await sbFetch(SB_URL+'/rest/v1/kayitlar?kat=eq.'+encodeURIComponent('Ortaklara Ödenen')+'&tur=eq.gider',{method:'PATCH',body:JSON.stringify({tur:'dagitim'})},EK);
+  await sbFetch(SB_URL+'/rest/v1/kategoriler?ad=eq.'+encodeURIComponent('Ortaklara Ödenen'),{method:'PATCH',body:JSON.stringify({tur:'dagitim'})},EK);
   eskiler.forEach(function(k){k.tur='dagitim';});
   // Kategori listelerini de güncelle
   var katiOrtaklar=dagitimKatlar.find(function(k){return k.ad==='Ortaklara Ödenen';});
@@ -192,14 +192,14 @@ async function migrasyonCalistir(){
   var btn=document.getElementById('migrasyon-btn');
   if(btn){btn.disabled=true;btn.textContent='Çalışıyor...';}
   try{
-    var H=Object.assign({},getSBH(),{'Prefer':'return=representation'});
-    var r1=await fetch(
+    var EK={'Prefer':'return=representation'};
+    var r1=await sbFetch(
       SB_URL+'/rest/v1/kategoriler?ad=eq.'+encodeURIComponent('Ortaklara Ödenen'),
-      {method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})}
+      {method:'PATCH',body:JSON.stringify({tur:'dagitim'})},EK
     );
-    var r2=await fetch(
+    var r2=await sbFetch(
       SB_URL+'/rest/v1/kayitlar?kat=eq.'+encodeURIComponent('Ortaklara Ödenen')+'&tur=eq.gider',
-      {method:'PATCH',headers:H,body:JSON.stringify({tur:'dagitim'})}
+      {method:'PATCH',body:JSON.stringify({tur:'dagitim'})},EK
     );
     if(!r1.ok||!r2.ok){alert('Hata: kategoriler='+r1.status+', kayıtlar='+r2.status);return;}
     var guncellenen=await r2.json();

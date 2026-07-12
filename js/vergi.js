@@ -476,12 +476,12 @@ function renderVergiMutabakat() {
 // ── AYAR CRUD ─────────────────────────────────────────────────
 
 async function vAyarKaydet(anahtar, deger) {
-  var H = Object.assign({}, getSBH(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' });
+  var EK = { 'Prefer': 'resolution=merge-duplicates,return=minimal' };
   try {
-    await fetch(SB_URL + '/rest/v1/vergi_ayarlar', {
-      method: 'POST', headers: H,
+    await sbFetch(SB_URL + '/rest/v1/vergi_ayarlar', {
+      method: 'POST',
       body: JSON.stringify({ anahtar: anahtar, deger: String(deger), updated_at: new Date().toISOString() })
-    });
+    }, EK);
     if (!window._vAyarCache) window._vAyarCache = {};
     window._vAyarCache[anahtar] = String(deger);
   } catch (e) {

@@ -68,50 +68,47 @@ function uyumFaturaYapilandir(csvRow) {
 // Kasa kayıtlarında eşleşen gider ara
 // Fuzzy match: ±7 gün, %1 tutar toleransı
 // -----------------------------------------------
+// VERİ BÜTÜNLÜĞÜ: hata artık YUTULMUYOR. Eskiden 401/ağ hatası boş dizi dönüyordu →
+// "kasada eşleşme yok" sanılıp mükerrer gider kaydı açılabiliyordu.
+// Artık hata fırlatılır; çağıran (uyumSonrakiFatura) yüklemeyi durdurur.
 async function uyumKasaEslesenAra(fatura) {
-  try {
-    const baslangic = new Date(fatura.tarih);
-    baslangic.setDate(baslangic.getDate() - 7);
-    const bitis = new Date(fatura.tarih);
-    bitis.setDate(bitis.getDate() + 7);
-    
-    const bas = ldStr(baslangic);
-    const bit = ldStr(bitis);
-    
-    const alanlar = 'id,tarih,firma,tutar,odeme,aciklama,fatura_id';
-    const url = `${SB_URL}/rest/v1/kayitlar?select=${alanlar}&tur=eq.gider&tarih=gte.${bas}&tarih=lte.${bit}`;
-    
-    const res = await fetch(url, { headers: getSBH() });
-    if (!res.ok) return [];
-    
-    const data = await res.json();
-    // Tutar toleransı: %1
-    const tolerans = Math.max(fatura.tutar * 0.01, 1);
-    
-    return data.filter(k => {
-      const fark = Math.abs(parseFloat(k.tutar) - fatura.tutar);
-      return fark <= tolerans;
-    });
-  } catch (e) {
-    console.error('Eşleşme arama hatası:', e);
-    return [];
-  }
+  const baslangic = new Date(fatura.tarih);
+  baslangic.setDate(baslangic.getDate() - 7);
+  const bitis = new Date(fatura.tarih);
+  bitis.setDate(bitis.getDate() + 7);
+
+  const bas = ldStr(baslangic);
+  const bit = ldStr(bitis);
+
+  const alanlar = 'id,tarih,firma,tutar,odeme,aciklama,fatura_id';
+  const url = `${SB_URL}/rest/v1/kayitlar?select=${alanlar}&tur=eq.gider&tarih=gte.${bas}&tarih=lte.${bit}`;
+
+  const res = await sbFetch(url, null, null);
+  if (!res.ok) throw new Error('Kasa eşleşme araması başarısız: ' + res.status);
+
+  const data = await res.json();
+  // Tutar toleransı: %1
+  const tolerans = Math.max(fatura.tutar * 0.01, 1);
+
+  return data.filter(k => {
+    const fark = Math.abs(parseFloat(k.tutar) - fatura.tutar);
+    return fark <= tolerans;
+  });
 }
 
 // -----------------------------------------------
 // ETTN zaten var mı kontrol (kesin duplicate)
 // -----------------------------------------------
+// VERİ BÜTÜNLÜĞÜ: null SADECE "bu ETTN veritabanında yok" demektir.
+// Hata (401/ağ/5xx) durumunda null DÖNMEZ, fırlatır — aksi halde çağıran
+// "duplicate yok" sanıp aynı faturayı ikinci kez yazardı.
 async function uyumEttnVarMi(ettn) {
   if (!ettn) return null;
-  try {
-    const url = `${SB_URL}/rest/v1/faturalar?select=id,firma,tarih,tutar&ettn=eq.${encodeURIComponent(ettn)}`;
-    const res = await fetch(url, { headers: getSBH() });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.length > 0 ? data[0] : null;
-  } catch (e) {
-    return null;
-  }
+  const url = `${SB_URL}/rest/v1/faturalar?select=id,firma,tarih,tutar&ettn=eq.${encodeURIComponent(ettn)}`;
+  const res = await sbFetch(url, null, null);
+  if (!res.ok) throw new Error('ETTN mükerrer kontrolü başarısız: ' + res.status);
+  const data = await res.json();
+  return data.length > 0 ? data[0] : null;
 }
 
 // -----------------------------------------------
@@ -134,29 +131,35 @@ async function uyumFaturaKaydet(fatura, kasaKayitId) {
     aciklama: `${fatura.fatura_tipi} / ${fatura.senaryo}`.trim()
   };
   
-  const res = await fetch(`${SB_URL}/rest/v1/faturalar`, {
+  const res = await sbFetch(`${SB_URL}/rest/v1/faturalar`, {
     method: 'POST',
-    headers: { ...getSBH(), 'Prefer': 'return=representation' },
     body: JSON.stringify(payload)
-  });
-  
+  }, { 'Prefer': 'return=representation' });
+
   if (!res.ok) {
     const hata = await res.text();
     throw new Error(hata);
   }
-  
+
   const yeni = await res.json();
   const faturaId = Array.isArray(yeni) ? yeni[0].id : yeni.id;
-  
+
   // Eğer kasa kaydı ile eşleştirilmişse, kayıtta da fatura_id'yi güncelle
+  // VERİ BÜTÜNLÜĞÜ: res.ok kontrol edilir. 4xx dönerse bağ KURULMAMIŞTIR —
+  // sessizce "eşleştirildi" saymak yerine hata fırlatılır. Hata nesnesine
+  // faturaId iliştirilir ki çağıran yarım kalan fatura satırını geri alabilsin.
   if (kasaKayitId && faturaId) {
-    await fetch(`${SB_URL}/rest/v1/kayitlar?id=eq.${kasaKayitId}`, {
+    var pRes = await sbFetch(`${SB_URL}/rest/v1/kayitlar?id=eq.${kasaKayitId}`, {
       method: 'PATCH',
-      headers: getSBH(),
       body: JSON.stringify({ fatura_id: faturaId })
-    });
+    }, null);
+    if (!pRes.ok) {
+      var pErr = new Error('Kasa kaydına fatura bağı yazılamadı (HTTP ' + pRes.status + ')');
+      pErr.faturaId = faturaId;
+      throw pErr;
+    }
   }
-  
+
   // Audit log
   if (typeof auditLog === 'function') {
     auditLog('fatura_eklendi', 'faturalar', faturaId, null, payload);
@@ -179,26 +182,33 @@ async function uyumKasaGiderEkle(fatura, faturaId) {
     fatura_id: faturaId
   };
   
-  const res = await fetch(`${SB_URL}/rest/v1/kayitlar`, {
+  const res = await sbFetch(`${SB_URL}/rest/v1/kayitlar`, {
     method: 'POST',
-    headers: { ...getSBH(), 'Prefer': 'return=representation' },
     body: JSON.stringify(payload)
-  });
-  
+  }, { 'Prefer': 'return=representation' });
+
   if (!res.ok) throw new Error(await res.text());
-  
+
   const yeni = await res.json();
   const kayitId = Array.isArray(yeni) ? yeni[0].id : yeni.id;
-  
+
   // Faturayı ödendi olarak işaretle
+  // VERİ BÜTÜNLÜĞÜ: res.ok kontrol edilir. Bu noktada kasa gideri ZATEN YAZILDI —
+  // hata nesnesine kayitOlustu bayrağı iliştirilir; çağıran faturayı GERİ ALMAMALIDIR
+  // (alırsa gider kaydı öksüz fatura_id ile kalır).
   if (kayitId && faturaId) {
-    await fetch(`${SB_URL}/rest/v1/faturalar?id=eq.${faturaId}`, {
+    var fRes = await sbFetch(`${SB_URL}/rest/v1/faturalar?id=eq.${faturaId}`, {
       method: 'PATCH',
-      headers: getSBH(),
       body: JSON.stringify({ odendi_mi: true, odeme_kayit_id: kayitId })
-    });
+    }, null);
+    if (!fRes.ok) {
+      var fErr = new Error('Fatura "ödendi" işareti güncellenemedi (HTTP ' + fRes.status + ')');
+      fErr.kayitOlustu = true;
+      fErr.kayitId = kayitId;
+      throw fErr;
+    }
   }
-  
+
   if (typeof auditLog === 'function') {
     auditLog('kayit_eklendi', 'kayitlar', kayitId, null, payload);
   }
@@ -267,6 +277,121 @@ async function uyumDosyaSec() {
 }
 
 // -----------------------------------------------
+// Güvenli durdurma: duplicate kontrolü yapılamadığında yüklemeyi kes
+// (sessizce devam edip mükerrer kayıt yazmaktansa dur)
+// -----------------------------------------------
+function uyumYuklemeDurdur(neden, fatura, e, ekNot) {
+  uyumState.sonuc.hata++;
+  var mesaj = (e && e.message) ? e.message : String(e);
+  var no = (fatura && fatura.fatura_no) ? fatura.fatura_no : '(no yok)';
+  alert('❌ ' + neden + ' — yükleme durduruldu.\n\n' +
+    'Fatura: ' + no + '\n' +
+    'Hata: ' + mesaj + '\n\n' +
+    (ekNot ? (ekNot + '\n\n') : '') +
+    'Aynı faturanın ikinci kez yazılmaması için işlem durduruldu. ' +
+    'Oturum/bağlantı düzeldikten sonra CSV\'yi yeniden yükleyin.');
+  uyumSonucGoster();
+}
+
+// -----------------------------------------------
+// Modal kapat (yardımcı)
+// -----------------------------------------------
+function uyumModalKapat() {
+  var m = document.getElementById('uyumModal');
+  if (m) m.remove();
+}
+
+// -----------------------------------------------
+// GERİ ALMA: SADECE bu işlemde YENİ oluşturulmuş fatura satırını siler.
+// ⚠ Tek satır, ID ile. Toplu/filtreli silme YOK.
+// Dönüş: true = geri alındı, false = geri alınamadı (elle müdahale gerekir)
+// -----------------------------------------------
+async function uyumFaturaGeriAl(faturaId) {
+  if (faturaId === null || faturaId === undefined || faturaId === '') return false;
+  try {
+    var res = await sbFetch(`${SB_URL}/rest/v1/faturalar?id=eq.${encodeURIComponent(String(faturaId))}`, {
+      method: 'DELETE'
+    }, null);
+    if (!res.ok) return false;
+    if (typeof auditLog === 'function') {
+      auditLog('fatura_geri_alindi', 'faturalar', faturaId, null, { neden: 'kasa gideri yazilamadi - yarim kayit geri alindi' });
+    }
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+// -----------------------------------------------
+// YARIM KAYIT: geri alınamadı ya da geri alınmamalı.
+// Yüklemeyi durdurur ve kullanıcıdan ELLE kontrol ister.
+// -----------------------------------------------
+function uyumYarimKaldiUyar(fatura, faturaId, kayitId, e) {
+  uyumState.sonuc.hata++;
+  var mesaj = (e && e.message) ? e.message : String(e);
+  var no = (fatura && fatura.fatura_no) ? fatura.fatura_no : '(no yok)';
+  var detay;
+  if (kayitId) {
+    detay = 'Fatura ve kasa kaydı VAR, ama aralarındaki "ödendi/fatura" bağı kurulamadı.\n' +
+      'Fatura sekmesinden bu faturayı ilgili kasa kaydıyla ELLE eşleştir.';
+  } else {
+    detay = 'Fatura yazıldı ama kasa gideri YAZILAMADI ve fatura otomatik geri alınamadı.\n' +
+      'Bu faturayı Fatura sekmesinden ELLE sil, ya da gideri Kasa\'ya ELLE gir.\n' +
+      'Aksi halde defterde bu gider EKSİK kalır ve CSV yeniden yüklendiğinde fatura "zaten kayıtlı" sayılıp atlanır.';
+  }
+  alert('🔴 YARIM KAYIT — ELLE KONTROL GEREKİYOR\n\n' +
+    'Fatura: ' + no + '\n' +
+    'faturalar.id: ' + faturaId + '\n' +
+    (kayitId ? ('kayitlar.id: ' + kayitId + '\n') : '') +
+    'Hata: ' + mesaj + '\n\n' +
+    detay + '\n\n' +
+    'Yükleme durduruldu.');
+  uyumSonucGoster();
+}
+
+// -----------------------------------------------
+// Fatura + yeni kasa gideri — YARIM YAZMA BIRAKMAZ.
+// Gider yazılamazsa, bu işlemde oluşturulan fatura satırı ID ile geri alınır.
+// Dönüş: true = başarılı, false = yükleme durduruldu (currentIdx İLERLETİLMEZ)
+// -----------------------------------------------
+async function uyumFaturaVeGiderYaz(fatura) {
+  var faturaId = null;
+  try {
+    faturaId = await uyumFaturaKaydet(fatura, null);
+  } catch (e) {
+    console.error(e);
+    uyumModalKapat();
+    uyumYuklemeDurdur('Fatura kaydedilemedi', fatura, e,
+      'Bu faturaya ait hiçbir kayıt yazılmadı — defter tutarlı.');
+    return false;
+  }
+
+  try {
+    await uyumKasaGiderEkle(fatura, faturaId);
+  } catch (e) {
+    console.error(e);
+    uyumModalKapat();
+    // Gider kaydı yazıldıysa faturayı SİLME — gider öksüz fatura_id ile kalırdı.
+    if (e && e.kayitOlustu) {
+      uyumYarimKaldiUyar(fatura, faturaId, e.kayitId, e);
+      return false;
+    }
+    var geriAlindi = await uyumFaturaGeriAl(faturaId);
+    if (!geriAlindi) {
+      uyumYarimKaldiUyar(fatura, faturaId, null, e);
+      return false;
+    }
+    uyumYuklemeDurdur('Kasa gideri yazılamadı', fatura, e,
+      'Defterde yarım kayıt kalmaması için bu faturanın kaydı GERİ ALINDI (faturalar #' + faturaId + ' silindi).');
+    return false;
+  }
+
+  uyumState.sonuc.eklendi++;
+  return true;
+}
+
+// -----------------------------------------------
 // Bir sonraki faturayı işle
 // -----------------------------------------------
 async function uyumSonrakiFatura() {
@@ -276,19 +401,34 @@ async function uyumSonrakiFatura() {
   }
   
   const fatura = uyumState.faturalar[uyumState.currentIdx];
-  
+
   // ETTN kontrolü (kesin duplicate)
-  const mevcut = await uyumEttnVarMi(fatura.ettn);
+  // Hata = "duplicate yok" DEĞİLDİR. Kontrol yapılamıyorsa yükleme durdurulur;
+  // aksi halde aynı fatura ikinci kez yazılabilir.
+  var mevcut;
+  try {
+    mevcut = await uyumEttnVarMi(fatura.ettn);
+  } catch (e) {
+    uyumYuklemeDurdur('Mükerrer fatura (ETTN) kontrolü yapılamadı', fatura, e);
+    return;
+  }
   if (mevcut) {
     uyumState.sonuc.zatenVar++;
     uyumState.currentIdx++;
     uyumSonrakiFatura();
     return;
   }
-  
+
   // Kasa'da olası eşleşme var mı?
-  const eslesenler = await uyumKasaEslesenAra(fatura);
-  
+  // Hata = "eşleşme yok" DEĞİLDİR — boş liste mükerrer gider kaydına yol açar.
+  var eslesenler;
+  try {
+    eslesenler = await uyumKasaEslesenAra(fatura);
+  } catch (e) {
+    uyumYuklemeDurdur('Kasa eşleşme araması yapılamadı', fatura, e);
+    return;
+  }
+
   // Modal göster
   uyumModalGoster(fatura, eslesenler);
 }
@@ -419,44 +559,50 @@ async function uyumIslemEslestir() {
   }
   
   const fatura = uyumState.faturalar[uyumState.currentIdx];
-  
-  try {
-    if (secili.value === 'yeni') {
-      // Fatura ekle + yeni kasa gideri oluştur
-      const faturaId = await uyumFaturaKaydet(fatura, null);
-      await uyumKasaGiderEkle(fatura, faturaId);
-      uyumState.sonuc.eklendi++;
-    } else {
-      // Mevcut kasa kaydı ile eşleştir
-      const kasaId = parseInt(secili.value);
+
+  if (secili.value === 'yeni') {
+    // Fatura ekle + yeni kasa gideri oluştur (yarım yazma bırakmaz)
+    var ok = await uyumFaturaVeGiderYaz(fatura);
+    if (!ok) return; // yükleme durduruldu — sonraki faturaya GEÇME
+  } else {
+    // Mevcut kasa kaydı ile eşleştir
+    var kasaId = parseInt(secili.value, 10);
+    try {
       await uyumFaturaKaydet(fatura, kasaId);
-      uyumState.sonuc.esleştirildi++;
+    } catch (e) {
+      console.error(e);
+      uyumModalKapat();
+      if (e && e.faturaId) {
+        // Fatura satırı YAZILDI ama kayitlar.fatura_id bağı kurulamadı → faturayı geri al.
+        // ⚠ Kasa kaydı bize ait değil (kullanıcının mevcut kaydı) — ona ASLA dokunulmaz.
+        var geriAlindi = await uyumFaturaGeriAl(e.faturaId);
+        if (!geriAlindi) {
+          uyumYarimKaldiUyar(fatura, e.faturaId, kasaId, e);
+          return;
+        }
+        uyumYuklemeDurdur('Kasa kaydı fatura ile bağlanamadı', fatura, e,
+          'Defterde yarım bağ kalmaması için fatura kaydı GERİ ALINDI (faturalar #' + e.faturaId + ' silindi). Kasa kaydına dokunulmadı.');
+        return;
+      }
+      uyumYuklemeDurdur('Fatura kaydedilemedi', fatura, e,
+        'Bu faturaya ait hiçbir kayıt yazılmadı — defter tutarlı.');
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    uyumState.sonuc.hata++;
-    alert('❌ Kayıt hatası: ' + e.message);
+    uyumState.sonuc.esleştirildi++;
   }
-  
+
   uyumState.currentIdx++;
-  document.getElementById('uyumModal')?.remove();
+  uyumModalKapat();
   uyumSonrakiFatura();
 }
 
 // Fatura + otomatik yeni gider
 async function uyumIslemYeniGider() {
   const fatura = uyumState.faturalar[uyumState.currentIdx];
-  try {
-    const faturaId = await uyumFaturaKaydet(fatura, null);
-    await uyumKasaGiderEkle(fatura, faturaId);
-    uyumState.sonuc.eklendi++;
-  } catch (e) {
-    console.error(e);
-    uyumState.sonuc.hata++;
-    alert('❌ Kayıt hatası: ' + e.message);
-  }
+  var ok = await uyumFaturaVeGiderYaz(fatura);
+  if (!ok) return; // yükleme durduruldu — sonraki faturaya GEÇME
   uyumState.currentIdx++;
-  document.getElementById('uyumModal')?.remove();
+  uyumModalKapat();
   uyumSonrakiFatura();
 }
 

@@ -21,8 +21,8 @@ var IZINLI_EMAILS = [
 // Global durum
 var mevcutKullanici = null;
 var isAdmin = false;
-// Header obje — db.js tarafından getSBH() içinde kullanılıyor
-var SB_H = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+// SB_H kaldırıldı: anon-yetkili hazır header objesiydi, kullanılmıyordu.
+// Tüm istekler db.js → sbFetch/getSBH üzerinden gider (anon fallback YOK).
 
 
 // State (uygulama verisi)
