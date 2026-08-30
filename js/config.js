@@ -2,6 +2,9 @@
 // CONFIG — Supabase ayarları, sabitler
 // ============================================================
 
+// Kasa defteri arşiv modunda, veri girişi ziyade-yonetim uygulamasından yapılır; geri açmak için false yap.
+var ARSIV_MODU = true;
+
 // Supabase bağlantı bilgileri
 var SB_URL = 'https://yvlstnhwtjacaurgzbxz.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2bHN0bmh3dGphY2F1cmd6Ynh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMzgxODcsImV4cCI6MjA5MTkxNDE4N30.CaiNFoFMGL1oTDBEwuRtKmperfztxhcwtMdNvwa37DY';

@@ -43,6 +43,10 @@ function sbGonder(url,opt,ekHeader){
 // 401 gelirse EN FAZLA 1 kez yenile + tekrar dene; yine 401 ise oturumu düşür.
 // Retry bayrağı yok — ikinci deneme sonrası döngü kapanır, sonsuz döngü imkânsız.
 async function sbFetch(url,opt,ekHeader){
+  if(ARSIV_MODU&&opt&&opt.method&&/^(POST|PATCH|PUT|DELETE)$/i.test(opt.method)){
+    alert('Kasa defteri arşiv modunda — yeni kayıt girişi kapalı. Kayıt girişi ziyade-yonetim uygulamasından yapılır.');
+    throw new Error('Arşiv modu — yazma isteği engellendi.');
+  }
   await sbTokenHazirla();
   var r=await sbGonder(url,opt,ekHeader);
   if(r.status!==401)return r;
