@@ -17,6 +17,17 @@
   zaten a4ed66f ile salt-okunur arşiv moduna alınmıştı. Geri açmak için bu iki dosyayı
   yeniden adlandırmak yeterli. Veri de kaybolmuyor — aynı Supabase veritabanı panelde açık.
 -->
+<script>
+  // 22 Eki 2026 — B planı (havuz 6accfbd7): Supabase panel.ziyadefasil.com dönüş adresini
+  // uygulamıyor, girişi Site URL'e (bu sayfa) düşürüyor. ?code= gelirse panele aktar;
+  // PKCE doğrulayıcısı panel çerezinde, takas orada yapılır. Supabase düzelince kaldırılabilir.
+  (function () {
+    var q = window.location.search;
+    if (/[?&](code|error)=/.test(q)) {
+      window.location.replace('https://panel.ziyadefasil.com/auth/callback' + q);
+    }
+  })();
+</script>
 <style>
   :root { color-scheme: dark; }
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
